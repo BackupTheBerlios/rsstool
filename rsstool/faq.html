@@ -1,0 +1,153 @@
+<html><head>
+<link rel="icon" href="images/icon.png" type="image/png">
+<title>RSStool - FAQ</title></head><body bgcolor="#ffffff"><pre><tt>
+Q1: <a href="#1">How do I compile/build RSStool?</a><br>
+<br>
+Q2: <a href="#2">How do I install RSStool?</a><br>
+<br>
+Q3: <a href="#3">cron + RSStool + MySQL?</a><br>
+<br>
+Q4: <a href="#4">RSStool + TOR?</a><br>
+<br>
+Q5: <a href="#5">Hacks?</a><br>
+<br>
+<br>
+<br>
+<p><!-- <p> instead of <br> to make lynx display a blank line between questions -->
+<a name="1"><b>Q1</b>: How do I compile/build RSStool?</a><br>
+<b>A</b>: cd src && ./configure && make && make install<br>
+<br>
+<p>
+<a name="2"><b>Q2</b>: How do I install uCON64?</a><br>
+<b>A</b>: make install<br>
+<p>
+<a name="3"><b>Q3</b>: cron + RSStool + MySQL?</a><br>
+<b>A</b>: You can use RSStool to store RSS feeds into a database for use in
+your own Apache+PHP+MySQL combo.<br>
+
+First you need to create a database (with phpMyAdmin for example)
+
+Entering (in the cmdline):
+
+rsstool -sql rss.slashdot.org/slashdot/slashdot
+
+...will create a ANSI SQL script that starts like this:
+
+--------------------------------------------------------------
+-- RSStool - read, parse, merge and write RSS (and Atom) feeds
+--------------------------------------------------------------
+
+-- DROP TABLE IF EXISTS `rsstool_table`;
+-- CREATE TABLE IF NOT EXISTS `rsstool_table`
+-- (
+--   `rsstool_dl_url`     text,
+--   `rsstool_dl_date`    int(11),
+--   `rsstool_site`       text,
+--   `rsstool_url`        text,
+--   `rsstool_url_md5`    varchar(32),
+--   `rsstool_url_crc32`  varchar(8),
+--   `rsstool_date`       int(11),
+--   `rsstool_title`      text,
+--   `rsstool_title_md5`  varchar(32),
+--   `rsstool_title_crc32`varchar(8),
+--   `rsstool_desc`       text,
+--   UNIQUE KEY           `rsstool_url_md5` (`rsstool_url_md5`),
+--   UNIQUE KEY           `rsstool_url_crc32` (`rsstool_url_crc32`),
+--   UNIQUE KEY           `rsstool_title_md5` (`rsstool_title_md5`),
+--   UNIQUE KEY           `rsstool_title_crc32` (`rsstool_title_crc32`)
+-- );
+
+remove those '--' and the INSERT statements and create the database
+from the cmdline by entering:
+
+cat <the above output in a text file> | mysql -f -u root -p rssdb
+
+"rssdb" is the name of the empty database you created (with phpMyAdmin for example).
+The -f option together with the UNIQUE KEY's makes sure MySQL doesn't exit
+on duplicate RSS feeds.
+
+When that worked for you (if not send me a mail), you can enter
+
+rsstool -sql rss.slashdot.org/slashdot/slashdot | mysql -f -u root -p rssdb
+
+and the feeds will be in your database afterwards.
+
+I won't explain cron, PHP, or MySQL here.
+<br>
+<p>
+<a name="4"><b>Q4</b>: RSStool + TOR?</a><br>
+<b>A</b>: Install the packages tor and proxychains (Every good distribution should
+have these packages).
+
+Then start rsstool with:
+
+proxychains rsstool -sql rss.slashdot.org/slashdot/slashdot
+
+and you can download the RSS feed a gazillion times (if you're an ass) from sites
+with controlfreaks as admins. Please keep in mind that tor "leaks" when it does
+DNS requests. So entering:
+
+proxychains rsstool -sql 66.150.96.111/slashdot/slashdot
+
+...could fix that leakage problem.
+
+But in general you should be fine w/o using TOR.
+<br>
+<p>
+<a name="5"><b>Q5</b>: Hacks?</a><br>
+<b>A</b>: Yes, RSStool can be compiled with hacks (disabled by default) which generate
+RSS feeds from sites that do not offer RSS feeds.
+
+after running
+
+./configure
+
+edit config.mak and uncomment the lines
+
+#USE_HACKS=1
+#CFLAGS+=-DUSE_HACKS
+
+to
+
+USE_HACKS=1
+CFLAGS+=-DUSE_HACKS
+
+and you'll have hacks enabled.
+<br>
+<p>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+</tt></body></html>

@@ -1,0 +1,571 @@
+#if 0
+#if 0
+#if 0 // configure - create config.mak and config.h
+#if 0
+#if 0 // written by 2005 NoisyB
+#if 0
+#if 0
+cc configure.c -o config.status && ./config.status && exit 0
+gcc configure.c -o config.status && ./config.status && exit 0
+g++ configure.c -o config.status && ./config.status && exit 0
+egcs configure.c -o config.status && ./config.status && exit 0
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+
+
+st_configure_in_t configure_in[] = {
+  {
+    {NULL},
+    {NULL},
+    {NULL},
+#ifdef  __MSDOS__                               // __MSDOS__ must come before __unix__,
+    "MSDOS=1\n",                                 //  because DJGPP defines both
+#elif   defined __unix__
+#ifdef  __CYGWIN__
+    "CYGWIN=1\n",
+#elif   defined __FreeBSD__
+    "FREEBSD=1\n",
+#elif   defined __OpenBSD__
+    "OPENBSD=1\n",
+#elif   defined __linux__
+    "LINUX=1\n",
+#elif   defined __solaris__
+#ifdef __sparc__
+    "SOLARIS_SPARC=1\n",
+#else
+    "SOLARIS_I386=1\n",
+#endif
+#else
+    "GENERIC_UNIX=1\n",
+#endif
+#elif   defined _WIN32
+#ifdef  __MINGW32__
+    "MINGW=1\n",
+#else
+    "WIN32=1\n",
+#endif
+#elif   defined __APPLE__
+#if   defined __POWERPC__ || defined __ppc__
+    "APPLE_PPC=1\n",
+#else
+    "APPLE=1\n",
+#endif
+#elif   defined __BEOS__
+    "BEOS=1\n",
+#elif   defined AMIGA
+#if defined __PPC__
+    "AMIGA_PPC=1\n",
+#else
+    "AMIGA_68K=1\n",
+#endif
+#else
+    "\n",
+#endif
+    NULL,
+    NULL,
+    NULL
+  },
+#ifndef _WIN32
+  {
+    {NULL},
+    {NULL},
+    {"gcc", NULL},
+    "ifndef CC\n"
+    "CC=gcc\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"cc", NULL},
+    "ifndef CC\n"
+    "CC=cc\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"g++", NULL},
+    "ifndef CPP\n"
+    "CPP=g++\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"gpp", NULL},
+    "ifndef CPP\n"
+    "CPP=gpp\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"gmake", NULL},
+    NULL,
+    NULL,
+    "*** if make fails you may try gmake instead",
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"/usr/local/include", NULL},
+    "ifndef includedir\n"
+    "includedir=/usr/local/include\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"/usr/include", NULL},
+    "ifndef includedir\n"
+    "includedir=/usr/include\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+#endif // _WIN32
+#ifndef _WIN32
+  {
+    {NULL},
+    {NULL},
+    {"/usr/local/lib", NULL},
+    "ifndef libdir\n"
+    "libdir=/usr/local/lib\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"/usr/lib", NULL},
+    "ifndef libdir\n"
+    "libdir=/usr/lib\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {NULL},
+    "ifndef DESTDIR\n"
+    "DESTDIR=\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"/usr/local/bin", NULL},
+    "ifndef BINDIR\n"
+    "BINDIR=/usr/local/bin\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"/usr/bin", NULL},
+    "ifndef BINDIR\n"
+    "BINDIR=/usr/bin\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"/usr/bin/install", NULL},
+    "ifndef INSTALL\n" 
+    "INSTALL=/usr/bin/install -D\n"
+    "INSTALL_PROGRAM=${INSTALL}\n"
+    "INSTALL_DATA=${INSTALL} -m 644\n"
+    "endif",
+    NULL,
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {"install", NULL},
+    "ifndef INSTALL\n"
+    "INSTALL=install -D\n"
+    "INSTALL_PROGRAM=${INSTALL}\n"
+    "INSTALL_DATA=${INSTALL} -m 644\n"
+    "endif\n",
+    NULL,
+    NULL,
+    NULL
+  },
+#endif
+#if 0
+  {
+    {NULL},
+    {NULL},
+    {NULL},
+    NULL,
+    "#define DEBUG\n",
+    NULL,
+    NULL
+  },
+#endif
+  {
+    {NULL},
+    {NULL},
+    {NULL},
+    NULL,
+    "#define USE_MD5\n",
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {NULL},
+    NULL,
+    "#define USE_CRC\n",
+    NULL,
+    NULL
+  },
+#if 0
+  // enable dynamic loading of library
+  {
+    {NULL},
+    {NULL},
+    {NULL},
+    "DLOPEN=1",
+    "#define DLOPEN\n",
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {NULL},
+    NULL,
+    "#define USE_ANSI_COLOR\n",
+    "ANSI support......................   yes",
+    "ANSI support......................   no"
+  },
+#endif
+  {
+    {NULL},
+    {NULL},
+    {NULL},
+    "USE_BASE64=1",
+    "#define USE_BASE64\n",
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {"inttypes.h", NULL},
+    {NULL},
+    NULL,
+    "#define HAVE_INTTYPES_H 1\n",
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {"byteswap.h", NULL},
+    {NULL},
+    NULL,
+    "#define HAVE_BYTESWAP_H 1\n",
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {"stdlib.h", NULL},
+    {NULL},
+    NULL,
+    "#define HAVE_STDLIB_H 1\n",
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {"unistd.h", NULL},
+    {NULL},
+    NULL,
+    "#define HAVE_UNISTD_H 1\n",
+    NULL,
+    NULL
+  },
+  {
+    {NULL},
+    {"dirent.h", NULL},
+    {NULL},
+    NULL,
+    "#define HAVE_DIRENT_H 1\n",
+    NULL,
+    NULL
+  },
+#if 0
+  {
+    {NULL},
+    {"math.h", NULL},
+    {NULL},
+    "USE_MATH=1\n"
+    "LDFLAGS+=-lm\n",
+    "#define HAVE_MATH_H 1\n",
+    NULL,
+    NULL
+  },
+#endif
+  {
+    {NULL},
+    {"errno.h", NULL},
+    {NULL},
+    NULL,
+    "#define HAVE_ERRNO_H 1\n",
+    NULL,
+    NULL
+  },
+#if 0
+  {
+    {NULL},
+    {"termcap.h", NULL},
+    {NULL},
+    "USE_TERMCAP=1\n"
+    "LDFLAGS+=-ltermcap\n",
+    "#define USE_TERMCAP 1\n",
+    NULL,
+    NULL
+  },
+#endif
+  {
+    {NULL},
+    {"arpa/inet.h", "netdb.h", "netinet/in.h", "sys/file.h", "sys/socket.h", NULL},
+    {NULL},
+    "USE_TCP=1\n",
+    "#define USE_TCP 1\n",
+    "network support...................   yes",
+    "network support...................   no\n"
+    "*** could not find sys/socket.h and probably other files required for\n"
+    "*** network use. Please report this to the developerof this package"
+  },
+#if 0
+  {
+    {"libpthread.so", NULL},
+    {"pthread.h", NULL},
+    {NULL},
+    "USE_THREADS=1\n"
+    "LDFLAGS+=-lpthread\n",
+    "#define USE_TREADS\n",
+    "thread support....................   yes",
+    "thread support....................   no"
+  },
+  {
+    {"libGeoIP.so", NULL},
+    {"GeoIP.h", "GeoIPCity.h", "GeoIPUpdate.h", NULL},
+    {NULL},
+    "USE_GEOIP=1\n",
+    "#define USE_GEOIP\n",
+    "GeoIP support.....................   yes",
+    "GeoIP support.....................   no"
+  },
+#endif
+#if 0
+  {
+    {"libnxml.so", NULL},
+    {"nxml.h", NULL},
+    {NULL},
+    "USE_NXML=1\n"
+    "LDFLAGS+=-lnxml\n",
+    "#define USE_NXML\n",
+    "libnxml support...................   yes",
+    "libnxml support...................   no"
+  },
+#endif
+  {
+    {NULL},
+    {NULL},
+    {"xml2-config", NULL},
+    "ifndef USE_NXML\n"
+    "USE_XML2=1\n"
+    "CFLAGS+=`xml2-config --cflags`\n"
+    "LDFLAGS+=`xml2-config --libs`\n"
+    "endif\n",
+    "#ifndef USE_NXML\n"
+    "#define USE_XML2\n"
+    "#endif\n",
+    "libxml2 support...................   yes",
+    "libxml2 support...................   no"
+  },
+#if 0
+  {
+    {NULL},
+    {"zlib.h", NULL},
+    {NULL},
+    "USE_ZLIB=1\n"
+    "LDFLAGS+=-lz\n",
+    "#define USE_ZLIB 1\n",
+    "zlib support......................   yes",
+    "zlib support......................   no",
+  },
+#endif
+#if 1
+  { 
+    {"libcurl.so", NULL},
+    {"curl/curl.h", NULL},
+    {"curl-config", NULL},
+    "USE_CURL=1\n"  
+    "CFLAGS+=`curl-config --cflags`\n"
+    "LDFLAGS+=`curl-config --libs`\n",
+    "#define USE_CURL\n",
+    "libcurl support...................   yes",
+    "libcurl support...................   no"
+  }, 
+#endif
+#if 0
+  {
+    {"libodbc.so", NULL},
+    {NULL},
+    {NULL},
+    "USE_ODBC=1\n"
+    "LDFLAGS+=-lodbc\n",
+    "#define USE_ODBC\n",
+    "ODBC support......................   yes",
+    "ODBC support......................   no"
+  },
+#endif
+#if 0
+  { 
+    {NULL},
+    {NULL},
+    {"mysql_config", NULL},
+    "USE_MYSQL=1\n"
+    "CFLAGS+=`mysql_config --cflags`\n"
+    "LDFLAGS+=`mysql_config --libs`\n",
+    "#define USE_MYSQL\n",
+    "mySQL support.....................   yes",
+    "mySQL support.....................   no"
+  },
+#endif
+  {
+    {NULL},
+    {NULL},
+    {NULL},
+    "# enable this if you want to use hacks\n"
+    "#USE_HACKS=1\n"
+    "#CFLAGS+=-DUSE_HACKS\n",
+    NULL,
+    "\n*** You may want to edit config.mak to enable hacks",
+    NULL
+  },
+  {
+    {NULL},
+    {NULL},
+    {NULL},
+    "# enable this if you want experimental features that didn't make it into the 1.0.0 release\n"
+    "#USE_POST1_0=1\n"
+    "#CFLAGS+=-DUSE_POST1_0\n",
+    NULL,
+    NULL,
+    NULL
+  },
+  {{NULL}, {NULL}, {NULL}, NULL, NULL, NULL, NULL}
+};
+
+
+const char *lib_dirs[] = {
+#if     (defined __unix__ && !defined __MSDOS__) || defined __BEOS__ || \
+        defined AMIGA || defined __APPLE__      // Mac OS X actually
+// GNU/Linux, Solaris, FreeBSD, OpenBSD, Cygwin, BeOS, Amiga, Mac (OS X)
+  "./",
+  "/usr/lib/",
+  "/usr/local/lib/",
+#else // DJGPP, Win32
+  "c:\\windows\\system\\",
+  "d:\\windows\\system\\",
+  "e:\\windows\\system\\",
+  "f:\\windows\\system\\",
+  "g:\\windows\\system\\",
+  "h:\\windows\\system\\",
+  "c:\\windows\\system32\\",
+  "d:\\windows\\system32\\",
+  "e:\\windows\\system32\\",
+  "f:\\windows\\system32\\",
+  "g:\\windows\\system32\\",
+  "h:\\windows\\system32\\",
+#endif
+  NULL
+};
+
+
+const char *header_dirs[] = {
+#if     (defined __unix__ && !defined __MSDOS__) || defined __BEOS__ || \
+        defined AMIGA || defined __APPLE__      // Mac OS X actually
+// GNU/Linux, Solaris, FreeBSD, OpenBSD, Cygwin, BeOS, Amiga, Mac (OS X)
+  "./",
+  "/usr/include/",
+  "/usr/local/include/",
+  "/usr/local/usr/local/include/",
+#else // DJGPP, Win32
+  "c:\\Programme\\Microsoft Visual Studio\\vc98\\Include\\",
+  "d:\\Programme\\Microsoft Visual Studio\\vc98\\Include\\",
+  "e:\\Programme\\Microsoft Visual Studio\\vc98\\Include\\",
+  "f:\\Programme\\Microsoft Visual Studio\\vc98\\Include\\",
+  "g:\\Programme\\Microsoft Visual Studio\\vc98\\Include\\",
+  "h:\\Programme\\Microsoft Visual Studio\\vc98\\Include\\",
+  "c:\\Program Files\\Microsoft Visual Studio\\vc98\\Include\\",
+  "d:\\Program Files\\Microsoft Visual Studio\\vc98\\Include\\",
+  "e:\\Program Files\\Microsoft Visual Studio\\vc98\\Include\\",
+  "f:\\Program Files\\Microsoft Visual Studio\\vc98\\Include\\",
+  "g:\\Program Files\\Microsoft Visual Studio\\vc98\\Include\\",
+  "h:\\Program Files\\Microsoft Visual Studio\\vc98\\Include\\",
+#endif
+  NULL
+};
+
+
+const char *file_dirs[] = {
+#if     (defined __unix__ && !defined __MSDOS__) || defined __BEOS__ || \
+        defined AMIGA || defined __APPLE__      // Mac OS X actually
+// GNU/Linux, Solaris, FreeBSD, OpenBSD, Cygwin, BeOS, Amiga, Mac (OS X)
+  "",
+  "./",
+#else // DJGPP, Win32
+  "c:\\",
+  "d:\\",
+  "e:\\",
+  "f:\\",
+  "g:\\",
+  "h:\\",
+#endif
+  NULL
+};

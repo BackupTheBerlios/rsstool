@@ -1,0 +1,107 @@
+<html><head>
+<link rel="icon" href="images/icon.png" type="image/png">
+<title>RSStool - CHANGES</title></head><body bgcolor="#ffffff"><tt><pre>
+<a name="090">0.9.0 (alpha)</a><br>
+- initial release
+<p>
+<a name="091">0.9.1 (alpha)</a><br>
+- minor bugfixes
+- added output RSS feed as ANSI SQL
+- added output RSS feed as bookmarks.html
+- added output RSS feed as comma-separated values CSV
+- added output RSS feed as RSS feed (for merge)
+- added -s strip HTML code from RSS (or Atom) feeds
+- added (hack) --href=FILE|URL get all links from a HTML document
+- changed --template=FILE into --template=FILE|URL
+<p>
+<a name="092">0.9.2 (beta)</a><br>
+- added (hack) youtube-download-link to RSS feed
+- added -u=AGENT use user-AGENT for connections
+- changed ANSI SQL script output a little
+- fixed RSS1.0 and RSS2.0 layouts to meet specs more closely
+<p>
+<a name="093">0.9.3</a><br>
+- removed a very annoying bug in the template code which caused segfaults if urls contained '%''s
+<p>
+<a name="094">0.9.4</a><br>
+- added --log=FILE write a log to FILE (including HTTP headers)
+- added md5 hashes to the ANSI SQL structure
+- added crc32 to the ANSI SQL structure
+- optimized the ANSI SQL structure again
+- added --sd strip descriptions from feeds
+- added (hack) --xxx generate RSS feed from several free XXX sites
+- made compilation of hacks optional (default: disabled)
+- added (hack) --google[=LANG] search Google for all available RSS feeds in LANG (default: en)
+<p>
+<a name="095">0.9.5</a><br>
+- added --shtml strip HTML code from descriptions
+- added --swhite strip whitespace from descriptions
+- added --slf strip line feeds/carriage returns from descriptions
+- added --sdesc strip the whole descriptions from feeds
+- options -s, --sd and -1 have been deprecated
+- added md5 hashes and crc32 for titles to the ANSI SQL structure to prevent
+  feeds (like Google/News) with changing urls but the same title and description
+  from bloating your db with dupes
+<p>
+<a name="096">0.9.6</a><br>
+- small fix for some malformed feeds (Thanks to Justin Piszcz)
+<p>
+<a name="097">0.9.7</a><br>
+- added --input-file=FILE download feeds found in FILE
+- added --shtml2 like --shtml but keeps links intact
+- have written a faq.html which should answer most questions
+<p>
+<a name="098">0.9.8</a><br>
+- added (hack) --troll generate RSS feed from the latest Slashdot trolls
+- fixed support for Atom feeds (tested with v0.3 feeds)
+- reduced memory footprint
+<p>
+<a name="099">0.9.9</a><br>
+- small change in the Makefile (Thanks to Christian Wiese)
+- added -o=FILE output into FILE (default: stdout)
+- option --property has bee deprecated; use --prop and -o instead
+- fixed the sort function which wasn't working since 0.9.8
+<p>
+<a name="0910">0.9.10</a><br>
+- made some small fixes
+- made another small change to the ANSI SQL structure which should greatly improve
+  speed of searches
+- added --sqlold output as ANSI SQL script (old structure)
+<p>
+<a name="100rc1">1.0.0rc1</a><br>
+- added PHP code that shows how the feeds collected by RSStool can be used in own sites
+- some small bugfixes
+- made all old versions of the ANSI SQL script structure selectable for backwards compat.
+- added --google-news[=SEARCH] generate RSS feed from Google/News and remove
+  Google redirects from the links (default: latest news)
+- added flags for Movies, Pictures or both RSS feed items to --xxx hack
+- added --google=SEARCH generate RSS feed from Google SEARCH
+- updated/fixed all hacks
+- added --href output only the links as plain text
+- added --parse=FILE|URL generate RSS feed from random HTML document
+- added --wget use wget for downloading
+<p>
+<a name="100rc2">1.0.0rc2</a><br>
+- added --fixdate missing dates will be replaced with the current date
+- added --template2=FILE|URL same as --template but repeats the whole
+  template for every single item (thanks to Martin Milata)
+- added --pipe=CMD pipe the output for a single item to CMD (thanks to Martin Milata)
+<p>
+<a name="100rc3">1.0.0rc3</a><br>
+- applied patch for gentoo ebuild support (thanks to Jason Smathers)
+<p>
+<a name="100rc4">1.0.0rc4</a><br>
+- fixed a small typo and a wrong time format (thanks to John Buswell, http://www.o3news.com)
+- added --curl use libcurl for downloading
+- added --joomla output as ANSI SQL script for import into Joomla! CMS
+- added --dragonfly output as ANSI SQL script for import into Dragonfly CMS
+- fixed some minor bugs and made some code cleanups
+<p>
+<a name="100">1.0.0</a><br>
+- this is the 1.0.0 release
+- added --php output as PHP code (Array ())
+<!--
+- added --irc output to IRC channel
+- added support for direct connections mySQL and other ODBC compatible databases
+-->
+</tt></body></html>

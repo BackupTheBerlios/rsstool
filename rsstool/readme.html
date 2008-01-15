@@ -1,0 +1,90 @@
+<html><head>
+<link rel="icon" href="images/icon.png" type="image/png">
+<title>RSStool - README</title></head><body bgcolor="#ffffff"><pre><tt>
+rsstool 1.0.0rc4 Unix (Linux) 2006 by NoisyB
+This may be freely redistributed under the terms of the GNU Public License
+
+Usage: rsstool [OPTION] FILE(S)... URL(S)...
+
+Read, parse, merge and write RSS (and ATOM) feeds
+
+Supports: RSS 0.9x, 1.0, 2.0 and ATOM 0.1, 0.2, 0.3
+
+The RSS (or ATOM) feeds will be merged and re-sorted if you enter more than
+one URL or FILEname
+
+Options
+   -u=AGENT     use user-AGENT for connecting
+  --curl        use libcURL for downloading
+  --wget        launch wget for downloading
+  --input-file=FILE download feeds found in FILE
+   -i=FILE      same as --input-file
+  --log=FILE    write a log to FILE (including HTTP headers)
+  --since=DATE  pass only items (of feeds) newer than DATE
+                  DATE can have the following formats
+                  "Thu, 01 Jan 1970 01:00:00 +0100" (RFC 822),
+                  "YYYY-MM-DDTHH:MM", "DD MMM YYYY HH:MM",
+                  or "YYYY-MM-DD"
+  --fixdate     missing dates will be replaced with the current date
+  --version     output version information and exit
+  --help        display this help and exit
+
+Strip & Sort
+  --shtml       strip HTML code from descriptions
+  --shtml2      like --shtml but keeps links intact
+  --swhite      strip whitespace from descriptions
+  --slf         strip line feeds/carriage returns from descriptions
+  --sdesc       strip the whole descriptions from feeds
+   -r           sort reverse
+
+Output
+   -o=FILE      output into FILE (default: stdout)
+  --pipe=CMD    pipe the output for a _single_ item to CMD
+                  for used with --html, --txt, --href or --template2, only
+  --rss[=VERSION] output as RSS feed
+                  VERSION=1 will write RSS v1.0
+                  VERSION=2 will write RSS v2.0 (default)
+  --html        output as html
+  --bookmarks   output as bookmarks.html for use with Mozilla or Firefox
+  --href        output only the links as plain text
+  --txt         output as plain text
+  --csv         output as comma-separated values CSV
+  --prop        output as properties
+                  Layout: NAME_NUM=VALUE
+                          NAME  will be "title", "url", etc..
+                          NUM   will be an integer counting the items
+                          VALUE will be the content
+  --template=FILE|URL parse template file and replace tags with content
+                  Tags: "<rsstool:url item=NUM>"   url/link of item NUM
+                        "<rsstool:title item=NUM>" title of item NUM
+                        "<rsstool:desc item=NUM>"  description of item
+                                                     NUM
+                        "<rsstool:date item=NUM>"  date of item NUM
+                        "<rsstool:site item=NUM>"  site where item NUM
+                                                     came from
+                        "<rsstool:start item=NUM>" start of item NUM
+                                                     will be replaced with
+                                                     "<!--" if item NUM is
+                                                     empty
+                        "<rsstool:end item=NUM>"   end of item NUM
+                                                     will be replaced with
+                                                     "-->" if item NUM is
+                                                     empty
+                        "<rsstool:rsstool>"        rsstool notice with
+                                                     version
+                        "<rsstool:updated>"        rsstool notice with
+                                                     version and date
+  --template2=FILE|URL same as --template but repeats the whole
+                  template for every single item
+  --sql[=VALUE] output as ANSI SQL script
+                  VALUE=092       RSStool 0.9.2 db format
+                  VALUE=094       RSStool 0.9.4 db format
+                  VALUE=095       RSStool 0.9.5 db format
+                  VALUE="current" use current db format (default)
+  --sqlold      same as --sql=095
+  --joomla      output as ANSI SQL script for import into Joomla! CMS
+  --dragonfly   output as ANSI SQL script for import into Dragonfly CMS
+
+Report problems/comments/ideas/whinge to noisyb@gmx.net
+
+</pre></tt></body></html>
