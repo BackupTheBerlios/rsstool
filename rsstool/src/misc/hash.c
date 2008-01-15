@@ -163,7 +163,9 @@ hash_get_crc32 (st_hash_t *h)
 const char *
 hash_get_s (st_hash_t *h, int flag)
 {
+#if      (defined USE_MD4 || defined USE_MD5 || defined USE_SHA1)
   int i = 0;
+#endif
 #if      (defined USE_MD4 || defined USE_SHA1)
   unsigned char tmp[32];
 #endif

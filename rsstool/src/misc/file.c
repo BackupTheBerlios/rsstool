@@ -969,7 +969,7 @@ makepath_func (const char *path)
     return 0;
   chdir (dir);
 
-  return makepath_func (p + 1);
+  return makepath (p + 1);
 }
 
 
