@@ -507,7 +507,7 @@ same_file (const char *filename1, const char *filename2)
 
 
 int
-same_filesystem (const char *filename1, const char *filename2)
+same_fs (const char *filename1, const char *filename2)
 // returns 1 if filename1 and filename2 reside on one file system, 0 if not
 //  (or an error occurred)
 {
@@ -588,7 +588,7 @@ rename2 (const char *oldname, const char *newname)
   dirname2 (newname, dir2);
 
   // We should use dirname{2}() in case oldname or newname doesn't exist yet
-  if (same_filesystem (dir1, dir2))
+  if (same_fs (dir1, dir2))
     {
       if (access (newname, F_OK) == 0 && !same_file (oldname, newname))
         {
@@ -893,6 +893,7 @@ getfile (int argc, char **argv, int (*callback_func) (const char *), int flags)
 }
 
 
+#if 0
 int
 mkdir2 (const char *name)
 // create a directory and check its permissions
@@ -936,54 +937,53 @@ mkdir2 (const char *name)
 
   return 0;
 }
+#endif
 
 
 int
-makepath_func (const char *path)
+makepath_func (const char *path, int mode)
 {
-  int len;
-  char *p;
-  char dir[FILENAME_MAX];
+  int result = 0;
+  char dir[FILENAME_MAX], *p = NULL;
 
-  /* Skip initial slashes */
   while (*path == '/')
     path++;
 
-  p = strchr (path, '/');
+  strncpy (dir, path, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
 
-  /* Done, path is now a filename */
-  if (!p)
-    return 1;
+  if ((p = strchr (dir, '/')))
+    *p = 0;
 
-  len = p - path;
-  if (len >= FILENAME_MAX)
+  result = mkdir (dir, mode);
+  if (result == -1)
     {
-      fprintf (stderr, "ERROR: directory name too long\n");
-      return 0;
     }
-
-  strncpy (dir, path, len);
-  dir[len] = '\0';
-
-  if (mkdir2 (dir) == -1)
-    return 0;
   chdir (dir);
 
-  return makepath (p + 1);
+  if (!(p = strchr (path, '/')))
+    return 0;
+ 
+  return makepath_func (p, mode);
 }
 
 
 int
-makepath (const char *path)
+makepath (const char *path, int mode)
 {
-  char savedcwd[FILENAME_MAX];
-  int ret;
+  char buf[FILENAME_MAX];
+  int result = 0;
 
-  getcwd (savedcwd, FILENAME_MAX);
-  ret = makepath_func (path);
-  chdir (savedcwd);
+  if (strlen (path) >= FILENAME_MAX)   
+    {
+      fprintf (stderr, "ERROR: directory name too long\n");
+      return -1;
+    }
 
-  return ret;
+  getcwd (buf, FILENAME_MAX);
+  result = makepath_func (path, mode);
+  chdir (buf);
+
+  return result;
 }
 
 

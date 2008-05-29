@@ -32,6 +32,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifdef  HAVE_ERRNO_H
 #include <errno.h>
 #endif
+#include <fcntl.h>
+#include <time.h>
 
 #ifdef  USE_CURL
 #include <curl/curl.h>
@@ -45,6 +47,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #endif
 #endif  // #if     (defined USE_TCP || defined USE_UDP)
 
@@ -59,8 +62,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #undef  MAXBUFSIZE
 #endif
 #define MAXBUFSIZE 32768
-
-#define NET_MAX_CONNECTIONS 1
 
 
 #ifdef  DEBUG
@@ -83,7 +84,7 @@ st_strurl_t_sanity_check (st_strurl_t *url)
 
 #if     (defined USE_TCP || defined USE_UDP)
 st_net_t *
-net_init (int flags)
+net_init (int flags, int timeout)
 {
   st_net_t *n = NULL;
 
@@ -93,6 +94,7 @@ net_init (int flags)
   memset (n, 0, sizeof (st_net_t));
 
   n->flags = flags;
+  n->timeout = timeout;
 
   return n;
 }
@@ -120,71 +122,120 @@ int
 net_open (st_net_t *n, const char *url_s, int port)
 {
   st_strurl_t url;
+//  int result; 
+//  struct sockaddr_in addr; 
   struct hostent *host;
-  struct linger l;
-    
+//  int valopt; 
+//  long arg; 
+//  fd_set myset; 
+//  struct timeval tv; 
+//  socklen_t lon; 
+
   if (!strurl (&url, url_s)) // parse URL
     return -1;
+
+  if (!port)
+    port = url.port > -1 ? url.port : 80;
                     
   if (!(host = gethostbyname (url.host)))
     return -1;
-                    
-  if (port < 1)
-    { 
-      if (!stricmp (url.protocol, "http") || url.port == 80)
-        port = 80;
-      else if (!stricmp (url.protocol, "ftp") || url.port == 21)
-        port = 21;
-      else
-        port = url.port;
-    }
 
   if (n->flags & NET_UDP)
     {
       n->socket = socket (AF_INET, SOCK_DGRAM, 0);
-      if (n->socket == -1)
+//      n->socket = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+      if (n->socket < 0)
         return -1;
 
-//      memset (&n->addr, 0, sizeof (struct sockaddr_in));
+      memset (&n->addr, 0, sizeof (struct sockaddr_in));
       n->addr.sin_family = AF_INET;
       n->addr.sin_addr = *((struct in_addr *) host->h_addr);
       n->addr.sin_port = htons (port);
-      bzero (&(n->addr.sin_zero), 8);
-
-      n->status = 0;
 
       return 0;
     }
 
   n->socket = socket (AF_INET, SOCK_STREAM, 0);
-  if (n->socket == -1)
+  if (n->socket < 0)
     return -1;
-
-  /*
-     Linger - if the socket is closed, ensure that data is sent/
-     received right up to the last byte.  Don't stop just because
-     the connection is closed.
-   */
-  l.l_onoff = 1;
-  l.l_linger = 10;
-  setsockopt (n->socket, SOL_SOCKET, SO_LINGER, (char *) &l, sizeof (l));
 
   memset (&n->addr, 0, sizeof (struct sockaddr_in));
   n->addr.sin_family = AF_INET;
-#if 1
   n->addr.sin_addr = *((struct in_addr *) host->h_addr);
-#else
-  n->addr.sin_addr.s_addr = inet_addr (host_addr (host));
-#endif
-//  n->addr.sin_port = htons (net_get_port_by_protocol (url.protocol));
   n->addr.sin_port = htons (port);
 
-  if (connect (n->socket, (struct sockaddr *) &n->addr, sizeof (struct sockaddr)) == -1)
+#if 1
+  if (connect (n->socket, (struct sockaddr *) &n->addr, sizeof (struct sockaddr)) < 0)
     {
       fprintf (stderr, "ERROR: connect()\n");
-//      close (n->socket);
       return -1;
     }
+#else
+  // set non-blocking 
+  if ((arg = fcntl (n->socket, F_GETFL, NULL)) < 0)
+    return -1;
+  arg |= O_NONBLOCK;
+  if (fcntl (n->socket, F_SETFL, arg) < 0)
+    return -1;
+
+  // trying to connect with timeout 
+  result = connect (n->socket, (struct sockaddr *) &n->addr, sizeof (struct sockaddr));
+  if (result < 0)
+    {
+      if (errno == EINPROGRESS)
+        {
+          do
+            {
+              tv.tv_sec = n->timeout;
+              tv.tv_usec = 0;
+              FD_ZERO (&myset);
+              FD_SET (n->socket, &myset);
+
+              result = select (n->socket + 1, NULL, &myset, NULL, &tv);
+
+              if (result < 0 && errno != EINTR)
+                {
+                  // error connecting
+                  return -1;
+                }
+              else if (result > 0)
+                {
+                  lon = sizeof (int);
+                  if (getsockopt (n->socket, SOL_SOCKET, SO_ERROR, (void *) (&valopt), &lon) < 0)
+                    {
+                      // error in getsockopt()
+                      return -1;
+                    }
+
+                  if (valopt)
+                    {
+                      // error in delayed connection()
+                      return -1;
+                    }
+                  break;
+                }
+              else
+                {
+                  // timeout in select()
+                  return -1;
+                }
+            }
+          while (1);
+        }
+      else
+        {
+          // error connecting
+          return -1;
+        }
+    }
+
+  // set to blocking mode again
+  if ((arg = fcntl (n->socket, F_GETFL, NULL)) < 0)
+    return -1;
+  arg &= (~O_NONBLOCK);
+  if (fcntl (n->socket, F_SETFL, arg) < 0)
+    return -1;
+#endif
 
   return 0;
 }
@@ -193,35 +244,46 @@ net_open (st_net_t *n, const char *url_s, int port)
 int
 net_bind (st_net_t *n, int port)
 {
-  int result = 0;
   struct sockaddr_in addr;
-  struct linger l;
+  n->flags |= NET_SERVER;
+
+  if (n->flags & NET_UDP)
+    {
+      n->socket = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+      if (n->socket < 0)
+        {
+          fprintf (stderr, "ERROR: socket creation failed (%s)\n", strerror (errno));
+          return -1;
+        }
+
+      memset (&addr, 0, sizeof (addr));
+      addr.sin_family = AF_INET;
+      addr.sin_addr.s_addr = htonl (INADDR_ANY);
+      addr.sin_port = htons (port);
+
+      if (bind (n->socket, (struct sockaddr *) &addr, sizeof (struct sockaddr)) < 0)
+        {
+          fprintf (stderr, "ERROR: socket binding failed (%s)\n",
+                   strerror (errno));
+
+          close (n->socket);
+
+          return -1;
+        }
+
+      return 0;
+    }
 
   n->sock0 = socket (AF_INET, SOCK_STREAM, 0);
-  if (n->sock0 == -1)
+  if (n->sock0 < 0)
     return -1; 
-
-  /*
-     Linger - if the socket is closed, ensure that data is sent/
-     received right up to the last byte.  Don't stop just because
-     the connection is closed.
-   */
-  l.l_onoff = 1;
-  l.l_linger = 10;
-  setsockopt (n->sock0, SOL_SOCKET, SO_LINGER, (char *) &l, sizeof (l));
-
-  /* If this server has been restarted, don't wait for the old
-   * one to disappear completely */
-  setsockopt (n->sock0, SOL_SOCKET, SO_REUSEADDR, (char *) &l, sizeof (l));
 
   memset (&addr, 0, sizeof (struct sockaddr_in));
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = htonl (INADDR_ANY);
   addr.sin_port = htons (port);
 
-  result = bind (n->sock0, (struct sockaddr *) &addr, sizeof (struct sockaddr));
-
-  if (result < 0)
+  if (bind (n->sock0, (struct sockaddr *) &addr, sizeof (struct sockaddr)) < 0)
     {
 #ifdef  HAVE_ERRNO_H
       int e = 0;
@@ -249,6 +311,8 @@ net_bind (st_net_t *n, int port)
 #endif
       fflush (stderr);
 
+      close (n->socket);
+
       return -1;
     }
 
@@ -259,14 +323,8 @@ net_bind (st_net_t *n, int port)
 int
 net_listen (st_net_t *n)
 {
-  int result = 0;
-
-  if (n->inetd)
-    return 0;
-
   // wait for client connections
-  result = listen (n->sock0, 5);
-  if (result < 0)
+  if (listen (n->sock0, 5) < 0)
     {
 #ifdef  HAVE_ERRNO_H
       fprintf (stderr, "ERROR: listen() %s\n",
@@ -287,11 +345,6 @@ net_listen (st_net_t *n)
 st_net_t *
 net_accept (st_net_t *n)
 {
-//  int result = 0;
-
-  if (n->inetd)
-    return 0;
-
   // TODO: fork()
 
   // accept waits and "dupes" the socket
@@ -308,42 +361,8 @@ net_accept (st_net_t *n)
 
 
 int
-net_inetd (st_net_t *n, int flags)
-{
-  if (flags & NET_INETD_EXT)
-    {
-      if (isatty (0))
-        {
-          fprintf (stderr, "ERROR: must be started by inetd\n");
-          fflush (stderr);
-
-          return -1;
-        }
-    }
-  else
-    {
-// TODO: "internal" inetd
-      return -1;
-    }
-
-  n->inetd = 1;
-  n->inetd_flags = flags;
-
-  return 0;
-}
-
-
-int
 net_close (st_net_t *n)
 {
-  if (n->inetd)
-    {
-      fclose (stdin);
-      fclose (stdout);
-      fclose (stderr);
-      return 0;
-    }
-
   return close (n->socket);
 }
 
@@ -351,53 +370,80 @@ net_close (st_net_t *n)
 int
 net_read (st_net_t *n, void *buffer, int buffer_len)
 {
-#if 1
   if (n->flags & NET_UDP)
     {
+      fd_set readset;  
+      struct timeval t;
+      int result;
       unsigned int dummy = 0;
 
-      if (n->status)
-        return recv (n->socket, buffer, buffer_len, 0);
+      if (n->flags & NET_SERVER)
+        {
+          socklen_t addrlen;
+          int result = 0;
 
-      n->status = 1;
-      return recvfrom (n->socket, buffer, buffer_len, 0,
-                       (struct sockaddr *) &n->addr, &dummy);
+          addrlen = sizeof (n->udp_addr);
+          result = recvfrom (n->socket, buffer, buffer_len, 0, (struct sockaddr *) &n->udp_addr, &addrlen);
+
+          if (!ntohs (n->udp_addr.sin_port))       
+            fprintf (stderr, "WARNING: rejected packet (source port = 0)\n");
+
+          return result;
+        }
+
+      t.tv_sec = n->timeout;
+      t.tv_usec = 0;
+
+      FD_ZERO (&readset);
+      FD_SET (n->socket, &readset);
+
+      result = select (n->socket + 1, &readset, NULL, NULL, &t);
+
+      if (result < 0)
+        return -1;
+
+      if (!result)
+        return 0;
+
+      if (FD_ISSET (n->socket, &readset))
+        return recvfrom (n->socket, buffer, buffer_len, 0, (struct sockaddr *) &n->addr, &dummy);
     }
-#endif
-  if (n->inetd)
-    return fread (buffer, 1, buffer_len, stdin);
 
-#ifdef  _WIN32
   return recv (n->socket, buffer, buffer_len, 0);
-#else
-  return read (n->socket, buffer, buffer_len);
-#endif
 }
 
 
 int
 net_write (st_net_t *n, void *buffer, int buffer_len)
 {
-#if 1
   if (n->flags & NET_UDP)
     {
-      if (n->status)
-        return send (n->socket, buffer, buffer_len, 0);
+      fd_set writeset;
+      struct timeval t;
+      int result;
 
-      n->status = 1;
-      return sendto (n->socket, buffer, buffer_len, 0,
-                     (struct sockaddr *) &n->addr,
-                     sizeof (struct sockaddr));
+      if (n->flags & NET_SERVER)
+        return sendto (n->socket, buffer, buffer_len, 0, (struct sockaddr *) &n->udp_addr, sizeof (struct sockaddr));
+
+      t.tv_sec = n->timeout;
+      t.tv_usec = 0;
+
+      FD_ZERO (& writeset);
+      FD_SET (n->socket, & writeset);
+
+      result = select (n->socket + 1, NULL, &writeset, NULL, &t);
+
+      if (result < 0)
+        return -1;
+
+      if (!result)
+        return 0;
+
+//      if (FD_ISSET (n->socket, &writeset))
+        return sendto (n->socket, buffer, buffer_len, 0, (struct sockaddr *) &n->addr, sizeof (struct sockaddr));
     }
-#endif
-  if (n->inetd)
-    return fwrite (buffer, 1, buffer_len, stdout);
 
-#ifdef  _WIN32
   return send (n->socket, buffer, buffer_len, 0);
-#else
-  return write (n->socket, buffer, buffer_len);
-#endif
 }
 
 
@@ -406,19 +452,7 @@ net_getc (st_net_t *n)
 {
   char buf[2];
 
-  if (n->inetd)
-    {
-      if (fread ((void *) buf, 1, 1, stdin))
-        return *buf;
-      else
-        return -1;
-    }
-
-#ifdef  _WIN32
   if (recv (n->socket, (void *) buf, 1, 0) == 1)
-#else
-  if (read (n->socket, (void *) buf, 1) == 1)
-#endif
     return *buf;
   else
     return -1;
@@ -432,19 +466,7 @@ net_putc (st_net_t *n, int c)
 
   *buf = (unsigned char) c & 0xff;
 
-  if (n->inetd)
-    {
-      if (fwrite ((void *) buf, 1, 1, stdout))
-        return *buf;
-      else
-        return EOF;
-    }
-
-#ifdef  _WIN32
   if (send (n->socket, (void *) buf, 1, 0) == 1)
-#else
-  if (write (n->socket, (void *) buf, 1) == 1)
-#endif
     return *buf;
   else
     return EOF;
@@ -506,72 +528,18 @@ net_gets (st_net_t *n, char *buffer, int buffer_len)
 int
 net_puts (st_net_t *n, char *buffer)
 {
-  if (n->inetd)
-    return (fwrite (buffer, 1, strlen (buffer), stdout));
-
-#ifdef  _WIN32
   return send (n->socket, buffer, strlen (buffer), 0);
-#else
-  return write (n->socket, buffer, strlen (buffer));
-#endif
 }
 
 
-int
-net_seek (st_net_t *n, int pos)
-{
-  (void) n;
-  (void) pos;
-
-  return 0;
-}
-
-
-int
+int   
 net_sync (st_net_t *n)
 {
-  if (n->inetd)
-    {
-      fflush (stdin);
-      fflush (stdout);
-      fflush (stderr);
-      return 0;
-    }
 #ifndef _WIN32
   return fsync (n->socket);
 #else
   return 0;
 #endif
-}
-
-
-int net_get_socket (st_net_t *n)
-{
-  if (n->inetd)
-    {
-      fprintf (stderr, "ERROR: net_get_socket() doesn't work in inetd mode\n");
-      fflush (stderr);
-
-      return -1;
-    }
-
-  return n->socket;
-}
-
-
-int
-net_get_port_by_protocol (const char *protocol)
-{
-  const struct servent *s = getservbyname (protocol, "tcp");
-  return s ? (s->s_port >> 8) : 0; // (-1) ?
-}
-
-
-const char *
-net_get_protocol_by_port (int port)
-{
-  const struct servent *s = getservbyport ((port << 8), "tcp");
-  return s ? s->s_name : NULL;
 }
 #endif  // #if     (defined USE_TCP || defined USE_UDP)
 
@@ -776,12 +744,7 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
 {
   static char tname[FILENAME_MAX];
   char buf[MAXBUFSIZE];
-#define STREAM 1
-#ifdef  STREAM
-  FILE *tfh = NULL;
-#else
-  int tfh_i = 0;
-#endif
+  FILE *tmp = NULL;
   st_net_t *client = NULL;
   char *p = NULL;
   st_strurl_t url;
@@ -799,7 +762,7 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
       CURL *curl = NULL;
       CURLcode result = 0;
 
-      if (!(tfh = fopen (tname, "wb")))
+      if (!(tmp = fopen (tname, "wb")))
         {
 #ifdef  HAVE_ERRNO_H
           fprintf (stderr, "ERROR: could not write %s; %s\n", tname, strerror (errno));
@@ -827,13 +790,13 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
         }
 
       curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, curl_write_cb);
-      curl_easy_setopt (curl, CURLOPT_WRITEDATA, tfh);
+      curl_easy_setopt (curl, CURLOPT_WRITEDATA, tmp);
 
       result = curl_easy_perform (curl);
 
       curl_easy_cleanup (curl);
 
-      fclose (tfh);
+      fclose (tmp);
 
       if (!result)
         return tname;
@@ -844,36 +807,8 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
     }
   else
 #endif  // USE_CURL
-  if (flags & GET_USE_WGET)
-    {
-      int result = 0;
 
-      strcpy (buf, "wget");
-      if (user_agent)
-        sprintf (strchr (buf, 0), " -U \"%s\"", user_agent);
-      if (!(flags & GET_VERBOSE))
-        strcat (buf, " -q");
-      sprintf (strchr (buf, 0), " \"%s\"", url_s);    
-      sprintf (strchr (buf, 0), " -O \"%s\"", tname);
-
-      result = system (buf)
-#if     !(defined __MSDOS__ || defined _WIN32)
-           >> 8                                 // the exit code is coded in bits 8-15
-#endif                                          //  (does not apply to DJGPP, MinGW & VC++)
-           ;
-      if (!result)
-        return tname;
-
-      remove (tname);
-
-      return NULL;
-    }
-
-#ifdef  STREAM
-  if (!(tfh = fopen (tname, "wb")))
-#else
-  if (!(tfh_i = open (tname, O_RDWR)))
-#endif 
+  if (!(tmp = fopen (tname, "wb")))
     {
 #ifdef  HAVE_ERRNO_H
       fprintf (stderr, "ERROR: could not write %s; %s\n", tname, strerror (errno));
@@ -883,14 +818,10 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
       return NULL;
     } 
 
-  if (!(client = net_init (0)))
+  if (!(client = net_init (0, 5)))
     {
       fprintf (stderr, "ERROR: net_http_get_to_temp()/net_init() failed\n");
-#ifdef  STREAM
-      fclose (tfh);   
-#else
-      close (tfh_i);
-#endif
+      fclose (tmp);   
       remove (tname);
       return NULL;
     }
@@ -899,11 +830,7 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
   if (net_open (client, url.host, (url.port > -1) ? url.port : 80) != 0)
     {
       fprintf (stderr, "ERROR: net_http_get_to_temp()/net_open() failed to open %s\n", url_s);
-#ifdef  STREAM
-      fclose (tfh);  
-#else
-      close (tfh_i);
-#endif
+      fclose (tmp);  
       remove (tname);
       return NULL;
     }
@@ -914,19 +841,11 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
   // skip http header
   if (net_parse_http_request (client))
     while ((len = net_read (client, buf, MAXBUFSIZE)))
-#ifdef  STREAM 
-      fwrite (buf, len, 1, tfh);
-#else
-      write (tfh_i, buf, len);
-#endif
+      fwrite (buf, len, 1, tmp);
 
   net_quit (client);
 
-#ifdef  STREAM
-  fclose (tfh);
-#else
-  close (tfh_i);
-#endif
+  fclose (tmp);
 
   return tname;
 }
@@ -1110,7 +1029,7 @@ int
 main (int argc, char ** argv)
 {
   char buf[MAXBUFSIZE];
-  st_net_t *net = net_init (0);
+  st_net_t *net = net_init (0, 5);
 
 #if 0
   // client test

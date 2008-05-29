@@ -59,13 +59,6 @@ extern "C" {
   net_listen()   wait for connections from clients (server)
   net_accept()   accept an incoming connection
 
-  net_inetd()    use inetd for TCP/IP commuication
-                   use this _OR_ net_bind(), net_listen(), and 
-                   net_accept()
-  Flags
-    NET_INETD_EXT  use external inetd (default)
-    NET_INETD_INT  use internal inetd
-
   net_read()
   net_getc()
   net_gets()
@@ -94,64 +87,37 @@ extern "C" {
 typedef struct
 {
   int flags;
-
-  int inetd;
-  int inetd_flags;
+  int timeout;
 
   int sock0;
   int socket;
   int port;
 
   struct sockaddr_in addr;
-  int status;              //  0 = haven't send to'd yet
-                           //  1 = have send to'd
-                           // -1 = invalid
+  struct sockaddr_in udp_addr;
 } st_net_t;
 
 
-extern st_net_t *net_init (int flags);
+extern st_net_t *net_init (int flags, int timeout);
 extern int net_quit (st_net_t *n);
 
 extern int net_open (st_net_t *n, const char *url_s, int port);
+extern int net_close (st_net_t *n);
 
 extern int net_bind (st_net_t *n, int port);
 extern int net_listen (st_net_t *n);
 extern st_net_t *net_accept (st_net_t *n);
 
-
-enum {
-  NET_INETD_EXT = 0,
-//  NET_INETD_INT
-};
-
-
-extern int net_inetd (st_net_t *n, int flags);
-
 extern int net_read (st_net_t *n, void *buffer, int buffer_len);
 extern int net_write (st_net_t *n, void *buffer, int buffer_len);
+
 extern int net_getc (st_net_t *n);
 extern int net_putc (st_net_t *n, int c);
 extern char *net_gets (st_net_t *n, char *buffer, int buffer_len);
 extern int net_puts (st_net_t *n, char *buffer);
-//extern int net_print (st_net_t *n, const char *format, ...);
 
-extern int net_seek (st_net_t *n, int pos);
 extern int net_sync (st_net_t *n);
 
-extern int net_close (st_net_t *n);
-
-// TODO: remove this?
-//extern int net_get_socket (st_net_t *n);
-
-
-/*
-  Miscellaneous
-
-  net_get_port_by_protocol() "http" would return (int) 80
-  net_get_protocol_by_port() (int) 80 would return "http"
-*/
-extern int net_get_port_by_protocol (const char *protocol);
-extern const char *net_get_protocol_by_port (int port);
 #endif  // (defined USE_TCP || defined USE_UDP)
 
 
@@ -169,9 +135,7 @@ extern const char *net_get_protocol_by_port (int port);
                               return the name of a temporary file
                               OR the fname when it was a local file
   Flags
-    GET_USE_WGET  use wget (if installed) instead of own code
     GET_USE_GZIP  use gzip compression (if compiled)
-
 */
 enum {
   NET_METHOD_GET = 0,
@@ -207,7 +171,6 @@ extern char *net_build_http_response (const char *user_agent, int keep_alive, un
 extern st_http_header_t *net_parse_http_request (st_net_t *n);
 extern st_http_header_t *net_parse_http_response (st_net_t *n);
 
-#define GET_USE_WGET 1
 #define GET_USE_GZIP (1<<1)
 #ifdef  USE_CURL
 #define GET_USE_CURL (1<<2) 
@@ -218,7 +181,7 @@ extern const char *net_http_get_to_temp (const char *url_s, const char *user_age
                                               
 
 /*
-  Url parse functions
+  URL parse functions
 
   stresc()        replace chars with %xx escape sequences
   strunesc()      replace %xx escape sequences with the char

@@ -27,6 +27,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #ifdef  HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <time.h>
+#include "misc/defines.h"
 #include "misc/string.h"
 #include "misc/getopt2.h"
 #include "misc/misc.h"
@@ -143,12 +145,6 @@ main (int argc, char **argv)
     { 
       "curl", 0, 0, RSSTOOL_CURL,
       NULL, "use libcURL for downloading"
-    },
-#endif
-#if 1
-    {
-      "wget", 0, 0, RSSTOOL_WGET,
-      NULL, "launch wget for downloading"
     },
 #endif
     {
@@ -468,6 +464,7 @@ main (int argc, char **argv)
   rsstool.start_time = time (0);
   rsstool.output_file = stdout;
   rsstool.csv_separator = ',';
+  rsstool.timeout = 2; // default
 
 //  getopt2_short (short_options, options, ARGS_MAX);
   getopt2_long_only (long_only_options, options, ARGS_MAX);
@@ -534,10 +531,6 @@ main (int argc, char **argv)
           rsstool.get_flags |= GET_USE_CURL;
           break;
 #endif
-
-        case RSSTOOL_WGET:
-          rsstool.get_flags |= GET_USE_WGET;
-          break;
 
 #ifdef  USE_POST1_0
         case RSSTOOL_NEW_ONLY:

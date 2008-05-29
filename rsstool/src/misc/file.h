@@ -38,7 +38,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   realpath2() realpath() replacement
   same_file() returns 1 if two filenames refer to one file, otherwise it
                 returns 0
-  same_filesystem() returns 1 if two filenames refer to files on one file
+  same_fs() returns 1 if two filenames refer to files on one file
                 system, otherwise it returns 0
   rename2()   renames oldname to newname even if oldname and newname are not
                 on one file system
@@ -88,11 +88,11 @@ extern char *dirname2 (const char *path, char *dir);
 extern const char *basename2 (const char *path);
 extern const char *get_suffix (const char *filename);
 extern char *set_suffix (char *filename, const char *suffix);
-extern int mkdir2 (const char *path);
+//extern int mkdir2 (const char *path);
 //extern int rmdir2 (const char *path);
-extern int makepath (const char *path);
+extern int makepath (const char *path, int mode);
 extern int same_file (const char *filename1, const char *filename2);
-extern int same_filesystem (const char *filename1, const char *filename2);
+extern int same_fs (const char *filename1, const char *filename2);
 extern int rename2 (const char *oldname, const char *newname);
 extern int truncate2 (const char *filename, unsigned long size);
 extern char *baknam (char *fname);

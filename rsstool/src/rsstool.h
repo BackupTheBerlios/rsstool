@@ -59,6 +59,7 @@ typedef struct
 typedef struct
 {
   int quiet;
+  int timeout;   // timeout for net operations
   time_t start_time;
   char user_agent[MAXBUFSIZE];
   const char *optarg;
