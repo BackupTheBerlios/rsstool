@@ -74,8 +74,6 @@ typedef struct _xmlNode xml_node_t;
         </node>
 </node>
 */
-
-
 extern xml_doc_t *xml_parse (const char *fname);
 extern int xml_free (xml_doc_t *d);
 
@@ -89,6 +87,9 @@ extern const unsigned char *xml_get_string (xml_node_t *n);
 extern const char *xml_get_name (xml_node_t *n);
 
 extern const unsigned char *xml_get_value (xml_node_t *n, const char *name);
+
+
+extern const char *xml_xpath (const char *fname, const char *xpath_expr);
 
 
 #endif  // #if     (defined USE_NXML || defined USE_XML2)

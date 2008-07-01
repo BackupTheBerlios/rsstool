@@ -30,6 +30,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #elif   defined USE_XML2
 #include <libxml/parser.h>
 #include <libxml/tree.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 #endif
 #include "string.h"
 #include "xml.h"
@@ -39,6 +41,67 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #undef  MAXBUFSIZE
 #endif
 #define MAXBUFSIZE 32768
+
+
+const char *
+xml_xpath (const char *fname, const char *xpath_expr)
+{
+  int size;
+  int i;
+  const xmlChar *p = NULL;
+  xmlNodeSetPtr nodes;
+  xmlDocPtr doc;
+  xmlXPathContextPtr xpathCtx;
+  xmlXPathObjectPtr xpathObj;
+
+  xmlInitParser ();
+  LIBXML_TEST_VERSION
+
+  if (!(doc = xmlParseFile (fname)))
+    {
+      fprintf (stderr, "ERROR: unable to parse file \"%s\"\n", fname);
+      return NULL;
+    }
+
+  if (!(xpathCtx = xmlXPathNewContext (doc)))
+    {
+      fprintf (stderr, "ERROR: unable to create new XPath context\n");
+      xmlFreeDoc (doc);
+      return NULL;
+    }
+
+  if (!(xpathObj = xmlXPathEvalExpression ((const xmlChar *) xpath_expr, xpathCtx)))
+    {
+      fprintf (stderr, "ERROR: unable to evaluate xpath expression \"%s\"\n", xpath_expr);
+      xmlXPathFreeContext (xpathCtx);
+      xmlFreeDoc (doc);
+      return NULL;
+    }
+
+  nodes = xpathObj->nodesetval;
+  size = (nodes) ? nodes->nodeNr : 0;
+
+  for (i = size - 1; i >= 0; i--)
+    {
+      p = xmlNodeGetContent (nodes->nodeTab[i]);
+#ifdef  DEBUG
+      printf (p);
+      fflush (stdout);
+#endif
+      if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL)
+        nodes->nodeTab[i] = NULL;
+    }
+
+  xmlXPathFreeObject (xpathObj);
+  xmlXPathFreeContext (xpathCtx);
+
+//    xmlDocDump(stdout, doc);
+
+  xmlFreeDoc (doc);
+  xmlCleanupParser ();
+
+  return (const char *) p;
+}
 
 
 xml_doc_t *
