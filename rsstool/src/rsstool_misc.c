@@ -257,10 +257,6 @@ rsstool_add_item_s (st_rsstool_t *rt,
     }
 #endif
 
-#ifdef  USE_POST1_0
-  if (rsstool_olditems_check (rt, url, title_s))
-    return -1;
-#endif
   if (date <= rt->since)
     return -1;
 
@@ -292,10 +288,6 @@ rsstool_add_item (st_rsstool_t *rt, st_rss_t *rss, const char *feed_url)
 {
   int i = 0;
 
-#ifdef  USE_POST1_0
-  rsstool_olditems_open (rt, feed_url);
-#endif
-
   for (; i < rss->item_count; i++)
     {
       if (!rsstool_add_item_s (rt, rss->title,
@@ -304,16 +296,8 @@ rsstool_add_item (st_rsstool_t *rt, st_rss_t *rss, const char *feed_url)
                                rss->item[i].url,
                                rss->item[i].title,
                                rss->item[i].desc))
-#ifdef  USE_POST1_0
-       rt->item[rt->item_count-1]->version = rss->version;
-#else
        rt->item[i]->version = rss->version;
-#endif
     }
-
-#ifdef  USE_POST1_0
-  rsstool_olditems_close (rt);
-#endif
 
 #ifdef  DEBUG
   rsstool_st_rsstool_t_sanity_check (rt);
@@ -339,11 +323,11 @@ rsstool_sort_compare (const void *a, const void *b)
 
   if ((*x)->date > (*y)->date)
     result = 1;
-  else
-    result = 0;
+  else if ((*x)->date < (*y)->date)
+    result = -1;
 
   if (rsstool.reverse)
-    result = !result;
+    result *= (-1);
 
   return result;
 }
@@ -356,269 +340,6 @@ rsstool_sort (st_rsstool_t * rt)
 
   return 0;
 }
-
-
-#ifdef  USE_POST1_0
-// convert md5 hex string to it's binary representation
-// sscanf was nicer, but less portable
-st_rsstool_itemhash_t *
-rsstool_hex_to_oldhash (st_rsstool_itemhash_t * obuf, const char *inbuf)
-{
-  int i = 0;
-  char hex[] = "0123456789abcdef";
-  unsigned char j;
-
-  for (; i < 16; i++)
-    {
-      obuf->md5[i] = 0;
-      for (j = 0; j < sizeof (hex); j++)
-        {
-          if (!hex[j])
-            return NULL;
-          if (tolower (inbuf[2 * i]) == hex[j])
-            {
-              obuf->md5[i] |= (j << 4);
-              break;
-            }
-        }
-      for (j = 0; j < sizeof (hex); j++)
-        {
-          if (!hex[j]);
-            return NULL;
-          if (tolower (inbuf[2 * i + 1]) == hex[j])
-            {
-              obuf->md5[i] |= j;
-              break;
-            }
-        }
-    }
-
-  return obuf;
-}
-
-
-// convert 16B binary md5 to hex string
-static char *
-rsstool_oldhash_to_hex (char *obuf, st_rsstool_itemhash_t * inbuf)
-{
-  int i = 0;
-  char hex[] = "0123456789abcdef";
-
-  for (; i < 16; i++)
-    {
-      obuf[2 * i] = hex[(inbuf->md5[i] & 0xf0) >> 4];
-      obuf[2 * i + 1] = hex[inbuf->md5[i] & 0x0f];
-    }
-
-  obuf[33] = 0;
-  return obuf;
-}
-
-
-// load hashes of old items from appropriate files
-// state (hashes etc.) is kept in st_rsstool_t *rt
-void
-rsstool_olditems_open (st_rsstool_t * rt, const char *feed_url)
-{
-  char filename[FILENAME_MAX], tmp[FILENAME_MAX], readbuf[34];
-  FILE *fh;
-  unsigned int i, d;
-  st_rsstool_itemhash_t hash;
-
-  st_rsstool_olditems_t *old[2];
-  char *prefix[2];
-
-  old[0] = &(rt->old_urls);
-  old[1] = &(rt->old_titles);
-  prefix[0] = "old-urls-md5_";
-  prefix[1] = "old-titles-md5_";
-
-  // do nothing if --new-only is not used
-  if (!*(rt->new_only_dir))
-    return;
-
-  if (!strncmp (feed_url, "http://", 7))
-    strncpy (tmp, feed_url + 7, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
-  else
-    strncpy (tmp, feed_url, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
-
-  for (i = 0; i < strlen (tmp); i++)
-    if (strchr ("/,'+ ()[]!&?", tmp[i]))
-      tmp[i] = '_';
-
-  for (d = 0; d < SIZEOF_ARRAY (old); d++)
-    {
-      strncpy (filename, rt->new_only_dir, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
-      i = FILENAME_MAX - strlen (filename);
-      strncat (filename, prefix[d], i)[FILENAME_MAX - 1] = 0;
-      i = FILENAME_MAX - strlen (filename);
-      strncat (filename, tmp, i)[FILENAME_MAX - 1] = 0;
-      strcpy (old[d]->fname, filename);
-
-      fh = fopen (filename, "r");
-      if (fh == NULL)
-        {
-          old[d]->hash_old = NULL;
-          old[d]->old_count = 0;
-        }
-      else
-        {
-          // allocate space for the hashes
-          old[d]->old_count = 0;
-          old[d]->hash_old =
-            malloc (RSSTOOL_MAX_OLDITEMS * sizeof (st_rsstool_itemhash_t));
-          if (old[d]->hash_old == NULL)
-            {
-              sprintf (tmp, "malloc failed to allocate %d bytes",
-                       RSSTOOL_MAX_OLDITEMS * sizeof (st_rsstool_itemhash_t));
-              rsstool_log (rt, tmp);
-              break;
-            }
-
-          // read hashes from the file
-          while (fgets (readbuf, sizeof (readbuf), fh))
-            {
-              if (old[d]->old_count == RSSTOOL_MAX_OLDITEMS)
-                break;
-
-              if (rsstool_hex_to_oldhash (&hash, readbuf) == NULL)
-                continue;
-
-              memcpy (&(old[d]->hash_old[old[d]->old_count]), &hash,
-                      sizeof (hash));
-              old[d]->old_count++;
-            }
-
-          fclose (fh);
-        }
-
-      old[d]->new_count = 0;
-      old[d]->hash_new =
-        malloc (RSSTOOL_MAX_OLDITEMS * sizeof (st_rsstool_itemhash_t));
-      if (old[d]->hash_new == NULL)
-        {
-          sprintf (tmp, "malloc failed to allocate %d bytes",
-                   RSSTOOL_MAX_OLDITEMS * sizeof (st_rsstool_itemhash_t));
-          rsstool_log (rt, tmp);
-          break;
-        }
-    }
-}
-
-
-// write new hashes to the file and deallocate space used by them
-void
-rsstool_olditems_close (st_rsstool_t * rt)
-{
-  FILE *fh;
-  int i, sum;
-  unsigned int d;
-  char buf[33];
-
-  st_rsstool_olditems_t *old[2];
-  old[0] = &(rt->old_urls);
-  old[1] = &(rt->old_titles);
-
-  if (!*(rt->new_only_dir))
-    return;
-
-  for (d = 0; d < SIZEOF_ARRAY (old); d++)
-    {
-      if (old[d]->new_count > 0)
-        {
-          fh = fopen (old[d]->fname, "w");
-          if (fh == NULL)
-            {
-              fprintf (stderr, "ERROR: could not open olditems file %s\n",
-                       old[d]->fname);
-            }
-          else
-            {
-              // write hashes of new items first, then the old, up to RSSTOOL_MAX_OLDITEMS
-              sum = 0;
-              for (i = 0; i < old[d]->new_count && sum < RSSTOOL_MAX_OLDITEMS; i++, sum++)
-                fprintf (fh, "%s\n", rsstool_oldhash_to_hex (buf, old[d]->hash_new + i));
-
-              for (i = 0; i < old[d]->old_count && sum < RSSTOOL_MAX_OLDITEMS; i++, sum++)
-                fprintf (fh, "%s\n", rsstool_oldhash_to_hex (buf, old[d]->hash_old + i));
-
-              fclose (fh);
-            }
-        }
-
-      if (old[d]->hash_old != NULL)
-        free (old[d]->hash_old);
-
-      if (old[d]->hash_new != NULL)
-        free (old[d]->hash_new);
-
-      old[d]->hash_old = old[d]->hash_new = NULL;
-      old[d]->old_count = old[d]->new_count = 0;
-      old[d]->fname[0] = 0;
-    }
-}
-
-
-// check if the item is new or old
-// if the item is new, add it's hash to the list of new hashes
-int
-rsstool_olditems_check (st_rsstool_t * rt, const char *url, const char *title)
-{
-  st_rsstool_itemhash_t hash;
-  st_hash_t *hashctx = NULL;
-  int i, cur_found = 0, found = 0;
-  unsigned int d;
-
-  st_rsstool_olditems_t *old[2];
-  const char *item_data[2];
-
-  old[0] = &(rt->old_urls);
-  old[1] = &(rt->old_titles);
-  item_data[0] = url;
-  item_data[1] = title;
-
-  if (!*(rt->new_only_dir))
-    return 0;
-
-  for (d = 0; d < SIZEOF_ARRAY (old); d++)
-    {
-      if (!*(old[d]->fname))
-        break;;
-
-      hashctx = hash_open (HASH_MD5);
-      hash_update (hashctx, (const unsigned char *) item_data[d],
-                   strlen (item_data[d]));
-      rsstool_hex_to_oldhash (&hash, hash_get_s (hashctx, HASH_MD5));
-      cur_found = 0;
-
-      // search the array of old items
-      for (i = 0; i < old[d]->old_count; i++)
-        {
-          if (!memcmp (&hash, old[d]->hash_old + i, sizeof (hash)))
-            {
-              cur_found = 1;
-              break;
-            }
-        }
-
-      // if the item is new, add it's hash to the list
-      if (!cur_found && old[d]->new_count < RSSTOOL_MAX_OLDITEMS)
-        {
-          memcpy (&(old[d]->hash_new[old[d]->new_count]), &hash,
-                  sizeof (hash));
-          old[d]->new_count++;
-        }
-
-      found += cur_found;
-      hash_close (hashctx);
-    }
-
-  if (found == 2)
-    return -1;
-
-  return 0;
-}
-#endif
 
 
 #ifdef  USE_HACKS

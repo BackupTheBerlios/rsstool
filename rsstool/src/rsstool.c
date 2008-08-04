@@ -159,13 +159,6 @@ main (int argc, char **argv)
       "log", 1, 0, RSSTOOL_LOG,
       "FILE", "write a log to FILE (including HTTP headers)"
     },
-#ifdef  USE_POST1_0
-    {
-      "new-only", 1, 0, RSSTOOL_NEW_ONLY,
-      "DIR",  "output only new items; use DIR to store lists of already\n"
-              "downloaded feed items"
-    },
-#endif
     {
       "since", 1, 0, RSSTOOL_SINCE,
       "DATE",  "pass only items (of feeds) newer than DATE\n"
@@ -529,21 +522,6 @@ main (int argc, char **argv)
 #ifdef  USE_CURL
         case RSSTOOL_CURL:
           rsstool.get_flags |= GET_USE_CURL;
-          break;
-#endif
-
-#ifdef  USE_POST1_0
-        case RSSTOOL_NEW_ONLY:
-          p = optarg;
-          if (p)
-            {
-              strncpy (rsstool.new_only_dir, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
-              if (rsstool.new_only_dir[strlen(rsstool.new_only_dir) - 1] != '/')
-                {
-                   rsstool.new_only_dir[strlen(rsstool.new_only_dir)] = '/';
-                   rsstool.new_only_dir[FILENAME_MAX - 1] = 0;
-                }
-            }
           break;
 #endif
 

@@ -408,6 +408,8 @@ str_escape_code (char *str)
 #endif
   strrep (str, "\"", "\\\"");
 
+  strrep (str, "\n", "\\n");
+
   return str;
 }
 

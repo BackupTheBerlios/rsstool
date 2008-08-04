@@ -87,12 +87,6 @@ typedef struct
   FILE *log;
   int get_flags;
 
-#if 0
-  char new_only_dir[FILENAME_MAX]; // directory used to store lists of hashes
-  st_rsstool_olditems_t old_urls;  // of old items, empty if not used
-  st_rsstool_olditems_t old_titles;
-#endif
-
   st_rsstool_item_t *item[RSSTOOL_MAXITEM];
   int item_count;
 } st_rsstool_t;

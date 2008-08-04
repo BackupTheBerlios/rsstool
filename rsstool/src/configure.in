@@ -487,17 +487,6 @@ st_configure_in_t configure_in[] = {
     "\n*** You may want to edit config.mak to enable hacks",
     NULL
   },
-  {
-    {NULL},
-    {NULL},
-    {NULL},
-    "# enable this if you want experimental features that didn't make it into the 1.0.0 release\n"
-    "#USE_POST1_0=1\n"
-    "#CFLAGS+=-DUSE_POST1_0\n",
-    NULL,
-    NULL,
-    NULL
-  },
   {{NULL}, {NULL}, {NULL}, NULL, NULL, NULL, NULL}
 };
 
