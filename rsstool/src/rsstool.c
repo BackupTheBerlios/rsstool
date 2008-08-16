@@ -236,6 +236,10 @@ main (int argc, char **argv)
       NULL, NULL
     },
     {
+      "nosort",        0, 0, RSSTOOL_NOSORT,
+      NULL,   "do not sort items by date (default: on)"
+    },
+    {
       "r",        0, 0, RSSTOOL_REVERSE,
       NULL,   "sort reverse"
     },
@@ -476,6 +480,10 @@ main (int argc, char **argv)
         case RSSTOOL_HELP:
           getopt2_usage (options);
           exit (0);
+
+        case RSSTOOL_NOSORT:
+          rsstool.nosort = 1;
+          break;
 
         case RSSTOOL_REVERSE:
           rsstool.reverse = 1;
@@ -850,7 +858,8 @@ main (int argc, char **argv)
   rsstool_log (&rsstool, buf);
 
   // sort rss feed
-  rsstool_sort (&rsstool);
+  if (!rsstool.nosort) 
+    rsstool_sort (&rsstool);
 
   if (rsstool.output)
     switch (rsstool.output)

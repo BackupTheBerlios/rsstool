@@ -68,6 +68,7 @@ typedef struct
   FILE *output_file; // output pointer (default: stdout)
   char pipe_command[MAXBUFSIZE]; // name of command to pipe the output to,
                                  // empty string if --pipe not used
+  int nosort;         // sort?
   int reverse;      // sort reverse before output
   int rss_version;  // version of RSS
   int ansisql_version; // which version of ANSI SQL output to use
