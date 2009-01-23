@@ -42,7 +42,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 // TODO: make update of configfiles more intelligent
-
+//         allow property with quotes at start and end?
 
 int
 property_check (const char *filename, int version, int verbose)
@@ -127,16 +127,22 @@ get_property_from_string (char *str, const char *propname, const char prop_sep, 
   if (*p == comment_sep || *p == '\n' || *p == '\r')
     return NULL;                                // text after comment_sep is comment
 
-/*
-  change: some properties might DO include '#'
-*/
-#if 0
-  sprintf (str_end, "%c\r\n", comment_sep);
-#else
   strcpy (str_end, "\r\n");
-#endif
   if ((p = strpbrk (buf, str_end)))             // strip *any* returns and comments
     *p = 0;
+
+  // terminate at unescaped '#'
+  for (p = buf + 1; *p; p++)
+    if (*p == '#')
+      {
+        if (*(p - 1) == '\\')
+          p = strmove (p - 1, p);
+        else
+          {
+            *p = 0;
+            break;
+          }
+      }
 
   p = strchr (buf, prop_sep);
   if (p)
@@ -153,7 +159,21 @@ get_property_from_string (char *str, const char *propname, const char prop_sep, 
       if (p)
         {
           strncpy (value_s, p, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-          strtriml (strtrimr (value_s));
+
+          // terminate at unescaped '#'
+          for (p = value_s + 1; *p; p++)
+          if (*p == '#')
+            {
+              if (*(p - 1) == '\\')
+                p = strmove (p - 1, p);
+              else
+                {
+                  *p = 0;
+                  break;
+                }
+            }
+
+//          strtriml (strtrimr (value_s));
         }
       else
         strcpy (value_s, "1");
