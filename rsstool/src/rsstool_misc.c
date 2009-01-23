@@ -342,7 +342,28 @@ rsstool_sort (st_rsstool_t * rt)
 }
 
 
-#ifdef  USE_HACKS
+int
+rsstool_log (st_rsstool_t * rt, const char *s)
+{
+  char buf[32];
+  time_t t = time (0);
+  FILE *o = rt->log ? rt->log : stderr;
+
+  strftime (buf, 32, "%b %d %H:%M:%S", localtime (&t));
+
+#ifdef  __linux__
+  fprintf (o, "%s rsstool(%d): ", buf, getpid());
+#else
+  fprintf (o, "%s rsstool: ", buf);
+#endif
+  fputs (s, o);
+  fputc ('\n', o);
+  fflush (o);
+
+  return 0;
+}
+
+
 const char *
 a_pass (const char *s)
 {
@@ -383,29 +404,6 @@ printf (buf);
     cf = xml_tag_filter (buf, f, cf);
 }
   fclose (fh);
-
-  return 0;
-}
-#endif  // USE_HACKS
-
-
-int
-rsstool_log (st_rsstool_t * rt, const char *s)
-{
-  char buf[32];
-  time_t t = time (0);
-  FILE *o = rt->log ? rt->log : stderr;
-
-  strftime (buf, 32, "%b %d %H:%M:%S", localtime (&t));
-
-#ifdef  __linux__
-  fprintf (o, "%s rsstool(%d): ", buf, getpid());
-#else
-  fprintf (o, "%s rsstool: ", buf);
-#endif
-  fputs (s, o);
-  fputc ('\n', o);
-  fflush (o);
 
   return 0;
 }

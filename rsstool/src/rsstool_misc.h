@@ -56,16 +56,8 @@ extern int rsstool_add_item_s (st_rsstool_t *rt,
                                const char *desc);
 extern int rsstool_get_item_count (st_rsstool_t *rt);
 extern int rsstool_sort (st_rsstool_t * rt);
-#ifdef  USE_HACKS
 extern int rsstool_get_links (const char *file);
-#endif
 extern int rsstool_log (st_rsstool_t * rt, const char *s);
-
-#if 0
-extern void rsstool_olditems_open (st_rsstool_t *rt, const char *feed_url);
-extern int rsstool_olditems_check (st_rsstool_t *rt, const char *url, const char *desc);
-extern void rsstool_olditems_close (st_rsstool_t *rt);
-#endif
 
 
 #endif  // RSSTOOL_MISC_H

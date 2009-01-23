@@ -11,9 +11,10 @@ Q4: <a href="#4">RSStool + TOR?</a><br>
 <br>
 Q5: <a href="#5">Hacks?</a><br>
 <br>
+Q6: <a href="#6">Option XYZ is gone?</a><br>
 <br>
 <br>
-<p><!-- <p> instead of <br> to make lynx display a blank line between questions -->
+<p>
 <a name="1"><b>Q1</b>: How do I compile/build RSStool?</a><br>
 <b>A</b>: cd src && ./configure && make && make install<br>
 <br>
@@ -95,24 +96,15 @@ But in general you should be fine w/o using TOR.
 <br>
 <p>
 <a name="5"><b>Q5</b>: Hacks?</a><br>
-<b>A</b>: Yes, RSStool can be compiled with hacks (disabled by default) which generate
-RSS feeds from sites that do not offer RSS feeds.
-
-after running
-
-./configure
-
-edit config.mak and uncomment the lines
-
-#USE_HACKS=1
-#CFLAGS+=-DUSE_HACKS
-
-to
-
-USE_HACKS=1
-CFLAGS+=-DUSE_HACKS
-
-and you'll have hacks enabled.
+<b>A</b>: Hacks have been deprected together with some options.
+They can be replaced with the small tool called xmlget and the scripts
+found in contrib/
+<br>
+<p>
+<a name="6"><b>Q6</b>: Option XYZ is gone?</a><br>
+<b>A</b>: Some optons have been deprected.
+They can be replaced with the small tool called xmlget and the scripts
+found in contrib/
 <br>
 <p>
 <br>

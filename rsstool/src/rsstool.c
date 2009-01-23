@@ -41,18 +41,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "rsstool_write.h"
 
 
-// hacks
-#ifdef  USE_HACKS
-#include "hack/xxx.h"
-#include "hack/troll.h"
-#include "hack/youtube.h"
-#include "hack/google.h"
-#include "hack/google_news.h"
-//#include "hack/digg.h"
-//#include "hack/slashdot.h"
-#endif
-
-
 st_rsstool_t rsstool;
 
 
@@ -156,6 +144,10 @@ main (int argc, char **argv)
       "FILE", "same as " OPTION_LONG_S "input-file"
     },
     {
+      "parse",   1, 0, RSSTOOL_PARSE,
+      "FILE|URL", "generate RSS feed from random HTML document"
+    },
+    {
       "log", 1, 0, RSSTOOL_LOG,
       "FILE", "write a log to FILE (including HTTP headers)"
     },
@@ -252,11 +244,6 @@ main (int argc, char **argv)
       "FILE",   "output into FILE (default: stdout)"
     },
     {
-      "pipe",       1, 0, RSSTOOL_PIPE,
-      "CMD",   "pipe the output for a _single_ item to CMD\n"
-               "for used with " OPTION_LONG_S "html, " OPTION_LONG_S "txt, " OPTION_LONG_S "href or " OPTION_LONG_S "template2, only"
-    },
-    {
       "rss",       2, 0, RSSTOOL_RSS,
       "VERSION",   "output as RSS feed\n"
                    "VERSION=1 will write RSS v1.0\n"
@@ -271,20 +258,41 @@ main (int argc, char **argv)
       NULL,   "output as html"
     },
     {
-      "bookmarks",       0, 0, RSSTOOL_BOOKMARKS,
-      NULL,   "output as bookmarks.html for use with Mozilla or Firefox"
-    },
-    {
-      "href", 0, 0, RSSTOOL_HREF,
-      NULL, "output only the links as plain text"
-    },
-    {
       "txt",        0, 0, RSSTOOL_TXT,
       NULL,   "output as plain text"
     },
     {
       "csv",       2, 0, RSSTOOL_CSV,
       "SEPARATOR",   "output as comma-separated values CSV"
+    },
+    {
+      "sql", 2, 0, RSSTOOL_SQL,
+      "VALUE",   "output as ANSI SQL script\n"
+                 "VALUE=092       RSStool 0.9.2 db format\n"
+                 "VALUE=094       RSStool 0.9.4 db format\n"
+                 "VALUE=095       RSStool 0.9.5 db format\n"
+                 "VALUE=\"current\" use current db format (default)"
+    },
+    {
+      "sqlold", 0, 0, RSSTOOL_SQLOLD,
+      NULL,   NULL
+    },
+    {
+      NULL, 0, 0, 0,
+      NULL,   "\nDeprecated"
+    },
+    {
+      "pipe",       1, 0, RSSTOOL_PIPE,
+      "CMD",   "pipe the output for a _single_ item to CMD\n"
+               "for used with " OPTION_LONG_S "html, " OPTION_LONG_S "txt, " OPTION_LONG_S "href or " OPTION_LONG_S "template2, only"
+    },
+    {
+      "bookmarks",       0, 0, RSSTOOL_BOOKMARKS,
+      NULL,   "output as bookmarks.html for use with Mozilla or Firefox"
+    },
+    {
+      "href", 0, 0, RSSTOOL_HREF,
+      NULL, "output only the links as plain text"
     },
     {
       "prop", 0, 0, RSSTOOL_PROP,
@@ -298,6 +306,35 @@ main (int argc, char **argv)
       "property",       2, 0, RSSTOOL_PROPERTY,
       NULL, NULL
     },
+#ifdef  USE_MYSQL
+    {
+      "mysql", 1, 0, RSSTOOL_MYSQL,
+      "URL",   "write direct to MySQL DB using MySQL API\n"
+               "URL syntax: user:passwd@host:port/database"
+    },
+#endif
+#ifdef  USE_ODBC
+    {
+      "odbc", 1, 0, RSSTOOL_ODBC,
+      "URL",   "write direct to DB using ODBC\n"
+               "URL syntax: user:passwd@host:port/database"
+    },
+#endif
+    {
+      "joomla", 0, 0, RSSTOOL_JOOMLA,
+      NULL,   "output as ANSI SQL script for import into Joomla! CMS"
+    },
+    {
+      "dragonfly", 0, 0, RSSTOOL_DRAGONFLY,
+      NULL,   "output as ANSI SQL script for import into Dragonfly CMS"
+    },
+#if 0
+    {
+      "irc", 1, 0, RSSTOOL_IRC,
+      "URL",  "output to IRC channel\n"
+              "e.g. " OPTION_LONG_S "irc=\"irc.server.org/#channel\""
+    }
+#endif
     {
       "template", 1, 0, RSSTOOL_TEMPLATE,
       "FILE|URL",   "parse template file and replace tags with content\n"  
@@ -326,110 +363,6 @@ main (int argc, char **argv)
       "FILE|URL",   "same as " OPTION_LONG_S "template but repeats the whole\n"
                     "template for every single item"
     },
-#ifdef  USE_MYSQL
-    {
-      "mysql", 1, 0, RSSTOOL_MYSQL,
-      "URL",   "write direct to MySQL DB using MySQL API\n"
-               "URL syntax: user:passwd@host:port/database"
-    },
-#endif
-#ifdef  USE_ODBC
-    {
-      "odbc", 1, 0, RSSTOOL_ODBC,
-      "URL",   "write direct to DB using ODBC\n"
-               "URL syntax: user:passwd@host:port/database"
-    },
-#endif
-    {
-      "sql", 2, 0, RSSTOOL_SQL,
-      "VALUE",   "output as ANSI SQL script\n"
-                 "VALUE=092       RSStool 0.9.2 db format\n"
-                 "VALUE=094       RSStool 0.9.4 db format\n"
-                 "VALUE=095       RSStool 0.9.5 db format\n"
-                 "VALUE=\"current\" use current db format (default)"
-    },
-    {
-      "sqlold", 0, 0, RSSTOOL_SQLOLD,
-      NULL,   "same as " OPTION_LONG_S "sql=095"
-    },
-    {
-      "joomla", 0, 0, RSSTOOL_JOOMLA,
-      NULL,   "output as ANSI SQL script for import into Joomla! CMS"
-    },
-    {
-      "dragonfly", 0, 0, RSSTOOL_DRAGONFLY,
-      NULL,   "output as ANSI SQL script for import into Dragonfly CMS"
-    },
-#if 0
-    {
-      "irc", 1, 0, RSSTOOL_IRC,
-      "URL",  "output to IRC channel\n"
-              "e.g. " OPTION_LONG_S "irc=\"irc.server.org/#channel\""
-    }
-#endif
-#ifdef  USE_HACKS
-    {
-      NULL,      0, 0, 0,
-      NULL,   "\nHacks\n"
-              "generate RSS feed from HTML code of sites that do not offer RSS feeds\n"
-              "The code of these hacks might sometimes not work if site owners keep\n"
-              "changing the syntax layout of their HTML too frequently\n"
-              "You will have to wait for the next update of this tool in such a case"
-    },
-    {
-      NULL, 0, 0, 0,
-      NULL,   "\nHacks (output RSS feeds by default)"
-    },
-    {
-      "google", 1, 0, RSSTOOL_GOOGLE,
-      "SEARCH", "generate RSS feed from Google SEARCH"
-    },
-    {
-      "google-news", 2, 0, RSSTOOL_GOOGLE_NEWS,
-      "SEARCH", "generate RSS feed from Google/News and remove\n"
-               "Google redirects from the links (default: latest news)"
-    },
-    {
-      "youtube",   2, 0, RSSTOOL_YOUTUBE,
-      "SEARCH",   "generate RSS feed with direct links to download\n"
-                  "the videos on Youtube (default: latest videos)"
-    },
-    {
-      "troll",   2, 0, RSSTOOL_TROLL,
-      "FLAG",   "generate RSS feed from the latest Slashdot trolls\n"
-                "FLAG=0     All (default)\n"
-                "FLAG=1     Main\n"
-                "FLAG=2     Apple\n"
-                "FLAG=4     AskSlashdot\n"
-//                "FLAG=8     Backslash\n"
-                "FLAG=16    Books\n"
-                "FLAG=32    Developers\n"
-                "FLAG=64    Games\n"
-                "FLAG=128   Hardware\n"
-                "FLAG=256   Interviews\n"
-                "FLAG=512   IT\n"
-                "FLAG=1024  Linux\n"
-                "FLAG=2048  Politics\n"
-                "FLAG=4096  Science\n"
-                "FLAG=8192  YRO\n"
-                "FLAG=16384 BSD\n"
-                "It is possible to combine flags. FLAG=3 would result\n"
-                "in Main and Apple"
-    },
-    {
-      "xxx", 2, 0, RSSTOOL_XXX,
-      "FLAG", "generate RSS feed from several free XXX sites\n"
-              "FLAG=1 Movies only (default)\n"
-              "FLAG=2 Pictures only\n"
-//              "FLAG=4 Scat Movies and/or Pictures\n"
-              "It is possible to combine flags. FLAG=3 would result\n"
-              "in Movies and Pictures"
-    },
-    {
-      "parse",   1, 0, RSSTOOL_PARSE,
-      "FILE|URL", "generate RSS feed from random HTML document"
-    },
-#endif  // USE_HACKS
     {
       NULL,       0, 0, 0,
       NULL, "\nReport problems/comments/ideas/whinge to noisyb@gmx.net\n"
@@ -487,6 +420,20 @@ main (int argc, char **argv)
 
         case RSSTOOL_REVERSE:
           rsstool.reverse = 1;
+          break;
+
+        case RSSTOOL_PARSE:
+          if (!rsstool.output)
+            rsstool.output = RSSTOOL_OUTPUT_RSS;
+          p = optarg;
+          if (p)
+            if (access (p, F_OK) != 0)
+              p = net_http_get_to_temp (p, rsstool.user_agent, rsstool.get_flags);
+
+          if (p)
+            rsstool_get_links (p);
+          else
+            fputs ("ERROR: HTML document not found\n", stderr);
           break;
 
         case RSSTOOL_LOG:
@@ -696,65 +643,6 @@ main (int argc, char **argv)
             fputs ("ERROR: db not found\n", stderr);
           break;
 #endif
-
-        // hacks
-#ifdef  USE_HACKS
-        case RSSTOOL_GOOGLE:
-          if (!rsstool.output)
-            rsstool.output = RSSTOOL_OUTPUT_RSS;
-          rsstool.optarg = optarg;
-          p = optarg;
-          google_hack (&rsstool, p);
-          break;
-
-        case RSSTOOL_GOOGLE_NEWS:
-          if (!rsstool.output)
-            rsstool.output = RSSTOOL_OUTPUT_RSS;
-          rsstool.optarg = optarg;
-          p = optarg;
-          google_news_get_rss (&rsstool, p);
-          break;
-
-        case RSSTOOL_YOUTUBE:
-          if (!rsstool.output)
-            rsstool.output = RSSTOOL_OUTPUT_RSS;
-          rsstool.optarg = optarg;
-          p = optarg;
-          youtube_get_rss (&rsstool, p);
-          break;
-
-        case RSSTOOL_XXX:
-          if (!rsstool.output)
-            rsstool.output = RSSTOOL_OUTPUT_RSS;
-          if (optarg)
-            rsstool.optarg = optarg;
-          p = optarg;
-          xxx_get_rss (&rsstool, p ? strtol (p, NULL, 10) : 0);
-          break;
-
-        case RSSTOOL_TROLL:
-          if (!rsstool.output)
-            rsstool.output = RSSTOOL_OUTPUT_RSS;
-          if (optarg)
-            rsstool.optarg = optarg;
-          p = optarg;
-          troll_get_rss (&rsstool, p ? strtol (p, NULL, 10) : 0);
-          break;
-
-        case RSSTOOL_PARSE:
-          if (!rsstool.output)
-            rsstool.output = RSSTOOL_OUTPUT_RSS;
-          p = optarg;
-          if (p)
-            if (access (p, F_OK) != 0)
-              p = net_http_get_to_temp (p, rsstool.user_agent, rsstool.get_flags);
-
-          if (p)
-            rsstool_get_links (p);
-          else
-            fputs ("ERROR: HTML document not found\n", stderr);
-          break;
-#endif  // USE_HACKS
 
         default:
           fputs ("Try 'rsstool " OPTION_LONG_S "help' for more information\n\n", stdout);

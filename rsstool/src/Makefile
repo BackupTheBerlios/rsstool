@@ -39,7 +39,6 @@ all: $(TARGET)
 
 clean:
 	rm -f $(TARGET) $(OBJECTS) *.core *.stackdump *~ */*~ */*/*~
-	rm -Rf rsstool.plg rsstool.ncb rsstool.dep rsstool.mak Debug Release *.obj */*.obj
 
 
 distclean: clean
