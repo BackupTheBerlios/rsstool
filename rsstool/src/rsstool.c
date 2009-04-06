@@ -244,6 +244,11 @@ main (int argc, char **argv)
       "FILE",   "output into FILE (default: stdout)"
     },
     {
+      "pipe",       1, 0, RSSTOOL_PIPE,
+      "CMD",   "pipe the output for a _single_ item to CMD\n"
+               "for used with " OPTION_LONG_S "html, " OPTION_LONG_S "txt, " OPTION_LONG_S "href or " OPTION_LONG_S "template2, only"
+    },
+    {
       "rss",       2, 0, RSSTOOL_RSS,
       "VERSION",   "output as RSS feed\n"
                    "VERSION=1 will write RSS v1.0\n"
@@ -258,41 +263,20 @@ main (int argc, char **argv)
       NULL,   "output as html"
     },
     {
-      "txt",        0, 0, RSSTOOL_TXT,
-      NULL,   "output as plain text"
-    },
-    {
-      "csv",       2, 0, RSSTOOL_CSV,
-      "SEPARATOR",   "output as comma-separated values CSV"
-    },
-    {
-      "sql", 2, 0, RSSTOOL_SQL,
-      "VALUE",   "output as ANSI SQL script\n"
-                 "VALUE=092       RSStool 0.9.2 db format\n"
-                 "VALUE=094       RSStool 0.9.4 db format\n"
-                 "VALUE=095       RSStool 0.9.5 db format\n"
-                 "VALUE=\"current\" use current db format (default)"
-    },
-    {
-      "sqlold", 0, 0, RSSTOOL_SQLOLD,
-      NULL,   NULL
-    },
-    {
-      NULL, 0, 0, 0,
-      NULL,   "\nDeprecated"
-    },
-    {
-      "pipe",       1, 0, RSSTOOL_PIPE,
-      "CMD",   "pipe the output for a _single_ item to CMD\n"
-               "for used with " OPTION_LONG_S "html, " OPTION_LONG_S "txt, " OPTION_LONG_S "href or " OPTION_LONG_S "template2, only"
-    },
-    {
       "bookmarks",       0, 0, RSSTOOL_BOOKMARKS,
       NULL,   "output as bookmarks.html for use with Mozilla or Firefox"
     },
     {
       "href", 0, 0, RSSTOOL_HREF,
       NULL, "output only the links as plain text"
+    },
+    {
+      "txt",        0, 0, RSSTOOL_TXT,
+      NULL,   "output as plain text"
+    },
+    {
+      "csv",       2, 0, RSSTOOL_CSV,
+      "SEPARATOR",   "output as comma-separated values CSV"
     },
     {
       "prop", 0, 0, RSSTOOL_PROP,
@@ -306,35 +290,6 @@ main (int argc, char **argv)
       "property",       2, 0, RSSTOOL_PROPERTY,
       NULL, NULL
     },
-#ifdef  USE_MYSQL
-    {
-      "mysql", 1, 0, RSSTOOL_MYSQL,
-      "URL",   "write direct to MySQL DB using MySQL API\n"
-               "URL syntax: user:passwd@host:port/database"
-    },
-#endif
-#ifdef  USE_ODBC
-    {
-      "odbc", 1, 0, RSSTOOL_ODBC,
-      "URL",   "write direct to DB using ODBC\n"
-               "URL syntax: user:passwd@host:port/database"
-    },
-#endif
-    {
-      "joomla", 0, 0, RSSTOOL_JOOMLA,
-      NULL,   "output as ANSI SQL script for import into Joomla! CMS"
-    },
-    {
-      "dragonfly", 0, 0, RSSTOOL_DRAGONFLY,
-      NULL,   "output as ANSI SQL script for import into Dragonfly CMS"
-    },
-#if 0
-    {
-      "irc", 1, 0, RSSTOOL_IRC,
-      "URL",  "output to IRC channel\n"
-              "e.g. " OPTION_LONG_S "irc=\"irc.server.org/#channel\""
-    }
-#endif
     {
       "template", 1, 0, RSSTOOL_TEMPLATE,
       "FILE|URL",   "parse template file and replace tags with content\n"  
@@ -362,6 +317,30 @@ main (int argc, char **argv)
       "template2", 1, 0, RSSTOOL_TEMPLATE2,
       "FILE|URL",   "same as " OPTION_LONG_S "template but repeats the whole\n"
                     "template for every single item"
+    },
+    {
+      "sql", 2, 0, RSSTOOL_SQL,
+      "VALUE",   "output as ANSI SQL script\n"
+                 "VALUE=092       RSStool 0.9.2 db format\n"
+                 "VALUE=094       RSStool 0.9.4 db format\n"
+                 "VALUE=095       RSStool 0.9.5 db format\n"
+                 "VALUE=\"current\" use current db format (default)"
+    },
+    {
+      "sqlold", 0, 0, RSSTOOL_SQLOLD,
+      NULL,   NULL
+    },
+    {
+      NULL, 0, 0, 0,
+      NULL,   "\nDeprecated"
+    },
+    {
+      "joomla", 0, 0, RSSTOOL_JOOMLA,
+      NULL,   "output as ANSI SQL script for import into Joomla! CMS"
+    },
+    {
+      "dragonfly", 0, 0, RSSTOOL_DRAGONFLY,
+      NULL,   "output as ANSI SQL script for import into Dragonfly CMS"
     },
     {
       NULL,       0, 0, 0,
