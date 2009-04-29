@@ -108,6 +108,7 @@ extern char *strcat2 (const char *a, const char *b);
 extern char *str_escape_code (char *str);
 extern char *str_escape_html (char *str);
 extern char *str_unescape_html (char *str);
+extern char *str_escape_xml (char *str);
 
 extern char *strrstr (char *str, const char *search);
 extern char *strristr (char *str, const char *search);

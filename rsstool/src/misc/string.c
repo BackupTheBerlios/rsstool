@@ -436,6 +436,17 @@ str_unescape_html (char *str)
 }
 
 
+char *
+str_escape_xml (char *str)
+{
+  strrep (str, "&", "&amp;");
+  strrep (str, "<", "&lt;");
+  strrep (str, ">", "&gt;");
+
+  return str;
+}
+
+
 #ifdef  DEBUG
 static int
 strarg_debug (int argc, char **argv)
