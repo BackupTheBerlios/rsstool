@@ -599,9 +599,9 @@ rsstool_write_ansisql (st_rsstool_t *rt)
   int items = rsstool_get_item_count (rt);
   int i = 0;
 
-  fputs ("--------------------------------------------------------------\n"
+  fputs ("-- -----------------------------------------------------------\n"
          "-- RSStool - read, parse, merge and write RSS (and Atom) feeds\n"
-         "--------------------------------------------------------------\n"
+         "-- -----------------------------------------------------------\n"
          "\n"
          "-- DROP TABLE IF EXISTS `rsstool_table`;\n"
          "-- CREATE TABLE `rsstool_table` (\n"
@@ -682,9 +682,9 @@ rsstool_write_ansisql_092 (st_rsstool_t *rt)
   int items = rsstool_get_item_count (rt);
   int i = 0;
 
-  fputs ("--------------------------------------------------------------\n"
+  fputs ( "-- -----------------------------------------------------------\n"
           "-- RSStool - read, parse, merge and write RSS (and Atom) feeds\n"
-          "--------------------------------------------------------------\n"
+          "-- -----------------------------------------------------------\n"
           "\n"
           "-- DROP TABLE rsstool_table;\n"
           "-- CREATE TABLE rsstool_table\n"
@@ -718,9 +718,9 @@ rsstool_write_ansisql_094 (st_rsstool_t *rt)
   int items = rsstool_get_item_count (rt);
   int i = 0;
 
-  fputs ("--------------------------------------------------------------\n"
+  fputs ("-- -----------------------------------------------------------\n"
          "-- RSStool - read, parse, merge and write RSS (and Atom) feeds\n"
-         "--------------------------------------------------------------\n"
+         "-- -----------------------------------------------------------\n"
          "\n"
          "-- DROP TABLE IF EXISTS `rsstool_table`;\n"
          "-- CREATE TABLE IF NOT EXISTS `rsstool_table`\n"
@@ -773,9 +773,9 @@ rsstool_write_ansisql_095 (st_rsstool_t *rt)
   int items = rsstool_get_item_count (rt);
   int i = 0;
 
-  fputs ("--------------------------------------------------------------\n"
+  fputs ("-- -----------------------------------------------------------\n"
          "-- RSStool - read, parse, merge and write RSS (and Atom) feeds\n"
-         "--------------------------------------------------------------\n"
+         "-- -----------------------------------------------------------\n"
          "\n"
          "-- DROP TABLE IF EXISTS `rsstool_table`;\n"
          "-- CREATE TABLE IF NOT EXISTS `rsstool_table`\n"
@@ -840,9 +840,9 @@ rsstool_write_ansisql_joomla (st_rsstool_t *rt)
   int items = rsstool_get_item_count (rt);
   int i = 0;
 
-  fputs ("--------------------------------------------------------------\n"
+  fputs ("-- -----------------------------------------------------------\n"
          "-- RSStool - read, parse, merge and write RSS (and Atom) feeds\n"
-         "--------------------------------------------------------------\n"
+         "-- -----------------------------------------------------------\n"
          "\n"
          "-- DROP TABLE IF EXISTS `jos_content`;\n"
          "-- CREATE TABLE IF NOT EXISTS `jos_content`\n"
@@ -946,9 +946,9 @@ rsstool_write_ansisql_dragonfly (st_rsstool_t *rt)
   int items = rsstool_get_item_count (rt);
   int i = 0;
 
-  fputs ("--------------------------------------------------------------\n"
+  fputs ("-- -----------------------------------------------------------\n"
          "-- RSStool - read, parse, merge and write RSS (and Atom) feeds\n"
-         "--------------------------------------------------------------\n"
+         "-- -----------------------------------------------------------\n"
          "\n"
          "-- DROP TABLE IF EXISTS `jos_content`;\n"
          "-- CREATE TABLE IF NOT EXISTS `cms_stories`\n"
