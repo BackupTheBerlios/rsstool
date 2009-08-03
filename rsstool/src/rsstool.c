@@ -557,7 +557,7 @@ main (int argc, char **argv)
           if (p)
             {
               rsstool.output = RSSTOOL_OUTPUT_TEMPLATE;
-              strncpy (rsstool.template, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
+              strncpy (rsstool.template_file, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
             }
           else
             fputs ("ERROR: template not found\n", stderr);
@@ -572,7 +572,7 @@ main (int argc, char **argv)
           if (p)
             {
               rsstool.output = RSSTOOL_OUTPUT_TEMPLATE2;
-              strncpy (rsstool.template, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
+              strncpy (rsstool.template_file, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
             }
           else
             fputs ("ERROR: template not found\n", stderr);
@@ -804,15 +804,15 @@ main (int argc, char **argv)
 #endif
 
         case RSSTOOL_OUTPUT_TEMPLATE:
-          if (*rsstool.template)
-            rsstool_write_template (&rsstool, rsstool.template);
+          if (*rsstool.template_file)
+            rsstool_write_template (&rsstool, rsstool.template_file);
           else
             fputs ("ERROR: no input template specified\n", stderr);
           break;
 
         case RSSTOOL_OUTPUT_TEMPLATE2:
-          if (*rsstool.template)
-            rsstool_write_template2 (&rsstool, rsstool.template);
+          if (*rsstool.template_file)
+            rsstool_write_template2 (&rsstool, rsstool.template_file);
           else
             fputs ("ERROR: no input template specified\n", stderr);
           break;

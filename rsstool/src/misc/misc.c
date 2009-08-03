@@ -127,7 +127,7 @@ tmpnam3 (char *temp, int dir)
   
   t = getenv2 ("TEMP");
 
-  if (!(p = malloc (strlen (t) + strlen (temp) + 12)))
+  if (!(p = (char *) malloc (strlen (t) + strlen (temp) + 12)))
     return NULL;
 
   sprintf (p, "%s" FILE_SEPARATOR_S "%st_XXXXXX", t, temp);

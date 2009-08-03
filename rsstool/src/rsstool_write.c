@@ -245,7 +245,7 @@ static st_tag_filter_t f[] = {
 
 
 int
-rsstool_write_template (st_rsstool_t *rt, const char *template)
+rsstool_write_template (st_rsstool_t *rt, const char *template_file)
 {
 #ifndef _WIN32
   (void) rt;
@@ -255,7 +255,7 @@ rsstool_write_template (st_rsstool_t *rt, const char *template)
   FILE *fh = NULL;
   int cf = 0;
 
-  if (!(fh = fopen (template, "r")))
+  if (!(fh = fopen (template_file, "r")))
     return -1;
 
   while (fgets (buf, MAXBUFSIZE, fh))
@@ -293,7 +293,7 @@ rsstool_write_template_s (st_rsstool_t *rt, const char *template_s)
 
 
 int
-rsstool_write_template2 (st_rsstool_t *rt, const char *template)
+rsstool_write_template2 (st_rsstool_t *rt, const char *template_file)
 {
 #ifndef _WIN32
   (void) rt;
@@ -303,7 +303,7 @@ rsstool_write_template2 (st_rsstool_t *rt, const char *template)
   int cf, i = 0;
   int items = rsstool_get_item_count (rt);
 
-  if (!(fh = fopen (template, "r")))
+  if (!(fh = fopen (template_file, "r")))
     return -1;
 
   for (; i < items; i++)

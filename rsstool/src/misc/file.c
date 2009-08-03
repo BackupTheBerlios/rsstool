@@ -853,9 +853,9 @@ getfile_recursion (const char *fname, int (*callback_func) (const char *),
 #else
       if (path[strlen (path) - 1] == FILE_SEPARATOR)
 #endif
-        p = "";
+        p = (char *) "";
       else
-        p = FILE_SEPARATOR_S;
+        p = (char *) FILE_SEPARATOR_S;
 
       if ((dp = opendir (path)))
         {

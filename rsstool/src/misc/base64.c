@@ -142,7 +142,7 @@ base64_enc (char *src)
   char *dst;
 
   len = strlen (src);
-  dst = malloc (((((len - 1) / 3) + 1) * 4) + 1 + len / 54);
+  dst = (char *) malloc (((((len - 1) / 3) + 1) * 4) + 1 + len / 54);
 
   while (i < len)
     {

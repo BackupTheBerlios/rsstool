@@ -46,7 +46,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 st_hash_t *
 hash_open (int flags)
 {
-  st_hash_t *h = malloc (sizeof (st_hash_t));
+  st_hash_t *h = (st_hash_t *) malloc (sizeof (st_hash_t));
   int inited = 0;
 
   if (!h)

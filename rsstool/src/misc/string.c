@@ -173,7 +173,7 @@ strlwr (char *s)
 char *
 strmove (char *to, char *from)
 {
-  return memmove (to, from, strlen (from) + 1); // + 1 because of termination
+  return (char *) memmove (to, from, strlen (from) + 1); // + 1 because of termination
 }
 
 
@@ -190,7 +190,7 @@ strins (char *dest, const char *ins)
 char *
 strcat2 (const char *a, const char *b)
 {
-  char *p = malloc (strlen (a) + strlen (b) + 1);
+  char *p = (char *) malloc (strlen (a) + strlen (b) + 1);
 
   if (!p)
     return NULL;

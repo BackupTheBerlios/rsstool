@@ -629,7 +629,7 @@ rss_open (const char *fname)
 {
   st_rss_t *rss = NULL;
 
-  if (!(rss = malloc (sizeof (st_rss_t))))
+  if (!(rss = (st_rss_t *) malloc (sizeof (st_rss_t))))
     return NULL;
 
   memset (rss, 0, sizeof (st_rss_t));

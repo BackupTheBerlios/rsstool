@@ -88,7 +88,7 @@ net_init (int flags, int timeout)
 {
   st_net_t *n = NULL;
 
-  if (!(n = malloc (sizeof (st_net_t))))
+  if (!(n = (st_net_t *) malloc (sizeof (st_net_t))))
     return NULL;
 
   memset (n, 0, sizeof (st_net_t));
@@ -760,7 +760,7 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
   if (flags & GET_USE_CURL)
     {
       CURL *curl = NULL;
-      CURLcode result = 0;
+      CURLcode result;
 
       if (!(tmp = fopen (tname, "wb")))
         {
@@ -861,7 +861,7 @@ strunesc (char *dest, const char *src)
   if (!src)
     return NULL;
   if (!src[0])
-    return "";
+    return (char *) "";
 
   while ((c = *src++))
     {
@@ -908,7 +908,7 @@ stresc (char *dest, const char *src)
   if (!src)
     return NULL;
   if (!src[0])
-    return "";
+    return (char *) "";
             
   while ((c = *src++))
     if (strchr (positiv, c) != NULL || c >= 0x7f)

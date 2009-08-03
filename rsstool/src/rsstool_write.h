@@ -49,8 +49,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   rsstool_write_odbc()      write feed contents to ODBC compat db
 */
 extern int rsstool_write_property (st_rsstool_t *rsstool);
-extern int rsstool_write_template (st_rsstool_t *rsstool, const char *template);
-extern int rsstool_write_template2 (st_rsstool_t *rt, const char *template);
+extern int rsstool_write_template (st_rsstool_t *rsstool, const char *template_file);
+extern int rsstool_write_template2 (st_rsstool_t *rt, const char *template_file);
 extern int rsstool_write_txt (st_rsstool_t *rsstool);
 extern int rsstool_write_href (st_rsstool_t *rsstool);
 extern int rsstool_write_html (st_rsstool_t *rsstool);

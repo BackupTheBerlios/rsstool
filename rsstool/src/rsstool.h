@@ -82,7 +82,7 @@ typedef struct
   int strip_whitespace;
 
 //  char property[FILENAME_MAX];
-  char template[FILENAME_MAX];
+  char template_file[FILENAME_MAX];
   char temp_file[FILENAME_MAX];
   FILE *input_file;
   FILE *log;

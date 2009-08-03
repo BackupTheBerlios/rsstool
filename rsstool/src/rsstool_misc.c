@@ -318,8 +318,8 @@ static int
 rsstool_sort_compare (const void *a, const void *b)
 {
   int result = 0;
-  const st_rsstool_item_t *const *x = a;
-  const st_rsstool_item_t *const *y = b;
+  const st_rsstool_item_t *const *x = (const st_rsstool_item_t *const *) a;
+  const st_rsstool_item_t *const *y = (const st_rsstool_item_t *const *) b;
 
   if ((*x)->date > (*y)->date)
     result = 1;
