@@ -680,73 +680,7 @@ rss_close (st_rss_t *rss)
 }
 
 
-#if 0
-int
-rss_write (FILE *fp, st_rss_t *rss, int version)
-{
-// TODO: escape html code in desc
-  unsigned int i = 0;
-
-  if (!fp)
-    return -1;
-
-  if (!rss)
-    return -1;
-
-  if (version != 1) // default to RSS 2.0
-    version = 2;
-
-  fputs ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n", fp);
-
-  if (version == 1)
-    fputs ("<rdf:RDF xmlns=\"http://purl.org/rss/1.0/\">\n", fp);
-  else
-    fputs ("<rss version=\"2.0\">\n", fp);
-
-  fputs ("  <channel>\n"
-         "    <title>RSStool</title>\n"
-         "    <link>http://rsstool.berlios.de</link>\n"
-         "    <description>read, parse, merge and write RSS (and Atom) feeds</description>\n"
-//         "    <dc:date>%ld</dc:date>"
-         , fp);
-
-
-  if (version == 1)
-    {
-      fputs ("<items>\n"
-             "<rdf:Seq>\n", fp);
-
-      for (i = 0; i < rss_item_count (rss); i++)
-        fprintf (fp, "\n        <rdf:li rdf:resource=\"%s\"/>", rss->item[i].url);
-
-      fputs ("</rdf:Seq>\n"
-             "</items>\n"
-             "</channel>\n", fp);
-    }
-
-  for (i = 0; i < rss_item_count (rss); i++)
-    {
-      if (version == 1)
-        fprintf (fp, "<item rdf:about=\"%s\">\n", rss->item[i].url);
-      else
-        fputs ("    <item>\n", fp);
-
-      fprintf (fp, "      <title>%s</title>\n", rss->item[i].title);
-      fprintf (fp, "      <link>%s</link>\n", rss->item[i].url);
-      fprintf (fp, "      <description>%s</description>\n", rss->item[i].desc);
-      fprintf (fp, "      <dc:date>%ld</dc:date>\n", rss->item[i].date);
-
-      fputs ("    </item>\n", fp);
-    }
-
-  if (version == 2)
-    fputs ("  </channel>\n", fp);
-
-  fputs ("</rss>\n", fp);
-
-  return 0;
-}
-#else
+#if 1
 //#include <libxml/parser.h>
 //#include <libxml/tree.h>
 #include <libxml/xmlwriter.h>
@@ -892,6 +826,72 @@ rss_write (FILE *fp, st_rss_t *rss, int version)
   fputs ((const char *) buffer->content, fp);
 
   xmlBufferFree (buffer);
+
+  return 0;
+}
+#else
+int
+rss_write (FILE *fp, st_rss_t *rss, int version)
+{
+// TODO: escape html code in desc
+  unsigned int i = 0;
+
+  if (!fp)
+    return -1;
+
+  if (!rss)
+    return -1;
+
+  if (version != 1) // default to RSS 2.0
+    version = 2;
+
+  fputs ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n", fp);
+
+  if (version == 1)
+    fputs ("<rdf:RDF xmlns=\"http://purl.org/rss/1.0/\">\n", fp);
+  else
+    fputs ("<rss version=\"2.0\">\n", fp);
+
+  fputs ("  <channel>\n"
+         "    <title>RSStool</title>\n"
+         "    <link>http://rsstool.berlios.de</link>\n"
+         "    <description>read, parse, merge and write RSS (and Atom) feeds</description>\n"
+//         "    <dc:date>%ld</dc:date>"
+         , fp);
+
+
+  if (version == 1)
+    {
+      fputs ("<items>\n"
+             "<rdf:Seq>\n", fp);
+
+      for (i = 0; i < rss_item_count (rss); i++)
+        fprintf (fp, "\n        <rdf:li rdf:resource=\"%s\"/>", rss->item[i].url);
+
+      fputs ("</rdf:Seq>\n"
+             "</items>\n"
+             "</channel>\n", fp);
+    }
+
+  for (i = 0; i < rss_item_count (rss); i++)
+    {
+      if (version == 1)
+        fprintf (fp, "<item rdf:about=\"%s\">\n", rss->item[i].url);
+      else
+        fputs ("    <item>\n", fp);
+
+      fprintf (fp, "      <title>%s</title>\n", rss->item[i].title);
+      fprintf (fp, "      <link>%s</link>\n", rss->item[i].url);
+      fprintf (fp, "      <description>%s</description>\n", rss->item[i].desc);
+      fprintf (fp, "      <dc:date>%ld</dc:date>\n", rss->item[i].date);
+
+      fputs ("    </item>\n", fp);
+    }
+
+  if (version == 2)
+    fputs ("  </channel>\n", fp);
+
+  fputs ("</rss>\n", fp);
 
   return 0;
 }
