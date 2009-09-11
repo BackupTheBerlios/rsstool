@@ -173,7 +173,8 @@ extern st_http_header_t *net_parse_http_response (st_net_t *n);
 
 #define GET_USE_GZIP (1<<1)
 #ifdef  USE_CURL
-#define GET_USE_CURL (1<<2) 
+// curl is the default, if available
+#define GET_NO_CURL  (1<<2) 
 #endif
 #define GET_VERBOSE  (1<<3)
 extern const char *net_http_get_to_temp (const char *url_s, const char *user_agent, int flags);

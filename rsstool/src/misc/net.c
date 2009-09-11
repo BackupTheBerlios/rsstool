@@ -757,7 +757,7 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
   tmpnam3 (tname, 0);
 
 #ifdef  USE_CURL
-  if (flags & GET_USE_CURL)
+  if (!(flags & GET_NO_CURL))
     {
       CURL *curl = NULL;
       CURLcode result;

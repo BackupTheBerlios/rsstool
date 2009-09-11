@@ -129,12 +129,6 @@ main (int argc, char **argv)
       NULL, "use gzip compression for downloading"
     },
 #endif
-#ifdef  USE_CURL
-    { 
-      "curl", 0, 0, RSSTOOL_CURL,
-      NULL, "use libcURL for downloading"
-    },
-#endif
     {
       "input-file", 1, 0, RSSTOOL_INPUT_FILE,
       "FILE", "download feeds found in FILE"
@@ -451,11 +445,6 @@ main (int argc, char **argv)
 #ifdef  USE_ZLIB
         case RSSTOOL_GZIP:
           rsstool.get_flags |= GET_USE_GZIP;
-          break;
-#endif
-#ifdef  USE_CURL
-        case RSSTOOL_CURL:
-          rsstool.get_flags |= GET_USE_CURL;
           break;
 #endif
 
