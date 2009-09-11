@@ -448,7 +448,8 @@ st_configure_in_t configure_in[] = {
     "LDFLAGS+=`curl-config --libs`\n",
     "#define USE_CURL\n",
     "libcurl support...................   yes",
-    "libcurl support...................   no"
+    "libcurl support...................   no\n"
+    "*** instead a internal http client will be used :(\n"
   }, 
 #endif
 #if 0
