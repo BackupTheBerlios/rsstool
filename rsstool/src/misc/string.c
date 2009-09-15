@@ -442,6 +442,10 @@ str_escape_xml (char *str)
   strrep (str, "&", "&amp;");
   strrep (str, "<", "&lt;");
   strrep (str, ">", "&gt;");
+  strrep (str, "'", "&apos;");
+  strrep (str, "!", "&#33;");
+//  strrep (str, "\"", "\\\"");
+//  strrep (str, "\\", "\\\\");
 
   return str;
 }
