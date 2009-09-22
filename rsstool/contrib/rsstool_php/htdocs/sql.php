@@ -22,7 +22,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 if (!defined ('MISC_SQL_PHP'))
 {
 define ('MISC_SQL_PHP', 1);
-//require_once ('misc/class.stemmer.inc');
 
 
 class misc_sql
@@ -71,7 +70,7 @@ sql_open ($host, $user, $password, $database, $use_memcache = 0)
 
 
 function
-sql_read ($debug)
+sql_read ($debug = 0)
 {
   $a = Array ();
 
@@ -110,7 +109,7 @@ sql_read ($debug)
 
 
 function
-sql_getrow ($row, $debug)
+sql_getrow ($row, $debug = 0)
 {
   if (is_null ($this->res))
     return NULL;
@@ -146,7 +145,7 @@ sql_getrow ($row, $debug)
 
 
 function
-sql_write ($sql_query_s, $debug)
+sql_write ($sql_query_s, $debug = 0)
 {
   if ($debug == 1)
     echo '<br><br><tt>'
@@ -224,71 +223,9 @@ sql_get_rows ()
 }
 
 
-function
-sql_prep_query ($search_s, $word_stems)
-{
-  if ($word_stems)
-    $stemmer = new stemmer;
-
-  $s = trim ($search_s);
-  $s = str_replace ('  ', ' ', $s); // remove irrelevant white spaces
-  $s = str_replace ('  ', ' ', $s);
-  $s = str_replace ('  ', ' ', $s);
-  $s = str_replace ('  ', ' ', $s);
-  $a = explode (' ', $s);
-//  $a = Array ();
-
-/*
-  $quote = 0;
-//  $space = 0;
-  $pos = 0;
-  $j = 0;
-  $i_max = strlen ($s);
-  for ($i = 0; $i < $i_max; $i++)
-    switch ($s[$i])
-      {
-         case "\"":
-           $quote != $quote;
-           if (!$quote)
-             $pos++;
-           break;
-
-         case ' ':
-           if (!$quote)
-             {
-               $pos++;
-               $j = 0;
-             }
-           else
-             $a[$pos][$j++] = ' ';
-           break;
-
-         default:
-           $a[$pos][$j++] = $s[$i];
-      }
-
-print_r ($a);
-*/
-
-  $s = '';
-  $i_max = sizeof ($a);
-  for ($i = 0; $i < $i_max; $i++)
-    {
-      if ($word_stems)
-        $a[$i] = $this->sql_stresc ($stemmer->stem (strtolower ($a[$i])));
-      else
-        $a[$i] = $this->sql_stresc ($a[$i]);
-
-      $s .= (!$i ? '' : ' ')
-           .($a[$i][0] != '-' ? '+' : '')
-           .$a[$i];
-    }
-
-  return $s;
 }
 
 
-}
 }
 
 ?>
