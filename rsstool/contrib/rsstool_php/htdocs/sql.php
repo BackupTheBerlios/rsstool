@@ -19,70 +19,276 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-
-
-function
-sql_open ($host, $user, $pass, $db_name)
+if (!defined ('MISC_SQL_PHP'))
 {
-  $conn = mysql_connect ($host, $user, $pass) or die (mysql_error ());
-  mysql_select_db ($db_name, $conn);
+define ('MISC_SQL_PHP', 1);
+//require_once ('misc/class.stemmer.inc');
 
-  return $conn;
-}
+
+class misc_sql
+{
+var $host = NULL;
+var $user = NULL;
+var $password = NULL;
+var $database = NULL;
+var $conn = NULL;
+var $res = FALSE;
+
+var $use_memcache = 0;
+var $memcache = NULL;
+//var $row_pos = -1;
 
 
 function
-sql_stresc ($conn, $s)
+sql_stresc ($s)
 {
 //  return mysql_escape_string ($s); // deprecated
-  return mysql_real_escape_string ($s, $conn);
+  return mysql_real_escape_string ($s, $this->conn);
 }
 
 
 function
-sql_read ($conn, $sql_statement, $debug)
+sql_open ($host, $user, $password, $database, $use_memcache = 0)
 {
-  if ($debug == 1)
-    echo "<br><br>"
-        .$sql_statement
-        ."<br><br>";
+  if (!is_null ($this->conn))
+    mysql_close ($this->conn);
 
-  if ($res = mysql_query ($sql_statement))
-//  if ($res = mysql_real_query ($conn, $sql_statement, strlen ($sql_statement)))
-    while ($row = mysql_fetch_array ($res))
-      $all[] = $row;
+  $this->host = $host;
+  $this->user = $user;
+  $this->password = $password;
+  $this->database = $database;
+
+  $this->conn = mysql_connect ($host, $user, $password) or die (mysql_error ());
+  mysql_select_db ($database, $this->conn);
+
+  if ($use_memcache == 1)
+    {
+      $this->memcache = new Memcache;
+      $this->memcache->connect ('localhost', 11211) or die ("memcache: could not connect");
+      $this->use_memcache = 1;
+    }
+}
+
+
+function
+sql_read ($debug)
+{
+  $a = Array ();
+
+  if (!isset ($this->res))
+    return NULL;
+
+  if (is_null ($this->res))
+    return NULL;
+
+  if ($this->res == FALSE)
+    return NULL;
+
+//  while ($row = mysql_fetch_array ($this->res, MYSQL_BOTH))
+  while ($row = mysql_fetch_array ($this->res))
+    $a[] = $row;
 
   if ($debug == 1)
     {
-      for ($i = 0; $all[$i]; $i++)
+      $p = '<tt>';
+      $i_max = sizeof ($a);
+      for ($i = 0; $i < $i_max; $i++)
         {
-          for ($j = 0; $all[$i][$j]; $j++)
-            $p .= $all[$i][$j]
-                 ." ";
+          $j_max = sizeof ($a[$i]);
+          for ($j = 0; $j < $j_max; $j++)
+            $p .= $a[$i][$j]
+                 .' ';
 
-          $p .= "<br>";
+          $p .= '</tt><br>';
         }
 
       echo $p;
     }
 
-  return $all;
+  return $a;
 }
 
 
 function
-sql_write ($conn, $sql_statement, $debug)
+sql_getrow ($row, $debug)
+{
+  if (is_null ($this->res))
+    return NULL;
+
+  if ($this->res == FALSE)
+    return NULL;
+
+  if ($row >= mysql_num_rows ($this->res))
+    return NULL;
+
+  if (mysql_data_seek ($this->res, $row) == false)
+    return NULL;
+
+//  $this->row_pos = $row;
+
+  $a = mysql_fetch_row ($this->res);
+
+  if ($debug == 1)
+    {
+      $p = '<tt>';
+      $i_max = sizeof ($a);
+      for ($i = 0; $i < $i_max; $i++)
+        $p .= $a[$i]
+           .' ';
+
+      $p .= '</tt><br>';
+
+      echo $p;
+    }
+
+  return $a;
+}
+
+
+function
+sql_write ($sql_query_s, $debug)
 {
   if ($debug == 1)
-    echo "<br><br>"
-        .$sql_statement
-        ."<br><br>";
+    echo '<br><br><tt>'
+        .$sql_query_s
+        .'</tt><br><br>';
 
-  $res = mysql_query ($sql_statement);
+  if ($this->res != FALSE)
+    {
+      mysql_free_result ($this->res);
+      $this->res = NULL;
+    }
 
-  if ($res != FALSE)
+  if ($this->use_memcache == 1)
+    {
+      // data from the cache
+      $this->res = unserialize ($this->memcache->get (md5 ($sql_query_s)));
+    }
+
+  if ($this->res == NULL || $this->res == FALSE)
+    {
+      $this->res = mysql_query ($sql_query_s);
+
+      if ($this->use_memcache == 1)
+        {
+          // store data in the cache (data will expire in 60 seconds)
+          $this->memcache->set (md5 ($sql_query_s), serialize ($this->res), false, 60) 
+            or die ("memcache: failed to save data at the server");
+        }
+    }
+
+  if ($this->res != FALSE)
     return 1;
   return 0;
+}
+
+
+function
+sql_close ()
+{
+//  if (!is_null ($this->res))
+  if ($this->res != FALSE)
+    { 
+      mysql_free_result ($this->res);
+      $this->res = FALSE;
+    }
+
+  if (!is_null ($this->conn))
+    {
+      mysql_close ($this->conn);
+      $this->conn = NULL;
+    }
+
+//  $this->row_pos = -1;
+}
+
+
+function
+sql_seek ($row)
+{
+  return mysql_data_seek ($this->res, $row);
+}
+
+
+function
+sql_get_result ()
+{
+  return $this->res;
+}
+
+
+function
+sql_get_rows ()
+{
+  return mysql_num_rows ($this->res);
+}
+
+
+function
+sql_prep_query ($search_s, $word_stems)
+{
+  if ($word_stems)
+    $stemmer = new stemmer;
+
+  $s = trim ($search_s);
+  $s = str_replace ('  ', ' ', $s); // remove irrelevant white spaces
+  $s = str_replace ('  ', ' ', $s);
+  $s = str_replace ('  ', ' ', $s);
+  $s = str_replace ('  ', ' ', $s);
+  $a = explode (' ', $s);
+//  $a = Array ();
+
+/*
+  $quote = 0;
+//  $space = 0;
+  $pos = 0;
+  $j = 0;
+  $i_max = strlen ($s);
+  for ($i = 0; $i < $i_max; $i++)
+    switch ($s[$i])
+      {
+         case "\"":
+           $quote != $quote;
+           if (!$quote)
+             $pos++;
+           break;
+
+         case ' ':
+           if (!$quote)
+             {
+               $pos++;
+               $j = 0;
+             }
+           else
+             $a[$pos][$j++] = ' ';
+           break;
+
+         default:
+           $a[$pos][$j++] = $s[$i];
+      }
+
+print_r ($a);
+*/
+
+  $s = '';
+  $i_max = sizeof ($a);
+  for ($i = 0; $i < $i_max; $i++)
+    {
+      if ($word_stems)
+        $a[$i] = $this->sql_stresc ($stemmer->stem (strtolower ($a[$i])));
+      else
+        $a[$i] = $this->sql_stresc ($a[$i]);
+
+      $s .= (!$i ? '' : ' ')
+           .($a[$i][0] != '-' ? '+' : '')
+           .$a[$i];
+    }
+
+  return $s;
+}
+
+
+}
 }
 
 ?>
