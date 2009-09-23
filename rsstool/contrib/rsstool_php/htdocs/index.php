@@ -19,28 +19,30 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-include ("config.php");
-include ("sql.php");
+include ('config.php');
+include ('sql.php');
 
-  $db = sql_open ($host, $user, $password, $database);
+  $db = new misc_sql;
+  $db->sql_open ($dbhost, $dbuser, $dbpass, $dbname);
 
-  $p = "SELECT `rsstool_url`, `rsstool_title`, `rsstool_desc`"
-      ." FROM `rsstool_table`"
-      ." ORDER BY `rsstool_dl_date` DESC"
-      ." LIMIT 0,100";
+  $sql_query_s = 'SELECT `rsstool_url`, `rsstool_title`, `rsstool_desc`'
+                .' FROM `rsstool_table`'
+                .' ORDER BY `rsstool_dl_date` DESC'
+                .' LIMIT 0,100';
 
-  $rsstool_table = sql_read ($db, $p, 0);
+  $db->sql_write ($p);
+  $rsstool_table = $db->sql_read ();
 
-  $p = "";
+  $p = '';
 
   for ($i = 0; $rsstool_table[$i]; $i++)
-    $p .= "<a href=\""
+    $p .= '<a href="'
          .$rsstool_table[$i][0]
-         ."\">"
+         .'">'
          .$rsstool_table[$i][1]
-         ."</a><br><br>"
+         .'</a><br><br>'
          .$rsstool_table[$i][2]
-         ."<br><br><hr><br>";
+         .'<br><br><hr><br>';
 
   echo $p;
 ?>

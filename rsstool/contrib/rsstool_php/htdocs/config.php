@@ -21,9 +21,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 
-$host = "localhost";
-$user = "root";
-$password = "";
-$database = "rsstool";
+$dbhost = 'localhost';
+$dbuser = 'root';
+$dbpass = '';
+$dbname = 'rsstool';
 
 ?>
