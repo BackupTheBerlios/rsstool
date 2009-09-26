@@ -110,8 +110,8 @@ xml_parse (const char *fname)
 #ifdef  USE_NXML
   return nxmle_new_data_from_file ((char *) fname, NULL);
 #elif   defined USE_XML2
-//  return xmlParseFile (fname);
-  return xmlReadFile (fname, NULL, XML_PARSE_RECOVER);
+  return xmlParseFile (fname);
+//  return xmlReadFile (fname, NULL, XML_PARSE_RECOVER);
 #endif
 }
 
