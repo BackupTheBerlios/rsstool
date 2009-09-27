@@ -164,6 +164,10 @@ main (int argc, char **argv)
       NULL,  "missing dates will be replaced with the current date"
     },
     {
+      "enc", 1, 0, RSSTOOL_ENC,
+      "ENCODING", "enforces different encoding than specified in RSS header"
+    },
+    {
       "version", 0, 0, RSSTOOL_VER,
       NULL,   "output version information and exit"
     },
@@ -428,6 +432,12 @@ main (int argc, char **argv)
             rsstool.input_file = fopen (p, "r");
           if (!rsstool.input_file)
             fputs ("ERROR: input file not found\n", stderr);
+          break;
+
+        case RSSTOOL_ENC:
+          p = optarg;
+          if (p)
+            strncpy (rsstool.encoding, p, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
           break;
 
         case RSSTOOL_O:
