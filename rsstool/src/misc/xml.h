@@ -74,7 +74,7 @@ typedef struct _xmlNode xml_node_t;
         </node>
 </node>
 */
-extern xml_doc_t *xml_parse (const char *fname);
+extern xml_doc_t *xml_parse (const char *fname, const char *encoding);
 extern int xml_free (xml_doc_t *d);
 
 extern xml_node_t *xml_get_rootnode (xml_doc_t *d);

@@ -160,7 +160,7 @@ rsstool_parse_rss (st_rsstool_t *rt, const char *feed_url, const char *file)
   if (!file)
     return -1;
 
-  rss = rss_open (file);
+  rss = rss_open (file, (rt->encoding[0] ? rt->encoding : NULL));
 
   if (!rss)
     return -1;

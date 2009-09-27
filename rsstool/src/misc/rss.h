@@ -78,9 +78,9 @@ typedef struct
   rss_item_count()    count items in st_rss_t
   rss_get_version_s() get version of feed as string
 */
-extern int rss_demux (const char *fname);
+extern int rss_demux (const char *fname, const char *encoding);
 
-extern st_rss_t *rss_open (const char *fname);
+extern st_rss_t *rss_open (const char *fname, const char *encoding);
 extern int rss_close (st_rss_t *rss);
 
 extern int rss_write (FILE *fp, st_rss_t *rss, int version);
@@ -91,7 +91,7 @@ extern const char *rss_get_version_s (st_rss_t * rss);
 extern const char *rss_get_version_s_by_id (int version);
 extern const char *rss_get_version_s_by_magic (const char *m);
 
-extern char *rss_utf8_enc (const char *in, const char *encoding);
+extern char *rss_utf8_enc (const unsigned char *in, const char *encoding);
 
 
 #endif //  RSS_H

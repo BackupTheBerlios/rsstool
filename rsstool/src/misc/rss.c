@@ -67,9 +67,8 @@ rss_st_rss_t_sanity_check (st_rss_t *rss)
 //#endif
 
 
-#if 0
 char *
-rss_utf8_enc (const char *in, const char *encoding)
+rss_utf8_enc (const unsigned char *in, const char *encoding)
 {
   static xmlChar out[RSSMAXBUFSIZE * 2];
   int temp = 0;
@@ -84,14 +83,13 @@ rss_utf8_enc (const char *in, const char *encoding)
   if (!handler)
     return NULL;
 
-  temp = strlen (in);
+  temp = strlen ((const char *) in);
   size = sizeof (out);
 
   handler->input (out, &size, in, &temp);
 
   return (char *) out;
 }
-#endif
 
 
 typedef struct
@@ -199,14 +197,14 @@ rsstool_set_site (const char *site)
 
 
 int
-rss_demux (const char *fname)
+rss_demux (const char *fname, const char *encoding)
 {
   xml_doc_t *doc = NULL;
   xml_node_t *node = NULL;
   int version = -1;
   char *p = NULL;
 
-  if (!(doc = xml_parse (fname)))
+  if (!(doc = xml_parse (fname, encoding)))
     {
       fprintf (stderr, "ERROR: cannot read %s\n", fname);
       return -1;
@@ -302,13 +300,13 @@ rss_read_copy (char *d, xml_doc_t* doc, xml_node_t* n)
 
 
 static st_rss_t *
-rss_open_rss (st_rss_t *rss)
+rss_open_rss (st_rss_t *rss, const char *encoding)
 {
   xml_doc_t *doc;
   xml_node_t *node;
   int rdf = 0;
 
-  doc = xml_parse (rss->url);
+  doc = xml_parse (rss->url, encoding);
   if (!doc)
     {
       fprintf (stderr, "ERROR: cannot read %s\n", rss->url);
@@ -490,13 +488,13 @@ rss_open_rss (st_rss_t *rss)
 
 
 static st_rss_t *
-rss_open_atom (st_rss_t *rss)
+rss_open_atom (st_rss_t *rss, const char *encoding)
 {
   xml_doc_t *doc;
   xml_node_t *node;
   const char *p = NULL;
 
-  doc = xml_parse (rss->url);
+  doc = xml_parse (rss->url, encoding);
   if (!doc)
     {
       fprintf (stderr, "ERROR: cannot read %s\n", rss->url);
@@ -625,7 +623,7 @@ rss_open_atom (st_rss_t *rss)
 
 
 st_rss_t *
-rss_open (const char *fname)
+rss_open (const char *fname, const char *encoding)
 {
   st_rss_t *rss = NULL;
 
@@ -637,7 +635,7 @@ rss_open (const char *fname)
   strncpy (rss->url, fname, RSSMAXBUFSIZE)[RSSMAXBUFSIZE - 1] = 0;
   rss->item_count = 0;
 
-  rss->version = rss_demux (fname);
+  rss->version = rss_demux (fname, encoding);
 
 #ifdef  DEBUG
   fprintf (stderr, "version: %s\n", rss_get_version_s_by_id (rss->version));
@@ -655,9 +653,9 @@ rss_open (const char *fname)
       case ATOM_V0_1:
       case ATOM_V0_2:
       case ATOM_V0_3:
-        return rss_open_atom (rss);
+        return rss_open_atom (rss, encoding);
       default:
-        return rss_open_rss (rss);
+        return rss_open_rss (rss, encoding);
     }
 
   free (rss);
@@ -680,7 +678,7 @@ rss_close (st_rss_t *rss)
 }
 
 
-#if 1
+#ifdef  USE_XML2
 //#include <libxml/parser.h>
 //#include <libxml/tree.h>
 #include <libxml/xmlwriter.h>
@@ -895,4 +893,5 @@ rss_write (FILE *fp, st_rss_t *rss, int version)
 
   return 0;
 }
-#endif
+#endif  // USE_XML2
+

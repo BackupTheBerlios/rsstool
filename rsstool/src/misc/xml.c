@@ -43,6 +43,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define MAXBUFSIZE 32768
 
 
+#ifdef  USE_XML2
 const char *
 xml_xpath (const char *fname, const char *xpath_expr)
 {
@@ -102,16 +103,17 @@ xml_xpath (const char *fname, const char *xpath_expr)
 
   return (const char *) p;
 }
+#endif  // USE_XML2
 
 
 xml_doc_t *
-xml_parse (const char *fname)
+xml_parse (const char *fname, const char *encoding)
 {
 #ifdef  USE_NXML
   return nxmle_new_data_from_file ((char *) fname, NULL);
 #elif   defined USE_XML2
-  return xmlParseFile (fname);
-//  return xmlReadFile (fname, NULL, XML_PARSE_RECOVER);
+//  return xmlParseFile (fname);
+  return xmlReadFile (fname, encoding, 0); // XML_PARSE_RECOVER);
 #endif
 }
 

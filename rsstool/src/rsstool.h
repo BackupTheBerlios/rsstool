@@ -61,6 +61,7 @@ typedef struct
   int quiet;
   int timeout;   // timeout for net operations
   time_t start_time;
+  char encoding[MAXBUFSIZE];
   char user_agent[MAXBUFSIZE];
   const char *optarg;
 

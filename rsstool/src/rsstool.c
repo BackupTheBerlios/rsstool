@@ -165,7 +165,7 @@ main (int argc, char **argv)
     },
     {
       "enc", 1, 0, RSSTOOL_ENC,
-      "ENCODING", "enforces different encoding than specified in RSS header"
+      "ENCODING", "overrides the encoding specified in RSS header"
     },
     {
       "version", 0, 0, RSSTOOL_VER,
