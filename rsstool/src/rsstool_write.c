@@ -667,6 +667,18 @@ rsstool_write_ansisql (st_rsstool_t *rt)
         hash_get_crc32 (title_h),
         sql_stresc (rt->item[i]->desc));
 
+      fprintf (rsstool.output_file,
+               "-- UPDATE `rsstool_table` SET "
+               " `rsstool_title` = '%s', `rsstool_title_md5` = '%s', `rsstool_title_crc32` = %u,"
+               " `rsstool_desc` = '%s'"
+               " WHERE `rsstool_url_crc32` = %u"
+               ";\n",
+        sql_stresc (rt->item[i]->title),
+        hash_get_s (title_h, HASH_MD5),
+        hash_get_crc32 (title_h),
+        sql_stresc (rt->item[i]->desc),
+        hash_get_crc32 (url_h));
+
       hash_close (dl_url_h);
       hash_close (url_h);
       hash_close (title_h);
