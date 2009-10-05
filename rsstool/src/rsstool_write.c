@@ -668,6 +668,7 @@ rsstool_write_ansisql (st_rsstool_t *rt)
         sql_stresc (rt->item[i]->desc));
 
       fprintf (rsstool.output_file,
+               "-- just update if row exists"
                "-- UPDATE `rsstool_table` SET "
                " `rsstool_title` = '%s', `rsstool_title_md5` = '%s', `rsstool_title_crc32` = %u,"
                " `rsstool_desc` = '%s'"
