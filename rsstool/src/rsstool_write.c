@@ -574,7 +574,9 @@ rsstool_write_rss (st_rsstool_t *rt, int version)
       strncpy (rss.item[i].url, rt->item[i]->url, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
       strncpy (rss.item[i].desc, rt->item[i]->desc, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
       rss.item[i].date = rt->item[i]->date;
+#ifdef  USE_HACKS
       rss.item[i].media_duration = rt->item[i]->media_duration;
+#endif
       rss.item_count++;
     }
 
