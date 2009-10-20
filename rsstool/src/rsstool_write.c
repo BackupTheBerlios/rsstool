@@ -574,6 +574,7 @@ rsstool_write_rss (st_rsstool_t *rt, int version)
       strncpy (rss.item[i].url, rt->item[i]->url, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
       strncpy (rss.item[i].desc, rt->item[i]->desc, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
       rss.item[i].date = rt->item[i]->date;
+      rss.item[i].media_duration = rt->item[i]->media_duration;
       rss.item_count++;
     }
 
@@ -619,7 +620,6 @@ rsstool_write_ansisql (st_rsstool_t *rt)
          "--   `rsstool_date` bigint(20) unsigned NOT NULL default '0',\n"
          "--   `rsstool_dl_date` bigint(20) unsigned NOT NULL default '0',\n"
 #ifdef  USE_HACKS
-         "--   `rsstool_related` text NOT NULL,\n"
          "--   `rsstool_keywords` text NOT NULL,\n"
          "--   `rsstool_media_duration` bigint(20) unsigned NOT NULL default '0',\n"
 #endif
@@ -651,7 +651,7 @@ rsstool_write_ansisql (st_rsstool_t *rt)
                " `rsstool_title`, `rsstool_title_md5`, `rsstool_title_crc32`,"
                " `rsstool_desc`"
 #ifdef  USE_HACKS
-               ", `rsstool_related`, `rsstool_keywords`, `rsstool_media_duration`"
+               ", `rsstool_keywords`, `rsstool_media_duration`"
 #endif
                " ) VALUES ("
                " '%s', '%s', '%u',"
@@ -661,7 +661,7 @@ rsstool_write_ansisql (st_rsstool_t *rt)
                " '%s', '%s', '%u',"
                " '%s'"
 #ifdef  USE_HACKS
-               ", '%s', '%s', '%ld'"
+               ", '%s', '%d'"
 #endif
               ");\n",
         sql_stresc (rt->item[i]->feed_url),
@@ -679,7 +679,6 @@ rsstool_write_ansisql (st_rsstool_t *rt)
         sql_stresc (rt->item[i]->desc)
 #ifdef  USE_HACKS
 ,
-        sql_stresc (rt->item[i]->related),
         sql_stresc (rt->item[i]->keywords),
         rt->item[i]->media_duration
 #endif

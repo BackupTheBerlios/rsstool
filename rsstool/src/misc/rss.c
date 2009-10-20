@@ -389,7 +389,9 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
           xml_node_t *pnode = xml_get_childnode (node);
           st_rss_item_t *item = &rss->item[rss->item_count];
           int found = 0;
-//          const char *p = NULL;
+#ifdef  USE_HACKS
+          const char *p = NULL;
+#endif
           char link[RSSMAXBUFSIZE], guid[RSSMAXBUFSIZE];
 
           *link = *guid = 0;
@@ -446,6 +448,30 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
                   found = 1;
                 }
+#ifdef  USE_HACKS
+              else if (!stricmp (xml_get_name (pnode), "group")) // media:group
+                {
+                  xml_node_t *tnode = xml_get_childnode (pnode); 
+                  while (tnode)
+                    {
+                      if (!tnode)
+                        break;
+
+                      if (!stricmp (xml_get_name (tnode), "content")) // media:content
+                        {
+                          // <media:content ... medium="video" ... duration="12606" />
+                          p = (const char *) xml_get_value (tnode, "duration");
+                          if (p)
+                            {
+                              item->media_duration = strtol (p, NULL, 10);
+                              found = 1;
+                              break;
+                            }
+                        }
+                      tnode = xml_get_nextnode (tnode);
+                    }
+                }
+#endif
 #if 0
               else
                 {
@@ -511,7 +537,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
 
   node = xml_get_childnode (node);
   while (node && xml_is_empty_node (node))
-    node = node->next;
+    node = xml_get_nextnode (node);
   if (!node)
     {
 //      fprintf (stderr, "");
@@ -521,7 +547,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
   while (node)
     {
       while (node && xml_is_empty_node (node))
-        node = node->next;
+        node = xml_get_nextnode (node);
 
       if (!node)
         break;
@@ -550,7 +576,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
           while (pnode)
             {
               while (pnode && xml_is_empty_node (pnode))
-                pnode = pnode->next;
+                pnode = xml_get_nextnode (pnode);
 
               if (!pnode)
                 break;
@@ -568,7 +594,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
 #if 0
               else if (!strcmp (xml_get_name (pnode), "id"))
                 {
-                  rss_read_copy (item->url, doc, xml_get_childnode (pnode));
+                  rss_read_copy (link, doc, xml_get_childnode (pnode));
                   found = 1;
                 }
 #endif
@@ -595,8 +621,32 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
                   found = 1;
                 }
+#ifdef  USE_HACKS
+              else if (!stricmp (xml_get_name (pnode), "group")) // media:group
+                {
+                  xml_node_t *tnode = xml_get_childnode (pnode); 
+                  while (tnode)
+                    {
+                      if (!tnode)
+                        break;
 
-              pnode = pnode->next;
+                      if (!stricmp (xml_get_name (tnode), "content")) // media:content
+                        {
+                          // <media:content ... medium="video" ... duration="12606" />
+                          p = (const char *) xml_get_value (tnode, "duration");
+                          if (p)
+                            {
+                              item->media_duration = strtol (p, NULL, 10);
+                              found = 1;
+                              break;
+                            }
+                        }
+                      tnode = xml_get_nextnode (tnode);
+                    }
+                }
+#endif  // USE_HACKS
+
+              pnode = xml_get_nextnode (pnode);
             }
 
           if (*link)
@@ -610,7 +660,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
 
 //      rss->item_count++;
 
-      node = node->next;
+      node = xml_get_nextnode (node);
     }
 
 #ifdef  DEBUG
@@ -802,6 +852,12 @@ rss_write (FILE *fp, st_rss_t *rss, int version)
 //      xmlTextWriterWriteFormatElement (writer, BAD_CAST "dc:date", "%ld", rss->item[i].date);
       strftime (buf, RSSMAXBUFSIZE, "%a, %d %b %Y %H:%M:%S %Z", localtime (&rss->item[i].date));
       xmlTextWriterWriteElement (writer, BAD_CAST "pubDate", BAD_CAST buf);
+
+#ifdef  USE_HACKS
+      XMLPRINTF("\n      ");
+
+      xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_duration", "%d", rss->item[i].media_duration);
+#endif
 
       XMLPRINTF("\n    ");
 

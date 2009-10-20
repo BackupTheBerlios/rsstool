@@ -190,13 +190,19 @@ rsstool_add_item_s (st_rsstool_t *rt,
                     time_t date,
                     const char *url,
                     const char *title,
-                    const char *desc)
+                    const char *desc
+#ifdef  USE_HACKS
+,
+                    int media_duration
+#endif
+)
 {
   int i = 0;
   char buf[MAXBUFSIZE];
   char site_s[RSSTOOL_MAXBUFSIZE],
        title_s[RSSTOOL_MAXBUFSIZE],
-       desc_s[RSSTOOL_MAXBUFSIZE];
+       desc_s[RSSTOOL_MAXBUFSIZE],
+       keywords_s[RSSTOOL_MAXBUFSIZE];
 
   if (rt->item_count == RSSTOOL_MAXITEM)
     {
@@ -239,6 +245,10 @@ rsstool_add_item_s (st_rsstool_t *rt,
       rsstool_strip_whitespace (desc_s);
     }
 
+#ifdef  USE_HACKS
+#warning TODO: turn title_s and desc_s into keywords
+  keywords_s[0] = 0;
+#endif
 #if 0
   for (i = 0; i < rt->item_count && rt->item[i]; i++)
     {
@@ -276,6 +286,10 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (rt->item[i]->url, url, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->title, title_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->desc, desc_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+#ifdef  USE_HACKS
+  strncpy (rt->item[i]->keywords, keywords_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  rt->item[i]->media_duration = media_duration;
+#endif
 
   rt->item_count++;
 
@@ -295,7 +309,12 @@ rsstool_add_item (st_rsstool_t *rt, st_rss_t *rss, const char *feed_url)
                                rss->item[i].date,
                                rss->item[i].url,
                                rss->item[i].title,
-                               rss->item[i].desc))
+                               rss->item[i].desc
+#ifdef  USE_HACKS
+,
+                               rss->item[i].media_duration
+#endif
+))
        rt->item[i]->version = rss->version;
     }
 
@@ -375,7 +394,12 @@ a_pass (const char *s)
                       time (0),
                       p ? p : "",
                       p ? p : "",
-                      "");
+                      ""
+#ifdef  USE_HACKS
+,
+                      0
+#endif
+);
 
   return "";
 }
