@@ -477,6 +477,18 @@ st_configure_in_t configure_in[] = {
     "mySQL support.....................   no"
   },
 #endif
+  {   
+    {NULL},
+    {NULL},
+    {NULL},
+    "# enable this if you want to use hacks\n"
+    "#USE_HACKS=1\n"
+    "#CFLAGS+=-DUSE_HACKS\n",
+    NULL,  
+//    "\n*** You may want to edit config.mak to enable hacks",
+    NULL,  
+    NULL
+  },
   {{NULL}, {NULL}, {NULL}, NULL, NULL, NULL, NULL}
 };
 

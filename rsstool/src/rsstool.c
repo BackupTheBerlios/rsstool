@@ -324,11 +324,15 @@ main (int argc, char **argv)
     },
     {
       "sql", 2, 0, RSSTOOL_SQL,
-      "VALUE",   "output as ANSI SQL script\n"
+      "VALUE",   "output as ANSI SQL script"
+#if 0
+"\n"
+                 // deprecated
                  "VALUE=092       RSStool 0.9.2 db format\n"
                  "VALUE=094       RSStool 0.9.4 db format\n"
                  "VALUE=095       RSStool 0.9.5 db format\n"
                  "VALUE=\"current\" use current db format (default)"
+#endif
     },
     {
       "sqlold", 0, 0, RSSTOOL_SQLOLD,
@@ -758,6 +762,8 @@ main (int argc, char **argv)
         case RSSTOOL_OUTPUT_SQL:
           switch (rsstool.ansisql_version)
             {
+#if 0
+              // deprecated
               case 92:
                 rsstool_write_ansisql_092 (&rsstool);
                 break;
@@ -769,16 +775,18 @@ main (int argc, char **argv)
               case 95:
                 rsstool_write_ansisql_095 (&rsstool);
                 break;
-
+#endif
               default:
                 rsstool_write_ansisql (&rsstool);
             }
           break;
 
+#if 0
+        // deprecated
         case RSSTOOL_OUTPUT_SQLOLD:
           rsstool_write_ansisql_095 (&rsstool);
           break;
-
+#endif
         case RSSTOOL_OUTPUT_JOOMLA:
           rsstool_write_ansisql_joomla (&rsstool);
           break;
