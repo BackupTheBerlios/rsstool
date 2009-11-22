@@ -481,9 +481,10 @@ st_configure_in_t configure_in[] = {
     {NULL},
     {NULL},
     {NULL},
-    "# enable this if you want to use hacks\n"
-    "#USE_HACKS=1\n"
-    "#CFLAGS+=-DUSE_HACKS\n",
+//    "# enable this if you want to use hacks\n"
+    "# hacks and temporary fixes for google/video\n"
+    "USE_HACKS=1\n"
+    "CFLAGS+=-DUSE_HACKS\n",
     NULL,  
 //    "\n*** You may want to edit config.mak to enable hacks",
     NULL,  

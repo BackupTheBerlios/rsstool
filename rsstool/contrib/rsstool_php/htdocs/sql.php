@@ -26,16 +26,16 @@ define ('MISC_SQL_PHP', 1);
 
 class misc_sql
 {
-var $host = NULL;
-var $user = NULL;
-var $password = NULL;
-var $database = NULL;
-var $conn = NULL;
-var $res = FALSE;
-
-var $use_memcache = 0;
-var $memcache = NULL;
-//var $row_pos = -1;
+protected $host = NULL;
+protected $user = NULL;
+protected $password = NULL;
+protected $database = NULL;
+protected $conn = NULL; // connection
+//protected $assoc = 0; // last fetch was assoc
+public $res = NULL; // resource
+protected $unbuffered = 0; // last query was unbuffered
+protected $memcache_expire = 0; // 0 == off
+protected $memcache = NULL;
 
 
 function
@@ -47,45 +47,78 @@ sql_stresc ($s)
 
 
 function
-sql_open ($host, $user, $password, $database, $use_memcache = 0)
+stresc ($s)
 {
-  if (!is_null ($this->conn))
-    mysql_close ($this->conn);
+  return $this->stresc ($s);
+}
+
+
+function
+sql_open ($host, $user, $password, $database, $memcache_expire = 0)
+{
+  if ($this->conn)
+    {
+      mysql_close ($this->conn);
+//      $this->conn = NULL;
+    }
 
   $this->host = $host;
   $this->user = $user;
   $this->password = $password;
   $this->database = $database;
 
-  $this->conn = mysql_connect ($host, $user, $password) or die (mysql_error ());
-  mysql_select_db ($database, $this->conn);
+  $this->conn = mysql_connect ($host, $user, $password);
+  if ($this->conn == FALSE)
+    {
+      echo mysql_error ();
+      return;
+    }
 
-  if ($use_memcache == 1)
+  if (mysql_select_db ($database, $this->conn) == FALSE)
+    {
+      echo mysql_error ();
+      return;
+    }
+
+  // open memcache too
+  if ($memcache_expire > 0)
     {
       $this->memcache = new Memcache;
-      $this->memcache->connect ('localhost', 11211) or die ("memcache: could not connect");
-      $this->use_memcache = 1;
+      if ($this->memcache->connect ('localhost', 11211) != TRUE)
+        {
+          echo 'memcache: could not connect';
+          $this->memcache_expire = 0;
+          return;
+        }
+
+      $this->memcache_expire = $memcache_expire;
     }
 }
 
 
 function
-sql_read ($debug = 0)
+sql_read ($assoc = 0, $debug = 0)
 {
-  $a = Array ();
+  if ($debug == 1)
+    if ($this->res == TRUE)
+      echo 'result is TRUE but no resource';
 
-  if (!isset ($this->res))
-    return NULL;
+  if (!is_resource ($this->res)) // either FALSE or just TRUE
+    return NULL;  
 
-  if (is_null ($this->res))
-    return NULL;
-
-  if ($this->res == FALSE)
-    return NULL;
-
-//  while ($row = mysql_fetch_array ($this->res, MYSQL_BOTH))
-  while ($row = mysql_fetch_array ($this->res))
-    $a[] = $row;
+  $a = array ();
+  if ($assoc)
+    {
+      while ($row = mysql_fetch_array ($this->res, MYSQL_ASSOC)) // MYSQL_ASSOC, MYSQL_NUM, MYSQL_BOTH
+        $a[] = $row;
+//      $this->assoc = 1;
+    }
+  else
+    {
+      while ($row = mysql_fetch_array ($this->res)) // MYSQL_BOTH
+        $a[] = $row;
+//      $this->assoc = 0;
+    }
 
   if ($debug == 1)
     {
@@ -93,11 +126,7 @@ sql_read ($debug = 0)
       $i_max = sizeof ($a);
       for ($i = 0; $i < $i_max; $i++)
         {
-          $j_max = sizeof ($a[$i]);
-          for ($j = 0; $j < $j_max; $j++)
-            $p .= $a[$i][$j]
-                 .' ';
-
+          $p .= implode (' ', $a[$i]);
           $p .= '</tt><br>';
         }
 
@@ -109,32 +138,43 @@ sql_read ($debug = 0)
 
 
 function
-sql_getrow ($row, $debug = 0)
+sql_getrow ($row, $assoc = 0, $debug = 0)
 {
-  if (is_null ($this->res))
+  if ($debug == 1)
+    if ($this->res == TRUE)
+      echo 'result is TRUE but no resource';
+
+  if (!is_resource ($this->res)) // either FALSE or just TRUE
     return NULL;
 
-  if ($this->res == FALSE)
+  if ($this->unbuffered)
+    {
+      // DEBUG
+      echo '<tt>ERROR: mysql_num_rows() and mysql_data_seek() after mysql_unbuffered_query()<br>';
+    }
+
+  $num_rows = mysql_num_rows ($this->res);
+  if ($row >= $num_rows || $num_rows == 0)
     return NULL;
 
-  if ($row >= mysql_num_rows ($this->res))
+  if (mysql_data_seek ($this->res, $row) == FALSE)
     return NULL;
 
-  if (mysql_data_seek ($this->res, $row) == false)
-    return NULL;
-
-//  $this->row_pos = $row;
-
-  $a = mysql_fetch_row ($this->res);
+  if ($assoc)
+    {
+      $a = mysql_fetch_array ($this->res, MYSQL_ASSOC); // MYSQL_ASSOC, MYSQL_NUM, MYSQL_BOTH
+//      $this->assoc = 1;
+    }
+  else
+    {
+      $a = mysql_fetch_array ($this->res); // MYSQL_BOTH
+//      $this->assoc = 0;
+    }
 
   if ($debug == 1)
     {
       $p = '<tt>';
-      $i_max = sizeof ($a);
-      for ($i = 0; $i < $i_max; $i++)
-        $p .= $a[$i]
-           .' ';
-
+      $p .= implode (' ', $a);
       $p .= '</tt><br>';
 
       echo $p;
@@ -145,38 +185,47 @@ sql_getrow ($row, $debug = 0)
 
 
 function
-sql_write ($sql_query_s, $debug = 0)
+sql_write ($sql_query_s, $unbuffered = 0, $debug = 0)
 {
   if ($debug == 1)
     echo '<br><br><tt>'
         .$sql_query_s
         .'</tt><br><br>';
 
-  if ($this->res != FALSE)
+  if (is_resource ($this->res))
     {
       mysql_free_result ($this->res);
-      $this->res = NULL;
+//      $this->res = NULL;
     }
 
-  if ($this->use_memcache == 1)
+  if ($this->memcache_expire > 0)
     {
       // data from the cache
-      $this->res = unserialize ($this->memcache->get (md5 ($sql_query_s)));
+      $p = $this->memcache->get (md5 ($sql_query_s));
+      if ($p)
+        $this->res = unserialize ($p);
+      return 1;
     }
 
-  if ($this->res == NULL || $this->res == FALSE)
+  if ($unbuffered)
     {
-      $this->res = mysql_query ($sql_query_s);
-
-      if ($this->use_memcache == 1)
-        {
-          // store data in the cache (data will expire in 60 seconds)
-          $this->memcache->set (md5 ($sql_query_s), serialize ($this->res), false, 60) 
-            or die ("memcache: failed to save data at the server");
-        }
+      $this->res = mysql_unbuffered_query ($sql_query_s, $this->conn);
+      $this->unbuffered = 1;
+    }
+  else
+    {
+      $this->res = mysql_query ($sql_query_s, $this->conn);
+      $this->unbuffered = 0;
     }
 
-  if ($this->res != FALSE)
+  if (is_resource ($this->res)) // cache resources only, not TRUE's
+    if ($this->memcache_expire > 0)
+      {
+        // store data in the cache
+        $this->memcache->set (md5 ($sql_query_s), serialize ($this->res), false, $this->memcache_expire);
+      }
+
+  if ($this->res != FALSE) // TRUE or resource (depending on query)
     return 1;
   return 0;
 }
@@ -185,26 +234,28 @@ sql_write ($sql_query_s, $debug = 0)
 function
 sql_close ()
 {
-//  if (!is_null ($this->res))
-  if ($this->res != FALSE)
-    { 
-      mysql_free_result ($this->res);
-      $this->res = FALSE;
+  if (is_resource ($this->res))          
+    {
+      mysql_free_result ($this->res);    
+//      $this->res = NULL;
     }
 
-  if (!is_null ($this->conn))
+  if ($this->conn)
     {
       mysql_close ($this->conn);
-      $this->conn = NULL;
+//      $this->conn = NULL;
     }
-
-//  $this->row_pos = -1;
 }
 
 
 function
 sql_seek ($row)
 {
+  if ($this->unbuffered)
+    {
+      // DEBUG
+      echo '<tt>ERROR: mysql_data_seek() after mysql_unbuffered_query()<br>';
+    }
   return mysql_data_seek ($this->res, $row);
 }
 
@@ -212,6 +263,7 @@ sql_seek ($row)
 function
 sql_get_result ()
 {
+  // returns FALSE or TRUE or resource
   return $this->res;
 }
 
@@ -219,6 +271,11 @@ sql_get_result ()
 function
 sql_get_rows ()
 {
+  if ($this->unbuffered)
+    {
+      // DEBUG
+      echo '<tt>ERROR: mysql_num_rows() after mysql_unbuffered_query()<br>';
+    }
   return mysql_num_rows ($this->res);
 }
 
