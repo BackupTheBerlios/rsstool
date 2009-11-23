@@ -53,12 +53,8 @@ extern int rsstool_add_item_s (st_rsstool_t *rt,
                                time_t date,
                                const char *url,
                                const char *title,
-                               const char *desc
-#ifdef  USE_HACKS
-,
-                               int media_duration
-#endif
-);
+                               const char *desc,
+                               int media_duration);
 extern int rsstool_get_item_count (st_rsstool_t *rt);
 extern int rsstool_sort (st_rsstool_t * rt);
 extern int rsstool_get_links (const char *file);

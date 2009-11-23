@@ -34,10 +34,8 @@ typedef struct
   char site[RSSTOOL_MAXBUFSIZE];
   char feed_url[RSSTOOL_MAXBUFSIZE];
 
-#ifdef  USE_HACKS
-  char keywords[RSSTOOL_MAXBUFSIZE];
+//  char keywords[RSSTOOL_MAXBUFSIZE];
   int media_duration; //  default: 0
-#endif
 
 //  int private;   // used by sort
 } st_rsstool_item_t;
