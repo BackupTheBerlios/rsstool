@@ -756,21 +756,21 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
 #endif
   tmpnam3 (tname, 0);
 
+  if (!(tmp = fopen (tname, "wb")))
+    {
+#ifdef  HAVE_ERRNO_H
+      fprintf (stderr, "ERROR: could not write %s; %s\n", tname, strerror (errno));
+#else
+      fprintf (stderr, "ERROR: could not write %s\n", tname);
+#endif
+      return NULL;
+    } 
+
 #ifdef  USE_CURL
   if (!(flags & GET_NO_CURL))
     {
       CURL *curl = NULL;
       CURLcode result;
-
-      if (!(tmp = fopen (tname, "wb")))
-        {
-#ifdef  HAVE_ERRNO_H
-          fprintf (stderr, "ERROR: could not write %s; %s\n", tname, strerror (errno));
-#else
-          fprintf (stderr, "ERROR: could not write %s\n", tname);
-#endif
-          return NULL;
-        } 
 
       curl = curl_easy_init ();
       if (!curl)
@@ -805,18 +805,9 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
 
       return NULL;
     }
-  else
 #endif  // USE_CURL
 
-  if (!(tmp = fopen (tname, "wb")))
-    {
-#ifdef  HAVE_ERRNO_H
-      fprintf (stderr, "ERROR: could not write %s; %s\n", tname, strerror (errno));
-#else
-      fprintf (stderr, "ERROR: could not write %s\n", tname);
-#endif
-      return NULL;
-    } 
+  fprintf (stderr, "WARNING: compiled without cURL support, switching to workaround\n");
 
   if (!(client = net_init (0, 5)))
     {

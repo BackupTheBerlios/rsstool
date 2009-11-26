@@ -47,9 +47,7 @@ typedef struct
   char url[RSSMAXBUFSIZE];
   char desc[RSSMAXBUFSIZE];
   time_t date;
-#ifdef  USE_HACKS
   int media_duration; // default: 0
-#endif
 } st_rss_item_t;
 
 
