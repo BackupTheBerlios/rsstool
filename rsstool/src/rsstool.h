@@ -1,5 +1,5 @@
 /*
-rsstool.h - RSStool reading, parsing and writing RSS (and ATOM) feeds
+rsstool.h - RSStool reading, parsing and writing RSS and Atom feeds
 
 Copyright (c) 2006 NoisyB
 

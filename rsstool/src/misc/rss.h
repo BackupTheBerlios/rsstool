@@ -1,5 +1,5 @@
 /*
-rss.h - RSS (and Atom) parser and generator (using libxml2)
+rss.h - RSS and Atom parser and generator (using libxml2)
 
 Copyright (c) 2006 NoisyB
 
@@ -38,6 +38,7 @@ enum {
   ATOM_V0_1,
   ATOM_V0_2,
   ATOM_V0_3,
+  ATOM_V1_0
 };
 
 
@@ -67,11 +68,11 @@ typedef struct
 
 
 /*
-  rss_demux()         check if it is a valid RSS (or Atom) feed
+  rss_demux()         check if it is a valid RSS or Atom feed
                         returns: version id == success
                                  -1 == failed
 
-  rss_read()          read and parse RSS (or Atom) feed
+  rss_read()          read and parse RSS or Atom feed
   rss_write()         create XML and write to file
                         version can be 1 or 2
 

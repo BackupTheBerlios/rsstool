@@ -566,7 +566,7 @@ rsstool_write_rss (st_rsstool_t *rt, int version)
   rss.version = version;
   strcpy (rss.title, "RSStool");
   strcpy (rss.url, "http://rsstool.berlios.de");
-  strcpy (rss.desc, "read, parse, merge and write RSS (and Atom) feeds");
+  strcpy (rss.desc, "read, parse, merge and write RSS and Atom feeds");
 
   for (; i < rsstool_get_item_count (rt) && i < RSSMAXITEM; i++)
     {
@@ -601,7 +601,7 @@ rsstool_write_ansisql (st_rsstool_t *rt)
   int i = 0;
 
   fputs ("-- -----------------------------------------------------------\n"
-         "-- RSStool - read, parse, merge and write RSS (and Atom) feeds\n"
+         "-- RSStool - read, parse, merge and write RSS and Atom feeds\n"
          "-- -----------------------------------------------------------\n"
          "\n"
          "-- DROP TABLE IF EXISTS `rsstool_table`;\n"
@@ -707,7 +707,7 @@ rsstool_write_ansisql_joomla (st_rsstool_t *rt)
   int i = 0;
 
   fputs ("-- -----------------------------------------------------------\n"
-         "-- RSStool - read, parse, merge and write RSS (and Atom) feeds\n"
+         "-- RSStool - read, parse, merge and write RSS and Atom feeds\n"
          "-- -----------------------------------------------------------\n"
          "\n"
          "-- DROP TABLE IF EXISTS `jos_content`;\n"
@@ -813,7 +813,7 @@ rsstool_write_ansisql_dragonfly (st_rsstool_t *rt)
   int i = 0;
 
   fputs ("-- -----------------------------------------------------------\n"
-         "-- RSStool - read, parse, merge and write RSS (and Atom) feeds\n"
+         "-- RSStool - read, parse, merge and write RSS and Atom feeds\n"
          "-- -----------------------------------------------------------\n"
          "\n"
          "-- DROP TABLE IF EXISTS `jos_content`;\n"

@@ -1,5 +1,5 @@
 /*
-rss.c - RSS (and Atom) parser and generator (using libxml2)
+rss.c - RSS and Atom parser and generator (using libxml2)
 
 Copyright (c) 2006 NoisyB
 
@@ -39,10 +39,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define RSS_V0_94_S "RSS v0.94"
 #define RSS_V1_0_S  "RSS v1.0"
 #define RSS_V2_0_S  "RSS v2.0"
-#define ATOM_V0_1_S "ATOM v0.1"
-#define ATOM_V0_2_S "ATOM v0.2"
-#define ATOM_V0_3_S "ATOM v0.3"
-
+#define ATOM_V0_1_S "Atom v0.1"
+#define ATOM_V0_2_S "Atom v0.2"
+#define ATOM_V0_3_S "Atom v0.3"
+#define ATOM_V1_0_S "Atom v1.0"
 
 //#ifdef  DEBUG
 void
@@ -112,6 +112,7 @@ static st_rss_version_t rss_version[] = {
   {ATOM_V0_1, ATOM_V0_1_S, "0.1"},
   {ATOM_V0_2, ATOM_V0_2_S, "0.2"},
   {ATOM_V0_3, ATOM_V0_3_S, "0.3"},
+  {ATOM_V1_0, ATOM_V1_0_S, "1.0"},
   {0, NULL, NULL}
 };
 
@@ -233,7 +234,9 @@ rss_demux (const char *fname, const char *encoding)
       if (!(p = (char *) xml_get_value (node, "version")))
         return version;
 
-      if (!strcmp (p, "0.3"))
+      if (!strcmp (p, "1.0"))
+        version = ATOM_V1_0;
+      else if (!strcmp (p, "0.3"))
         version = ATOM_V0_3;
       else if (!strcmp (p, "0.2"))
         version = ATOM_V0_2;
@@ -703,6 +706,7 @@ rss_open (const char *fname, const char *encoding)
       case ATOM_V0_1:
       case ATOM_V0_2:
       case ATOM_V0_3:
+      case ATOM_V1_0:
         return rss_open_atom (rss, encoding);
       default:
         return rss_open_rss (rss, encoding);
@@ -909,7 +913,7 @@ rss_write (FILE *fp, st_rss_t *rss, int version)
   fputs ("  <channel>\n"
          "    <title>RSStool</title>\n"
          "    <link>http://rsstool.berlios.de</link>\n"
-         "    <description>read, parse, merge and write RSS (and Atom) feeds</description>\n"
+         "    <description>read, parse, merge and write RSS and Atom feeds</description>\n"
 //         "    <dc:date>%ld</dc:date>"
          , fp);
 

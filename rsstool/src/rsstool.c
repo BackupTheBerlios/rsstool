@@ -1,5 +1,5 @@
 /*
-rsstool.c - RSStool reading, parsing and writing RSS (and ATOM) feeds
+rsstool.c - RSStool reading, parsing and writing RSS and Atom feeds
 
 Copyright (c) 2006 NoisyB
 
@@ -104,15 +104,15 @@ main (int argc, char **argv)
   const st_getopt2_t options[] = {
     {
       NULL,      0, 0, 0, NULL,
-      "rsstool " RSSTOOL_VERSION_S " " CURRENT_OS_S " 2006 by NoisyB\n"
+      "rsstool " RSSTOOL_VERSION_S " " CURRENT_OS_S " 2006-2009 by NoisyB\n"
       "This may be freely redistributed under the terms of the GNU Public License\n\n"
       "Usage: rsstool [OPTION] FILE(S)... URL(S)...\n"
     },
     {
       NULL,      0, 0, 0,
-      NULL,   "Read, parse, merge and write RSS (and ATOM) feeds\n"
-              "\nSupports: RSS 0.9x, 1.0, 2.0 and ATOM 0.1, 0.2, 0.3\n"
-              "\nThe RSS (or ATOM) feeds will be merged and re-sorted if you enter more than\n"
+      NULL,   "Read, parse, merge and write RSS and Atom feeds\n"
+              "\nSupports: RSS 0.9x, 1.0, 2.0 and Atom 0.1, 0.2, 0.3, 1.0\n"
+              "\nThe RSS or Atom feeds will be merged and re-sorted if you enter more than\n"
               "one URL or FILEname\n"
     },
     {

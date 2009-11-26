@@ -34,7 +34,7 @@ extern void rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rsstool);
 
   rsstool_parse_rss()       (down)load an RSS feed and parse it into st_rsstool_t
 
-  rsstool_add_item()        add RSS (or Atom) items to st_rsstool_t
+  rsstool_add_item()        add RSS or Atom items to st_rsstool_t
   rsstool_add_item_s()      add a single item to st_rsstool_t
   rsstool_get_item_count()  get current number of items in st_rsstool_t
 
