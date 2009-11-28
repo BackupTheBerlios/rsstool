@@ -201,6 +201,7 @@ main (int argc, char **argv)
                "- stands for NOT\n"
                "no operator implies OR\n"
                "use this to remove items from the RSS feed before output\n"
+               "(nested) parentheses are not supported\n"
                "Example: --filter=\"+important -unimportant\""
     },
     {
