@@ -194,6 +194,16 @@ main (int argc, char **argv)
       NULL,   "\nStrip & Sort"
     },
     {
+#warning --filter
+      "filter", 1, 0, RSSTOOL_FILTER,
+      "LOGIC", "sometimes referred to as implied Boolean LOGIC, in which\n"
+               "+ stands for AND\n"
+               "- stands for NOT\n"
+               "no operator implies OR\n"
+               "use this to remove items from the RSS feed before output\n"
+               "Example: --filter=\"+important -unimportant\""
+    },
+    {
       "shtml",        0, 0, RSSTOOL_SHTML,
       NULL,   "strip HTML code from descriptions"
     },
@@ -243,6 +253,7 @@ main (int argc, char **argv)
       NULL, 0, 0, 0,
       NULL,   "\nOutput"
     },
+#warning test all Output options
     {
       "o",       1, 0, RSSTOOL_O,
       "FILE",   "output into FILE (default: stdout)"

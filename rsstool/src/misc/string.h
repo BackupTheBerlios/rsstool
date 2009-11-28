@@ -134,6 +134,14 @@ extern char *strcasestr2 (const char *str, const char *search);
 #endif
 
 
+// filter string with implied boolean logic
+// + stands for AND
+// - stands for NOT
+// no operator implies OR
+// implied_boolean_logic == "+important -unimportant"
+extern const char *strfilter (const char *s, const char *implied_boolean_logic);
+
+
 #ifdef  __cplusplus
 }
 #endif

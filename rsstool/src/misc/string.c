@@ -554,6 +554,14 @@ memmem2 (const void *buffer, size_t bufferlen,
 }
 
 
+const char *
+strfilter (const char *s, const char *implied_boolean_logic)
+{
+#warning strfilter()
+  return s;
+}
+
+
 #if 0
 //#ifdef  TEST
 int
