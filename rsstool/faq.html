@@ -59,7 +59,7 @@ rsstool -sql rss.slashdot.org/slashdot/slashdot
 remove those '--' and the INSERT statements and create the database
 from the cmdline by entering:
 
-cat <the above output in a text file> | mysql -f -u root -p rssdb
+cat &lt;the above output in a text file&gt; | mysql -f -u root -p rssdb
 
 "rssdb" is the name of the empty database you created (with phpMyAdmin for example).
 The -f option together with the UNIQUE KEY's makes sure MySQL doesn't exit
@@ -97,11 +97,11 @@ UPDATE: with current TOR releases you shall put torify instead of proxychains
 <br>
 <p>
 <a name="5"><b>Q5</b>: I have problems parsing Google/Video feeds</a><br>
-<b>A</b>: Currently the Google/Videos feeds are messed up.
+<b>A</b>: Currently the Google/Videos feeds seem to be messed up a little
 
 1) The item title containes unescaped &lt;em&gt; and &lt;/em&gt; tags to highlight the
    keywords from the search
-2) The encoding of the feed says UTF-8 but if you have problems (like me) try
+2) The encoding of the feed says UTF-8 but if you have problems try
    overriding it with the --enc=ISO-8859-15 option
 
 I guess this will be fixed on Googles side somewhen...
