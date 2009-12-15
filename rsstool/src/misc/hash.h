@@ -47,7 +47,7 @@ extern "C" {
 
 
 #ifdef  USE_MD5
-#define HASH_MD5   (1<<0)
+#define HASH_MD5   1
 #endif
 #ifdef  USE_SHA1
 #define HASH_SHA1  (1<<1)

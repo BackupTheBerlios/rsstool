@@ -29,11 +29,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <unistd.h>
 #endif
 #include <ctype.h>
-#include "defines.h"
-#include "file.h"                               // realpath2()
-#include "property.h"
-#include "misc.h"                               // getenv2()
 #include "string.h"
+#include "property.h"
+
+
+#ifndef MAX
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#endif
+#ifndef MIN
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#endif 
 
 
 #ifdef  MAXBUFSIZE
@@ -71,12 +76,12 @@ property_check (const char *filename, int version, int verbose)
     }
   else
     {
-      p = get_property (filename, "version", PROPERTY_MODE_TEXT);
+      p = get_property (filename, "version");
       if (strtol (p ? p : "0", NULL, 10) >= version)
         return 0; // OK
 
       strcpy (buf, filename);
-      set_suffix (buf, ".old");
+      strcat (buf, "_bak");
 
       if (verbose)
         {
@@ -187,9 +192,9 @@ get_property_from_string (char *str, const char *propname, const char prop_sep, 
 
 
 const char *
-get_property (const char *filename, const char *propname, int mode)
+get_property (const char *filename, const char *propname /*, int mode */)
 {
-  char line[MAXBUFSIZE], *p = NULL;
+  char line[MAXBUFSIZE]; // , *p = NULL;
   FILE *fh;
   const char *value_s = NULL;
 
@@ -202,6 +207,7 @@ get_property (const char *filename, const char *propname, int mode)
       fclose (fh);
     }
 
+#if 0
   p = getenv2 (propname);
   if (*p == 0)                                  // getenv2() never returns NULL
     {
@@ -211,7 +217,9 @@ get_property (const char *filename, const char *propname, int mode)
     }
   else
     value_s = p;
+#endif
 
+#if 0
   if (value_s)
     if (mode == PROPERTY_MODE_FILENAME)
       {
@@ -224,6 +232,7 @@ get_property (const char *filename, const char *propname, int mode)
 
         value_s = tmp;
     }
+#endif
 
   return value_s;
 }
@@ -239,7 +248,7 @@ get_property_int (const char *filename, const char *propname)
 {
   const char *value_s = NULL;
   int value = 0;
-  value_s = get_property (filename, propname, PROPERTY_MODE_TEXT);
+  value_s = get_property (filename, propname);
 
   if (!value_s)
     value_s = "0";

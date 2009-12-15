@@ -51,7 +51,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 #endif  // #if     (defined USE_TCP || defined USE_UDP)
 
-#include "defines.h"
 #include "misc.h"
 #include "base64.h"
 #include "string.h"
@@ -938,7 +937,7 @@ strurl (st_strurl_t *url, const char *url_s)
   url->port = -1;
 
   // look for "://"
-  if ((p = strstr (url_s, "://")))
+  if ((p = strstr ((char *) url_s, "://")))
     {
       // extract the protocol
       pos = p - url_s;

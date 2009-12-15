@@ -34,7 +34,6 @@ MD5  - Copyright (C) 1990, RSA Data Security, Inc. All rights reserved.
 #include <string.h>
 #include "misc.h"
 #include "md5.h"
-#include "defines.h"
 
 
 #define ROTL32(x,n) (((x) << (n)) | ((x) >> (32 - (n))))

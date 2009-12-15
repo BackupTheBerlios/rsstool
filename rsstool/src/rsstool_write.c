@@ -25,7 +25,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "misc/defines.h"
 #include "misc/net.h"
 #include "misc/xml.h"
 #include "misc/string.h"
@@ -36,6 +35,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "rsstool.h"
 #include "rsstool_misc.h"
 #include "rsstool_write.h"
+
+
+#ifndef MAX
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#endif
+#ifndef MIN
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#endif
 
 
 static int current_item = 0; // used by rsstool_write_template2

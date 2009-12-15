@@ -20,13 +20,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 #ifndef MISC_PROPERTY_H
 #define MISC_PROPERTY_H
-
-#ifdef  HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #ifdef  __cplusplus
 extern "C" {
+#endif
+
+
+#if     (defined __unix__ && !defined __MSDOS__) || defined __BEOS__ || \
+        defined AMIGA || defined __APPLE__      // Mac OS X actually
+// GNU/Linux, Solaris, FreeBSD, OpenBSD, Cygwin, BeOS, Amiga, Mac (OS X)
+#define FILE_SEPARATOR '/'  
+#define FILE_SEPARATOR_S "/"
+#else // DJGPP, Win32
+#define FILE_SEPARATOR '\\'  
+#define FILE_SEPARATOR_S "\\"
 #endif
 
 
@@ -105,9 +111,7 @@ extern int property_check (const char *filename, int version, int verbose);
 extern const char *get_property_from_string (char *str, const char *propname,
                                              const char prop_sep, const char comment_sep);
 
-#define PROPERTY_MODE_TEXT 0
-#define PROPERTY_MODE_FILENAME 1
-extern const char *get_property (const char *filename, const char *propname, int mode);
+extern const char *get_property (const char *filename, const char *propname);
 extern unsigned long get_property_int (const char *filename, const char *propname);
 
 extern int set_property (const char *filename, const char *propname,

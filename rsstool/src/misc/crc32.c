@@ -30,8 +30,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "unzip.h"
 #endif
 #include "crc32.h"
-#include "defines.h"
-
 
 
 #define CRC16_POLYNOMIAL 0xa001

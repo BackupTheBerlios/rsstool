@@ -27,6 +27,12 @@ extern "C" {
 #include <string.h>
 
 
+#ifdef _WIN32
+#define strcasecmp stricmp
+#define strncasecmp strnicmp
+#endif
+
+
 /*
   String manipulation
 

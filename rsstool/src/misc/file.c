@@ -74,8 +74,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #endif
 #include "file.h"
 #include "misc.h"                               // getenv2()
-//#include "getopt.h"                             // struct option
-#include "defines.h"
 
 #ifdef  DJGPP
 #ifdef  DLL
