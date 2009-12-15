@@ -23,75 +23,54 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>  
 #include "string.h"
+#ifdef  HAVE_CONFIG_H
+#include "config.h"
+#endif
 #ifdef  USE_MYSQL
-#include "sql_mysql.h"
+#include <mysql/mysql.h>
+#include "sql_mysql.c"
 #endif
 #ifdef  USE_ODBC
-#include "sql_odbc.h"
-#endif
-#ifdef  USE_PGSQL 
-#include <libpq-fe.h>
+#include <sql.h>
+#include <sqlext.h>
+#include <sqltypes.h>
+#include "sql_odbc.c"
 #endif
 #include "sql.h"
 
 
-#if     (defined USE_ODBC || defined USE_MYSQL)
-int
-sql_free_array (st_sql_t *sql)
-{
-/*
-  int r = 0;
-
-  if (!sql->array)
-    return 0;
-
-  for (; sql->array[r]; r++)
-    {
-      free (sql->array[r]);
-      sql->array[r] = NULL;
-    }
-
-  free (sql->array);
-  sql->array = NULL;
-*/
-  return 0;
-}
-
-
-int
-sql_malloc_array (st_sql_t *sql, int rows, int cols)
-{
-/*
-  int r = 0;
-
-  if (sql->array)
-    sql_free_array (sql);
-
-  sql->array = (const char ***) malloc (rows * sizeof (const char **));
-  if (!sql->array)
-    return -1;
-
-  for (r = 0; r <= rows; r++)
-    {
-      sql->array[r] = (const char **) malloc (cols * sizeof (const char *));
-      if (!sql->array[r])
-        return -1;
-    }
-*/
-  return 0;
-}
+#ifdef  MAXBUFSIZE
+#undef MAXBUFSIZE
 #endif
+#define MAXBUFSIZE 32768
 
 
+#ifdef  USE_MYSQL
 char *
 sql_stresc (char *s)
 {
-//#ifdef  USE_MYSQL
-//  return mysql_escape_string (s);
-////  return mysql_real_escape_string(MYSQL *mysql, d, s, strlen (s));
-////#elif   define USE_ODBC
-//#else
+  return mysql_escape_string (s);
+}
+#if 0
+char *
+sql_strrealesc (st_sql_t *sql, char *s)
+{
+  return mysql_real_escape_string(MYSQL *mysql, d, s, strlen (s));
+}
+#endif
+#elif   defined USE_ODBC
+char *
+sql_stresc (char *s)
+{
+#warning TODO: sql_stresc for odbc
+  return s;
+}
+#else
+char *
+sql_stresc (char *s)
+{
 #if 1
  char *bak = strdup (s);
  char *p = bak;
@@ -137,13 +116,67 @@ sql_stresc (char *s)
   strrep (s, "\'", "\\\'");
   strrep (s, "\\", "\\");
 #endif
-//#endif
 
   return s;
 }
+#endif
 
 
 #if     (defined USE_ODBC || defined USE_MYSQL)
+#ifdef  USE_MYSQL
+#include "sql_mysql.c"
+#endif
+#ifdef  USE_ODBC
+#include "sql_odbc.c"
+#endif
+
+
+int
+sql_free_array (st_sql_t *sql)
+{
+/*
+  int r = 0;
+
+  if (!sql->array)
+    return 0;
+
+  for (; sql->array[r]; r++)
+    {
+      free (sql->array[r]);
+      sql->array[r] = NULL;
+    }
+
+  free (sql->array);
+  sql->array = NULL;
+*/
+  return 0;
+}
+
+
+int
+sql_malloc_array (st_sql_t *sql, int rows, int cols)
+{
+/*
+  int r = 0;
+
+  if (sql->array)
+    sql_free_array (sql);
+
+  sql->array = (const char ***) malloc (rows * sizeof (const char **));
+  if (!sql->array)
+    return -1;
+
+  for (r = 0; r <= rows; r++)
+    {
+      sql->array[r] = (const char **) malloc (cols * sizeof (const char *));
+      if (!sql->array[r])
+        return -1;
+    }
+*/
+  return 0;
+}
+
+
 st_sql_t *
 sql_open (const char *host, int port,
           const char *user, const char *password,
@@ -278,4 +311,113 @@ main (int argc, char *argv[])
   return 0;
 }
 #endif  // TEST
+
+
+#if 0
+#if 0
+#if     (defined USE_MYSQL || defined USE_ODBC)
+static int
+rsstool_db_url_validate (st_strurl_t *url)
+{
+  if (!(*url->request))
+    {
+      fputs ("You have to specify a database (URL syntax: user:passwd@host:port/database)\n", stderr);
+      return -1;
+    }
+
+  fputs ("Connecting to ", stderr);
+
+  if (!(*url->user))
+    strcpy (url->user, "admin");
+  fputs (url->user, stderr);
+
+  if (*url->pass)
+    fprintf (stderr, ":%s", url->pass);
+
+  if (!(*url->host))
+    strcpy (url->host, "localhost");
+  fprintf (stderr, "@%s", url->host);
+
+  if (url->port < 1)
+    url->port = 3306; // default
+  fprintf (stderr, ":%d%s", url->port, url->request);
+ 
+  fputs (" ... ", stderr);
+
+  return 0;
+}
+#endif
+
+
+#ifdef  USE_MYSQL
+int
+rsstool_write_mysql (st_rsstool_t *rt)
+{
+  st_sql_t *sql = NULL;
+  st_strurl_t url;
+  char buf[MAXBUFSIZE];
+
+  strurl (&url, rt->dburl);
+
+  if (rsstool_db_url_validate (&url) == -1)
+    return -1;
+
+  strtrim_s (url.request, "/", NULL);
+
+  if (!(sql = sql_open (url.host, url.port, url.request, url.user, url.pass, SQL_MYSQL)))
+    {
+      fputs ("FAILED\n", stderr);
+      return -1;
+    }
+
+  fputs ("OK\n", stderr);
+
+  sql_query (sql, "DROP TABLE IF EXISTS rsstool_table");
+
+  while (sql_gets (sql, buf, MAXBUFSIZE))
+    {
+      fputs (buf, stdout);
+      fputc ('\n', stdout);
+    }
+
+  sql_close (sql);
+
+  return 0;
+}
+#endif
+
+
+#ifdef  USE_ODBC
+int
+rsstool_write_odbc (st_rsstool_t *rt)
+{
+  st_sql_t *sql = NULL;
+  st_strurl_t url;
+
+  strurl (&url, rt->dburl);
+
+  if (rsstool_db_url_validate (&url) == -1)
+    return -1;
+
+  strtrim_s (url.request, "/", NULL);
+
+  if (!(sql = sql_open (url.host, url.port, url.request, url.user, url.pass, SQL_ODBC)))
+    {
+      fputs ("FAILED\n", stderr);
+      return -1;
+    }
+
+  fputs ("OK\n", stderr);
+
+  sql_query (sql, "SELECT * FROM user");
+
+  sql_close (sql);
+
+  return 0;
+}
+#endif
+#endif
+#endif
+
+
 #endif  // #if     (defined USE_ODBC || defined USE_MYSQL)

@@ -75,7 +75,7 @@ st_strurl_t_sanity_check (st_strurl_t *url)
   printf ("hostname: %s\n", url->host);
   printf ("port:     %d\n", url->port);
   printf ("request:  %s\n", url->request);
-        
+  printf ("query:    %s\n", url->query);
   fflush (stdout);
 }
 #endif
@@ -996,6 +996,13 @@ strurl (st_strurl_t *url, const char *url_s)
   if ((p2 = strchr (p, '/')))
     if (strlen (p2) > 1)                // A path/filename is given check if it's not a trailing '/'
       strcpy (url->request, p2);           // copy the path/filename into st_strurl_t
+
+  if ((p2 = strchr (p, '?')))
+    {
+      strcpy (url->query, p2 + 1);
+      if ((p2 = strchr (url->query, '#')))
+        *p2 = 0;
+    }
 
 #ifdef  DEBUG
   st_strurl_t_sanity_check (url);

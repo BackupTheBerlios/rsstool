@@ -27,12 +27,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "rss.h"
 
 
-#ifndef _WIN32
-#define stricmp strcasecmp
-#define strnicmp strncasecmp
-#endif
-
-
 #define RSS_V0_91_S "RSS v0.91"
 #define RSS_V0_92_S "RSS v0.92"
 #define RSS_V0_93_S "RSS v0.93"
@@ -44,7 +38,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define ATOM_V0_3_S "Atom v0.3"
 #define ATOM_V1_0_S "Atom v1.0"
 
-//#ifdef  DEBUG
+
+#ifdef  DEBUG
 void
 rss_st_rss_t_sanity_check (st_rss_t *rss)
 {
@@ -64,7 +59,7 @@ rss_st_rss_t_sanity_check (st_rss_t *rss)
 
   printf ("rss->item_count: %d\n\n", rss->item_count);
 }
-//#endif
+#endif
 
 
 char *
@@ -443,16 +438,16 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                   rss_read_copy (item->desc, doc, xml_get_childnode (pnode));
                   found = 1;
                 }
-              else if (!stricmp (xml_get_name (pnode), "date") ||
-                       !stricmp (xml_get_name (pnode), "pubDate") ||
-                       !stricmp (xml_get_name (pnode), "dc:date") ||
-                       !stricmp (xml_get_name (pnode), "cropDate"))
+              else if (!strcasecmp (xml_get_name (pnode), "date") ||
+                       !strcasecmp (xml_get_name (pnode), "pubDate") ||
+                       !strcasecmp (xml_get_name (pnode), "dc:date") ||
+                       !strcasecmp (xml_get_name (pnode), "cropDate"))
                 { 
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
                   found = 1;
                 }
 #ifdef  USE_HACKS
-              else if (!stricmp (xml_get_name (pnode), "group")) // media:group
+              else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
                 {
                   xml_node_t *tnode = xml_get_childnode (pnode); 
                   while (tnode)
@@ -460,7 +455,7 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                       if (!tnode)
                         break;
 
-                      if (!stricmp (xml_get_name (tnode), "content")) // media:content
+                      if (!strcasecmp (xml_get_name (tnode), "content")) // media:content
                         {
                           // <media:content ... medium="video" ... duration="12606" />
                           p = (const char *) xml_get_value (tnode, "duration");
@@ -625,7 +620,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                   found = 1;
                 }
 #ifdef  USE_HACKS
-              else if (!stricmp (xml_get_name (pnode), "group")) // media:group
+              else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
                 {
                   xml_node_t *tnode = xml_get_childnode (pnode); 
                   while (tnode)
@@ -633,7 +628,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                       if (!tnode)
                         break;
 
-                      if (!stricmp (xml_get_name (tnode), "content")) // media:content
+                      if (!strcasecmp (xml_get_name (tnode), "content")) // media:content
                         {
                           // <media:content ... medium="video" ... duration="12606" />
                           p = (const char *) xml_get_value (tnode, "duration");

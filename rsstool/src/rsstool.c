@@ -34,7 +34,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "misc/misc.h"
 #include "misc/net.h"
 #include "misc/rss.h"
-#include "misc/hash_crc.h"
+#include "misc/crc32.h"
 #include "rsstool_defines.h"
 #include "rsstool.h"
 #include "rsstool_misc.h"

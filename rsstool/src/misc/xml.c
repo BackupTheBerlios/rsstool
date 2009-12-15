@@ -368,7 +368,7 @@ xml_tag_filter (char *str, st_tag_filter_t *f, unsigned long continuous_flag)
               // run filter
               for (i = 0; f[i].filter; i++)
                 if (!(*(f[i].start_tag)) || // empty tag overrides all
-                    !stricmp (xml_tag_get_name (tag_full), f[i].start_tag))
+                    !strcasecmp (xml_tag_get_name (tag_full), f[i].start_tag))
                   {
                     const char *rep = NULL;
 

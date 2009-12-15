@@ -42,4 +42,14 @@ extern int misc_digits (unsigned long value);
 extern time_t strptime2 (const char *s);
 
 
+/*
+  gauge()  progressbar/gauge
+             width in characters
+             if one color is NULL no color will be used
+             color == e.g. ANSI color codes
+*/
+extern void gauge (int percent, int width, char char_done, char char_todo, const char *color_done,
+                   const char *color_todo);
+
+
 #endif // MISC_H

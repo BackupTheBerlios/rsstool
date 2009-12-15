@@ -249,7 +249,7 @@ strristr (char *str, const char *search)
 
   for (;; p--)
     {
-      if (!strnicmp (p, search, search_len))
+      if (!strncasecmp (p, search, search_len))
         return p;
 
       if (p == str)
@@ -330,7 +330,7 @@ stritrim_s (char *str, const char *left, const char *right)
 {
   if (left)
     {
-      char *p = stristr (str, left);
+      char *p = strcasestr2 (str, left);
 
       if (p)
         strmove (str, p + strlen (left));
@@ -453,7 +453,7 @@ str_escape_xml (char *str)
 
 #ifdef  DEBUG
 static int
-strarg_debug (int argc, char **argv)
+explode_debug (int argc, char **argv)
 {
   int pos;
   fprintf (stderr, "argc:     %d\n", argc);
@@ -468,7 +468,7 @@ strarg_debug (int argc, char **argv)
 
 
 int
-strarg (char **argv, char *str, const char *separator_s, int max_args)
+explode (char **argv, char *str, const char *separator_s, int max_args)
 {
   int argc = 0;
 
@@ -479,7 +479,7 @@ strarg (char **argv, char *str, const char *separator_s, int max_args)
         ;
 
 #ifdef  DEBUG
-  strarg_debug (argc, argv);
+  explode_debug (argc, argv);
 #endif
 
   return argc;
@@ -554,12 +554,14 @@ memmem2 (const void *buffer, size_t bufferlen,
 }
 
 
-const char *
+#if 0
+int
 strfilter (const char *s, const char *implied_boolean_logic)
 {
-#warning strfilter()
-  return s;
+  // TODO:
+  return 1;
 }
+#endif
 
 
 #if 0

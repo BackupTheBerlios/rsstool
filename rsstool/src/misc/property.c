@@ -29,6 +29,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <unistd.h>
 #endif
 #include <ctype.h>
+#include "defines.h"
 #include "file.h"                               // realpath2()
 #include "property.h"
 #include "misc.h"                               // getenv2()
@@ -152,7 +153,7 @@ get_property_from_string (char *str, const char *propname, const char prop_sep, 
     }
   strtriml (strtrimr (buf));
 
-  if (!stricmp (buf, propname))                 // ...because we do _not_ use strnicmp()
+  if (!strcasecmp (buf, propname))                 // ...because we do _not_ use strncasecmp()
     {
       // if no divider was found the propname must be a bool config entry
       //  (present or not present)
@@ -292,7 +293,7 @@ set_property (const char *filename, const char *propname,
 
           strtriml (strtrimr (line2));
 
-          if (!stricmp (line2, propname))
+          if (!strcasecmp (line2, propname))
             {
               found = 1;
               if (value_s)

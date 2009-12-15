@@ -184,6 +184,19 @@ extern const char *net_http_get_to_temp (const char *url_s, const char *user_age
 /*
   URL parse functions
 
+    foo://username:password@example.com:8042/over/there/index.dtb;type=animal?name=ferret#nose
+    \ /   \________________/\_________/ \__/            \___/ \_/ \_________/ \_________/ \__/
+     |           |               |       |                |    |       |           |       |
+     |       userinfo         hostname  port              |    |       parameter query  fragment
+     |    \_______________________________/ \_____________|____|____________/
+  scheme                  |                               | |  |
+     |                authority                           |path|
+     |                                                    |    |
+     |            path                       interpretable as filename
+     |   ___________|____________                              |
+    / \ /                        \                             |
+    urn:example:animal:ferret:nose               interpretable as extension
+
   stresc()        replace chars with %xx escape sequences
   strunesc()      replace %xx escape sequences with the char
   strurl()        a general routine to parse urls
@@ -198,6 +211,7 @@ typedef struct
   char host[NET_MAXBUFSIZE];
   int port;
   char request[NET_MAXBUFSIZE];
+  char query[NET_MAXBUFSIZE]; // between ? and #
 
 //  int argc;
 //  char *argv[NET_MAXBUFSIZE];

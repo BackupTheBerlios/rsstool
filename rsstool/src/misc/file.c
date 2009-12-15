@@ -74,7 +74,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #endif
 #include "file.h"
 #include "misc.h"                               // getenv2()
-#include "getopt.h"                             // struct option
+//#include "getopt.h"                             // struct option
+#include "defines.h"
 
 #ifdef  DJGPP
 #ifdef  DLL
@@ -103,6 +104,45 @@ int
 tofname (int c)
 {
   return isfname (c) ? c : '_';
+}
+
+
+const char *
+get_suffix (const char *filename)
+// Note that get_suffix() never returns NULL. Other code relies on that!
+{
+  const char *p, *s;
+
+  if (!(p = basename2 (filename)))
+    p = filename;
+  if (!(s = strrchr (p, '.')))
+    s = strchr (p, 0);                          // strchr(p, 0) and NOT "" is the
+  if (s == p)                                   //  suffix of a file without suffix
+    s = strchr (p, 0);                          // files can start with '.'
+
+  return s;
+}
+
+
+char *
+set_suffix (char *filename, const char *suffix)
+{
+  // always use set_suffix() and NEVER the code below
+  strcpy ((char *) get_suffix (filename), suffix);
+
+  return filename;
+}
+
+
+int
+filesize (const char *filename)
+{
+  struct stat fstate;
+
+  if (!stat (filename, &fstate))
+    return fstate.st_size;
+
+  return -1;
 }
 
 
@@ -430,33 +470,6 @@ basename2 (const char *path)
 }
 
 
-const char *
-get_suffix (const char *filename)
-// Note that get_suffix() never returns NULL. Other code relies on that!
-{
-  const char *p, *s;
-
-  if (!(p = basename2 (filename)))
-    p = filename;
-  if (!(s = strrchr (p, '.')))
-    s = strchr (p, 0);                          // strchr(p, 0) and NOT "" is the
-  if (s == p)                                   //  suffix of a file without suffix
-    s = strchr (p, 0);                          // files can start with '.'
-
-  return s;
-}
-
-
-char *
-set_suffix (char *filename, const char *suffix)
-{
-  // always use set_suffix() and NEVER the code below
-  strcpy ((char *) get_suffix (filename), suffix);
-
-  return filename;
-}
-
-
 int
 same_file (const char *filename1, const char *filename2)
 // returns 1 if filename1 and filename2 refer to one file, 0 if not (or error)
@@ -600,7 +613,7 @@ rename2 (const char *oldname, const char *newname)
     }
   else
     {
-      retval = fcopy (oldname, 0, fsizeof (oldname), newname, "wb");
+      retval = fcopy (oldname, 0, filesize (oldname), newname, "wb");
       // don't remove unless the file can be copied
       if (retval == 0)
         {
@@ -617,7 +630,7 @@ rename2 (const char *oldname, const char *newname)
 int
 truncate2 (const char *filename, unsigned long new_size)
 {
-  unsigned long size = fsizeof (filename);
+  unsigned long size = filesize (filename);
   struct stat fstate;
 
   stat (filename, &fstate);
@@ -648,36 +661,6 @@ truncate2 (const char *filename, unsigned long new_size)
     truncate (filename, new_size);
 
   return 0;                                     // success
-}
-
-
-int
-fsizeof (const char *filename)
-{
-  struct stat fstate;
-
-  if (!stat (filename, &fstate))
-    return fstate.st_size;
-
-  return -1;
-}
-
-
-char *
-baknam (char *fname)
-{
-  char suffix[8];
-  int i = 1;
-
-  set_suffix (fname, ".bak");
-  while (!access (fname, F_OK))
-    {
-      sprintf (suffix, ".b%02d", i);
-      set_suffix (fname, suffix);
-      i++;
-    }
-
-  return fname;
 }
 
 
@@ -736,212 +719,35 @@ fcopy (const char *source, size_t start, size_t len, const char *dest, const cha
 }
 
 
-int
-quick_io_c (int value, size_t pos, const char *filename, const char *mode)
+unsigned char *
+file_get_contents (const char *filename, int maxlength)
 {
-  int result;
-  FILE *fh;
+  FILE *fh = NULL;
+  unsigned char *p = NULL;
+  int len = filesize (filename);
 
-  if (!(fh = fopen (filename, (const char *) mode)))
-    return -1;
+  if (len > maxlength || len == -1)
+    return NULL;
 
-  fseek (fh, pos, SEEK_SET);
+  if (!(fh = fopen (filename, "rb")))
+    return NULL;
 
-  if (*mode == 'r' && mode[1] != '+')           // "r+b" always writes
-    result = fgetc (fh);
-  else
-    result = fputc (value, fh);
+  if (!(p = (unsigned char *) malloc (len + 1)))
+    {
+      fclose (fh);
+      return NULL;
+    }
+
+  fread (p, len, 1, fh);
 
   fclose (fh);
 
-  return result;
+  return p;
 }
 
 
 int
-quick_io (void *buffer, size_t start, size_t len, const char *filename,
-          const char *mode)
-{
-  int result;
-  FILE *fh;
-
-  if (!(fh = fopen (filename, (const char *) mode)))
-    return -1;
-
-  fseek (fh, start, SEEK_SET);
-
-  // Note the order of arguments of fread() and fwrite(). Now quick_io()
-  //  returns the number of characters read or written. Some code relies on
-  //  this behaviour!
-  if (*mode == 'r' && mode[1] != '+')           // "r+b" always writes
-    result = (int) fread (buffer, 1, len, fh);
-  else
-    result = (int) fwrite (buffer, 1, len, fh);
-
-  fclose (fh);
-  return result;
-}
-
-
-static int
-getfile_recursion (const char *fname, int (*callback_func) (const char *),
-                        int *calls, int flags)
-{
-  char path[FILENAME_MAX];
-  struct stat fstate;
-
-  if (strlen (fname) >= FILENAME_MAX - 2)
-    return 0;
-
-  realpath2 (fname, path);
-
-  /*
-    Try to get file status information only if the file with name fname exists.
-    If the file does not exist I set st_mode to 0 instead of __S_IFREG, because I
-    don't know if the latter is portable. - dbjh
-  */
-  if (access (path, F_OK) == 0)
-    {
-      if (stat (path, &fstate) != 0)
-        return 0;
-    }
-  else
-    fstate.st_mode = 0;
-
-  /*
-    We test whether fname is a directory, because we handle directories
-    differently. The callback function should test whether its argument is a
-    regular file, a character special file, a block special file, a FIFO
-    special file, a symbolic link or a socket. If the flags
-    GETFILE_FILES_ONLY, GETFILE_RECURSIVE and
-    GETFILE_RECURSIVE_ONCE were not used by the calling function, it may
-    also have to test whether the argument is a directory.
-  */
-  if (S_ISDIR (fstate.st_mode) ?
-        !(flags & (GETFILE_FILES_ONLY |
-                   GETFILE_RECURSIVE |
-                   GETFILE_RECURSIVE_ONCE)) :
-        1)                                      // everything else: call callback
-    {
-      int result = 0; 
-
-#ifdef  DEBUG
-      printf ("callback_func() == %s\n", path);
-      fflush (stdout);
-#endif
-
-      result = callback_func (path);
-
-      if (!result)
-        (*calls)++;
-
-      return result;
-    }
-
-  if (S_ISDIR (fstate.st_mode) &&
-      (flags & (GETFILE_RECURSIVE | GETFILE_RECURSIVE_ONCE)))
-    {
-      int result = 0; 
-      struct dirent *ep;
-      DIR *dp;
-      char buf[FILENAME_MAX], *p;
-
-#if     defined __MSDOS__ || defined _WIN32 || defined __CYGWIN__
-      char c = toupper (path[0]);
-      if (path[strlen (path) - 1] == FILE_SEPARATOR ||
-          (c >= 'A' && c <= 'Z' && path[1] == ':' && path[2] == 0))
-#else
-      if (path[strlen (path) - 1] == FILE_SEPARATOR)
-#endif
-        p = (char *) "";
-      else
-        p = (char *) FILE_SEPARATOR_S;
-
-      if ((dp = opendir (path)))
-        {
-          while ((ep = readdir (dp)))
-            if (strcmp (ep->d_name, ".") != 0 &&
-                strcmp (ep->d_name, "..") != 0)
-              {
-                sprintf (buf, "%s%s%s", path, p, ep->d_name);
-                result = getfile_recursion (buf, callback_func, calls,
-                           flags & ~GETFILE_RECURSIVE_ONCE);
-                if (result != 0)
-                  break;
-              }
-          closedir (dp);
-        }
-    }
-
-  return 0;
-}
-
-
-int
-getfile (int argc, char **argv, int (*callback_func) (const char *), int flags)
-{
-  int x = optind, calls = 0, result = 0;
-
-  for (; x < argc; x++)
-    {
-      result = getfile_recursion (argv[x], callback_func, &calls, flags);
-      if (result != 0)
-        break;
-    }
-
-  return calls;
-}
-
-
-#if 0
-int
-mkdir2 (const char *name)
-// create a directory and check its permissions
-{
-  struct stat *st = NULL;
-
-  if (stat (name, st) == -1)
-    {
-      if (errno != ENOENT)
-        {
-          fprintf (stderr, "stat %s", name);
-          return -1;
-        }
-      if (mkdir (name, 0700) == -1)
-        {
-          fprintf (stderr, "mkdir %s", name);
-          return -1;
-        }
-      if (stat (name, st) == -1)
-        {
-          fprintf (stderr, "stat %s", name);
-          return -1;
-        }
-    }
-
-  if (!S_ISDIR (st->st_mode))
-    {
-      fprintf (stderr, "%s is not a directory\n", name);
-      return -1;
-    }
-  if (st->st_uid != getuid ())
-    {
-      fprintf (stderr, "%s is not owned by you\n", name);
-      return -1;
-    }
-  if (st->st_mode & 077)
-    {
-      fprintf (stderr, "%s must not be accessible by other users\n", name);
-      return -1;
-    }
-
-  return 0;
-}
-#endif
-
-
-int
-makepath_func (const char *path, int mode)
+mkdir2_func (const char *path, int mode)
 {
   int result = 0;
   char dir[FILENAME_MAX], *p = NULL;
@@ -963,12 +769,12 @@ makepath_func (const char *path, int mode)
   if (!(p = strchr (path, '/')))
     return 0;
  
-  return makepath_func (p, mode);
+  return mkdir2_func (p, mode);
 }
 
 
 int
-makepath (const char *path, int mode)
+mkdir2 (const char *path, int mode)
 {
   char buf[FILENAME_MAX];
   int result = 0;
@@ -980,73 +786,10 @@ makepath (const char *path, int mode)
     }
 
   getcwd (buf, FILENAME_MAX);
-  result = makepath_func (path, mode);
+  result = mkdir2_func (path, mode);
   chdir (buf);
 
   return result;
 }
 
 
-#if 0
-int
-rmdir2 (const char *path)
-{
-  char cwd[FILENAME_MAX];
-  struct dirent *ep;
-  struct stat fstate;
-  DIR *dp;
-
-  if (!(dp = opendir (path)))
-    return -1;
-
-  getcwd (cwd, FILENAME_MAX);
-  chdir (path);
-
-  while ((ep = readdir (dp)) != NULL)
-    {
-      if (stat (ep->d_name, &fstate) == -1)
-        return -1;
-
-      if (S_ISDIR (fstate.st_mode))
-        {
-          if (strcmp (ep->d_name, "..") != 0 &&
-              strcmp (ep->d_name, ".") != 0)
-            rmdir2 (ep->d_name);
-        }
-      else
-        remove (ep->d_name);
-    }
-
-  closedir (dp);
-  chdir (cwd);
-
-  return rmdir (path);
-}
-#endif
-
-
-unsigned char *
-fread2 (const char *filename, int maxlength)
-{
-  FILE *fh = NULL;
-  unsigned char *p = NULL;
-  int len = fsizeof (filename);
-
-  if (len > maxlength || len == -1)
-    return NULL;
-
-  if (!(fh = fopen (filename, "rb")))
-    return NULL;
-
-  if (!(p = (unsigned char *) malloc (len + 1)))
-    {
-      fclose (fh);
-      return NULL;
-    }
-
-  fread (p, len, 1, fh);
-
-  fclose (fh);
-
-  return p;
-}

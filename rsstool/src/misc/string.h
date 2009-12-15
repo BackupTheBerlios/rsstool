@@ -61,8 +61,7 @@ extern "C" {
   strrstr()     like strstr() but reverse
   strristr()    like strrstr() but case-insensitive
 
-  strarg()      break a string into (max_args) tokens
-                  replaces strtok[_r](), strsep(), etc...
+  explode()      break string into array[max_args]
 
   memcmp2()     memcmp() replacement with flags for wildcard and
                   relative/shifted similarities support
@@ -113,7 +112,7 @@ extern char *str_escape_xml (char *str);
 extern char *strrstr (char *str, const char *search);
 extern char *strristr (char *str, const char *search);
 
-extern int strarg (char **argv, char *str, const char *separator_s, int max_args);
+extern int explode (char **argv, char *str, const char *separator_s, int max_args);
 
 #define MEMCMP2_WCARD(WC)                 ((1 << 17) | ((WC) & 0xff))
 #define MEMCMP2_REL                       (1 << 18)
@@ -127,19 +126,19 @@ extern const void *memmem2 (const void *buffer, size_t bufferlen,
                             const void *search, size_t searchlen, unsigned int flags);
 
 extern char *strcasestr2 (const char *str, const char *search);
+// #define strcasestr strcasestr2
 #define stristr strcasestr2
-#ifndef _WIN32
-#define stricmp strcasecmp
-#define strnicmp strncasecmp
-#endif
 
 
-// filter string with implied boolean logic
-// + stands for AND
-// - stands for NOT
-// no operator implies OR
-// implied_boolean_logic == "+important -unimportant"
-extern const char *strfilter (const char *s, const char *implied_boolean_logic);
+/*
+  strfilter()  filter string with implied boolean logic
+                 + stands for AND
+                 - stands for NOT
+                 no operator implies OR
+                 implied_boolean_logic == "+important -unimportant"
+                 returns 1 true, 0 false
+*/
+//extern int strfilter (const char *s, const char *implied_boolean_logic);
 
 
 #ifdef  __cplusplus

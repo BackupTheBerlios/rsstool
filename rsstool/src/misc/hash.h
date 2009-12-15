@@ -33,16 +33,16 @@ extern "C" {
 #include "itypes.h"
 #endif
 #ifdef  USE_CRC
-#include "hash_crc.h"
+#include "crc32.h"
 #endif
 #ifdef  USE_MD4
-#include "hash_md4.h"                           // MD4_CTX
+#include "md4.h"                           // MD4_CTX
 #endif
 #ifdef  USE_MD5
-#include "hash_md5.h"                           // s_md5_ctx_t
+#include "md5.h"                           // s_md5_ctx_t
 #endif
 #ifdef  USE_SHA1
-#include "hash_sha1.h"                          // s_sha1_ctx_t
+#include "sha1.h"                          // s_sha1_ctx_t
 #endif
 
 

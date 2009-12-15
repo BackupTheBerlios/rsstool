@@ -49,12 +49,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define MAXBUFSIZE 32768
 
 
-#ifndef _WIN32
-#define stricmp strcasecmp
-#define strnicmp strncasecmp
-#endif
-
-
 int
 misc_digits (unsigned long v)
 {
@@ -169,7 +163,7 @@ strptime2 (const char *s)
       sscanf (s + 5, "%2s %s %4s %2s:%2s", d, m, y, h, min);
 
       for (i = 0; month_s[i]; i++)
-        if (!stricmp (m, month_s[i]))
+        if (!strcasecmp (m, month_s[i]))
           {
             sprintf (m, "%d", i + 1);
             break;
@@ -304,3 +298,44 @@ getenv2 (const char *variable)
   return value;
 #endif
 }
+
+
+void
+gauge (int percent, int width, char char_done, char char_todo, const char *color_done, const char *color_todo)
+{
+  int x = 0;
+  char buf[1024 + 32];                          // 32 == ANSI code buffer
+//  const char *color1 = "\x1b[30;40m";
+//  const char *color1 = "\x1b[31;41m";
+  if (!width || percent < 0 || percent > 100)
+    return;
+
+  if (width > 1024)
+    width = 1024;
+
+  x = (width * percent) / 100;
+
+  memset (buf, char_done, x);
+  buf[x] = 0;
+
+  if (x < width) // percent < 100
+    { 
+      if (color_done && color_todo)
+        strcat (&buf[x], color_done);
+
+      memset (strchr (buf, 0), char_todo, width - x);
+    }
+
+  if (color_done && color_todo)
+    {
+      buf[width + 8] = 0;                       // 8 == ANSI code length
+      fprintf (stdout, "%s%s\x1b[0m", color_todo, buf);
+    }
+  else // no ANSI
+    {
+      buf[width] = 0;
+      fputs (buf, stdout);
+    }
+}
+
+
