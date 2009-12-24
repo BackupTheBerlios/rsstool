@@ -1,7 +1,7 @@
 /*
 string.h - some string functions
 
-Copyright (c) 1999 - 2004 NoisyB
+Copyright (c) 1999 - 2009 NoisyB
 Copyright (c) 2001 - 2004 dbjh
 
 
@@ -36,8 +36,8 @@ extern "C" {
 /*
   String manipulation
 
-  strutf8()     encode string to utf-8
-  utf8str()     decode utf-8 to string
+TODO:  strutf8()     encode string to utf-8
+TODO:  utf8str()     decode utf-8 to string
 
   strupr()      strupr() clone
   strlwr()      strlwr() clone
@@ -56,18 +56,21 @@ extern "C" {
 
   strmove()     copy/move (overlapping) strings
   strins()      insert string in front of string
-  strrep_once() replace string inside a string
-  strrep()      replace stringS inside a string
+  strrep_once() replace string inside string
+  strrep()      replace stringS inside string
+  strcat2()     concat two strings as new string (malloc)
 
   str_escape_code()    turn string into code
   str_escape_html()    turn string into html
   str_unescape_html()  turn html into string
-
+  stresc()             replace chars with %xx escape sequences
+  strunesc()           replace %xx escape sequences with the char
 
   strrstr()     like strstr() but reverse
   strristr()    like strrstr() but case-insensitive
 
-  explode()      break string into array[max_args]
+  explode()     break string into array[max_args]
+  implode()     turn array into string
 
   memcmp2()     memcmp() replacement with flags for wildcard and
                   relative/shifted similarities support
@@ -87,9 +90,6 @@ extern "C" {
                   look for relative/shifted similarities
                   MEMMEM2_CASE
                   ignore case of isalpha() bytes
-  stristr()     same as strcasestr()
-  stricmp()     same as strcasecmp()
-  strnicmp()    same as strncasecmp()
   strcasestr2() strcasestr() clone for non-GNU platforms
 */
 //extern unsigned char *strutf8 (const char *s);
@@ -114,11 +114,15 @@ extern char *str_escape_code (char *str);
 extern char *str_escape_html (char *str);
 extern char *str_unescape_html (char *str);
 extern char *str_escape_xml (char *str);
+extern char *stresc (char *dest, const char *src);
+extern char *strunesc (char *dest, const char *src); 
 
 extern char *strrstr (char *str, const char *search);
 extern char *strristr (char *str, const char *search);
 
 extern int explode (char **argv, char *str, const char *separator_s, int max_args);
+extern const char *implode (const char *separator_s, char **argv);
+
 
 #define MEMCMP2_WCARD(WC)                 ((1 << 17) | ((WC) & 0xff))
 #define MEMCMP2_REL                       (1 << 18)
@@ -137,12 +141,67 @@ extern char *strcasestr2 (const char *str, const char *search);
 
 
 /*
-  strfilter()  filter string with implied boolean logic
+  these are clones of PHP functions with the same name
+
+  parse_url_component()  http://username:password@hostname/path?arg=value#anchor
+  parse_url()            like parse_url_component() but returns all components
+  parse_str()            parses query as if it were the query string passed via a URL
+                           and sets variables as name and value pairs
+                         TODO: support arrays arr[]=foo+bar&arr[]=baz
+*/
+enum {
+  PHP_URL_SCHEME = 0,  // components
+  PHP_URL_USER,
+  PHP_URL_PASS,
+  PHP_URL_HOST,
+  PHP_URL_PORT,
+  PHP_URL_PATH,
+  PHP_URL_QUERY,
+  PHP_URL_FRAGMENT,
+
+  URL_REQUEST  // PHP_URL_PATH + PHP_URL_QUERY + PHP_URL_FRAGMENT
+};
+extern const char *parse_url_component (const char *url_s, int component);
+#define PARSE_URL_MAXBUFSIZE 32768
+typedef struct
+{
+  const char *scheme;    // http
+  const char *user;
+  const char *pass;
+  const char *host;
+  const char *port_s;
+  int port;
+  const char *path;      // /path
+  const char *query;     // arg=value
+  const char *fragment;  // anchor
+  char private[PARSE_URL_MAXBUFSIZE];
+} st_parse_url_t;
+extern int parse_url (st_parse_url_t *url, const char *url_s);
+
+
+typedef struct
+{
+  const char *name;
+  const char *value;
+} st_parse_str_pairs_t;
+#define PARSE_STR_MAXPAIRS 255
+#define PARSE_STR_MAXBUFSIZE 32768
+typedef struct
+{
+  st_parse_str_pairs_t p[PARSE_STR_MAXPAIRS];
+  char private[PARSE_STR_MAXBUFSIZE];
+} st_parse_str_t;
+extern int parse_str (st_parse_str_t *pairs, const char *query);
+
+
+/*
+TODO:  strfilter()  filter string with implied boolean logic
                  + stands for AND
                  - stands for NOT
                  no operator implies OR
                  implied_boolean_logic == "+important -unimportant"
                  returns 1 true, 0 false
+                 NOTE: works pretty much like "MATCH ... AGAINST" in ANSI SQL
 */
 //extern int strfilter (const char *s, const char *implied_boolean_logic);
 

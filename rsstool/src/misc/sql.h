@@ -1,7 +1,7 @@
 /*
-  simple wrapper for ODBC or libmysql
+  simple libmysql (and unixODBC) wrapper           
   
-  Copyright (c) 2006 Dirk
+  Copyright (c) 2006 - 2009 NoisyB
                             
                             
   This library is free software; you can redistribute it and/or
@@ -32,9 +32,6 @@
 #ifdef  USE_MYSQL
 #include <mysql/mysql.h>
 #endif  // USE_MYSQL
-#ifdef  USE_PGSQL
-//#include <libpq-fe.h>
-#endif
 
 
 typedef struct
@@ -66,7 +63,6 @@ typedef struct
   Flags
     SQL_MYSQL
     SQL_ODBC
-// TODO: SQL_PGSQL
 
   sql_close()  close connection
 
@@ -78,21 +74,22 @@ typedef struct
                  from a string
 */
 #if     (defined USE_ODBC || defined USE_MYSQL)
-#define SQL_ODBC  (1<<0)
-#define SQL_MYSQL (1<<1)
-//#define SQL_PGSQL (1<<2)
+#define SQL_MYSQL 0
+#define SQL_ODBC  1
 
 
 extern st_sql_t * sql_open (const char *host, int port,
                             const char *user, const char *password,
                             const char *db_name, int flags);
 
-extern const char ***sql_read (st_sql_t *sql);
-extern const char **sql_getrow (st_sql_t *sql, int row);
-extern int sql_write (st_sql_t *sql, const char *sql_statement);
+extern const char ***sql_read (st_sql_t *sql, int assoc, int debug);
+extern const char **sql_getrow (st_sql_t *sql, int row, int assoc, int debug);
+extern int sql_write (st_sql_t *sql, const char *sql_query, int unbuffered, int debug);
 
 extern int sql_close (st_sql_t *sql);
-
+//extern int sql_seek (st_sql_t *sql, int row);
+//extern char **sql_get_result (st_sql_t *sql);
+//extern int sql_get_rows (st_sql_t *sql);
 
 #endif  // #if     (defined USE_ODBC || defined USE_MYSQL)
 

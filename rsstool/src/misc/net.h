@@ -32,56 +32,49 @@ extern "C" {
 #include <netinet/in.h>
 #include <sys/socket.h>
 #endif
-#endif  // #if     (defined USE_TCP || defined USE_UDP)
 
 
-#define NET_MAXBUFSIZE 1024
-
-
-#if     (defined USE_TCP || defined USE_UDP)
 /*
   Network functions
 
-  net_init()     open tcp/udp socket
-
-  Flags
-    NET_TCP      use TCP/IP (default)
-    NET_CLIENT   use for client connections (default)
-    NET_SERVER   use as server
-//    NET_PROXY    use as proxy
-    NET_UDP      use UDP
-    NET_DEBUG    print DEBUG output
-
-  net_open()     open connection to a server (client)
-                   (url_s: [login:pw@]server:/path)
-
-  net_bind()     bind server to a port (server)
-  net_listen()   wait for connections from clients (server)
-  net_accept()   accept an incoming connection
-
-  net_read()
-  net_getc()
-  net_gets()
-
-  net_write()
-  net_putc()
-  net_puts()
-  net_print()
-
-  net_seek()     for resume
-
-  net_close()    close connection (server/client)
-
+  net_init()     open TCP or UDP socket
   net_quit()     quit
 
-  net_get_socket()
+  Flags
+    NET_TCP        use TCP
+    NET_CLIENT     use to connect to server
+    NET_SERVER     use as server
+    NET_UDP        use UDP
+    NET_DEBUG      print DEBUG output
+    NET_LOCALONLY  allow connections to/from localhost only
+
+  Client (and server)
+    net_open()     open connection to a server
+
+    net_read()
+    net_write()
+
+    net_getc()
+    net_putc()
+    net_gets()
+    net_puts()
+
+    net_close()    close connection
+
+    net_sync() 
+
+  Server
+    net_bind()
+    net_listen()
+    net_accept()
+    net_server()   starts TCP server and runs callback function on connection/request
 */
-#define NET_TCP        0
-#define NET_CLIENT     0
-#define NET_SERVER     1
-//#define NET_PROXY      (1<<1)
-#define NET_UDP        (1<<2)
-//#define NET_DEBUG      (1<<4)
+#define NET_TCP        1
+#define NET_CLIENT     (1<<1)
+#define NET_SERVER     (1<<2)
+#define NET_UDP        (1<<4)
+#define NET_DEBUG      (1<<5)
+#define NET_LOCALONLY  (1<<6)
 
 
 typedef struct
@@ -101,35 +94,71 @@ typedef struct
 extern st_net_t *net_init (int flags, int timeout);
 extern int net_quit (st_net_t *n);
 
-extern int net_open (st_net_t *n, const char *url_s, int port);
+// client
+extern int net_open (st_net_t *n, const char *address, int port);
 extern int net_close (st_net_t *n);
-
-extern int net_bind (st_net_t *n, int port);
-extern int net_listen (st_net_t *n);
-extern st_net_t *net_accept (st_net_t *n);
 
 extern int net_read (st_net_t *n, void *buffer, int buffer_len);
 extern int net_write (st_net_t *n, void *buffer, int buffer_len);
-
 extern int net_getc (st_net_t *n);
 extern int net_putc (st_net_t *n, int c);
 extern char *net_gets (st_net_t *n, char *buffer, int buffer_len);
 extern int net_puts (st_net_t *n, char *buffer);
 
-extern int net_sync (st_net_t *n);
+//extern int net_sync (st_net_t *n);
+extern int net_bind (st_net_t *n, int port);
+extern int net_listen (st_net_t *n);
+extern st_net_t *net_accept (st_net_t *n);
 
-#endif  // (defined USE_TCP || defined USE_UDP)
+// server with callback
+extern int net_server (st_net_t *n, int port, int (* callback_func) (const void *, int, void *, int *), int max_content_len);
 
 
 /*
-  HTTP header build/parse functions
+  HTTP header build and read/parse functions
 
-  net_build_http_request()  http protocol function
-  net_build_http_response() http protocol function
+  net_build_http_request()  build http header (for client request)
+  net_build_http_response() build http header (for server response) 
 
-  net_parse_http_request()  http protocol function
-  net_parse_http_response() http protocol function
+  net_get_http_header()     reads http header (from client or server)
 
+  net_parse_http_request()  http header parser (of client request)
+  net_parse_http_response() http header parser (of server response)
+*/
+#define NET_MAXBUFSIZE 1024  
+#define NET_MAXHTTPHEADERSIZE (NET_MAXBUFSIZE*16)
+enum {
+  NET_METHOD_GET = 0,
+  NET_METHOD_POST
+};
+typedef struct
+{
+  char header[NET_MAXHTTPHEADERSIZE];   // the whole header
+
+//  int method;                         // the method
+//  char method_s[NET_MAXBUFSIZE];      // the method as string "GET", "POST", ...
+
+  char host[NET_MAXBUFSIZE];          // "localhost", ...
+  char request[NET_MAXBUFSIZE];
+
+  char user_agent[NET_MAXBUFSIZE];    // or "server:"
+
+//  char connection[NET_MAXBUFSIZE];    // "close", "keep-alive"
+//  int keep_alive;
+
+  int gzip;                           // compression enabled
+
+  char content_type[NET_MAXBUFSIZE];
+//  int content_length;
+} st_http_header_t;
+extern int net_build_http_request (char *http_header, const char *url_s, const char *user_agent, int keep_alive, int method, int gzip);
+extern int net_build_http_response (char *http_header, const char *user_agent, int keep_alive, unsigned int content_len, int gzip);
+extern int net_get_http_header (char *http_header, st_net_t *n);
+extern int net_parse_http_request (st_http_header_t *h, const char *http_header);
+extern int net_parse_http_response (st_http_header_t *h, const char *http_header);
+
+
+/*
   net_http_get_to_temp()    decide if url_or_fname is a url or fname
                               it will eventually download the file and
                               return the name of a temporary file
@@ -137,94 +166,14 @@ extern int net_sync (st_net_t *n);
   Flags
     GET_USE_GZIP  use gzip compression (if compiled)
 */
-enum {
-  NET_METHOD_GET = 0,
-  NET_METHOD_POST
-};
-
-
-typedef struct
-{
-  char header[NET_MAXBUFSIZE * 16];   // the whole header
-
-  int method;                         // the method
-  char method_s[NET_MAXBUFSIZE];      // the method as string "GET", "POST", ...
-
-  char host[NET_MAXBUFSIZE];          // "localhost", ...
-  char request[NET_MAXBUFSIZE];
-
-  char user_agent[NET_MAXBUFSIZE];    // or "server:"
-
-  char connection[NET_MAXBUFSIZE];    // "close", "keep-alive"
-  int keep_alive;
-
-  int gzip;                           // compression enabled
-
-  char content_type[NET_MAXBUFSIZE];
-  int content_length;
-} st_http_header_t;
-
-
-extern char *net_build_http_request (const char *url_s, const char *user_agent, int keep_alive, int method, int gzip);
-extern char *net_build_http_response (const char *user_agent, int keep_alive, unsigned int content_len, int gzip);
-#if     (defined USE_TCP || defined USE_UDP)
-extern st_http_header_t *net_parse_http_request (st_net_t *n);
-extern st_http_header_t *net_parse_http_response (st_net_t *n);
-
 #define GET_USE_GZIP (1<<1)
-#ifdef  USE_CURL
-// curl is the default, if available
+// curl is the default (if available) 
 #define GET_NO_CURL  (1<<2) 
-#endif
 #define GET_VERBOSE  (1<<3)
 extern const char *net_http_get_to_temp (const char *url_s, const char *user_agent, int flags);
-#endif
                                               
 
-/*
-  URL parse functions
-
-    foo://username:password@example.com:8042/over/there/index.dtb;type=animal?name=ferret#nose
-    \ /   \________________/\_________/ \__/            \___/ \_/ \_________/ \_________/ \__/
-     |           |               |       |                |    |       |           |       |
-     |       userinfo         hostname  port              |    |       parameter query  fragment
-     |    \_______________________________/ \_____________|____|____________/
-  scheme                  |                               | |  |
-     |                authority                           |path|
-     |                                                    |    |
-     |            path                       interpretable as filename
-     |   ___________|____________                              |
-    / \ /                        \                             |
-    urn:example:animal:ferret:nose               interpretable as extension
-
-  stresc()        replace chars with %xx escape sequences
-  strunesc()      replace %xx escape sequences with the char
-  strurl()        a general routine to parse urls
-*/
-typedef struct
-{
-  char url_s[NET_MAXBUFSIZE];
-
-  char protocol[NET_MAXBUFSIZE];
-  char user[NET_MAXBUFSIZE];
-  char pass[NET_MAXBUFSIZE];
-  char host[NET_MAXBUFSIZE];
-  int port;
-  char request[NET_MAXBUFSIZE];
-  char query[NET_MAXBUFSIZE]; // between ? and #
-
-//  int argc;
-//  char *argv[NET_MAXBUFSIZE];
-
-  char priv[NET_MAXBUFSIZE];
-} st_strurl_t;
-
-
-extern char *stresc (char *dest, const char *src);
-extern char *strunesc (char *dest, const char *src); 
-extern st_strurl_t *strurl (st_strurl_t *url, const char *url_s);
-
-
+#endif  // (defined USE_TCP || defined USE_UDP)
 #ifdef  __cplusplus
 }
 #endif

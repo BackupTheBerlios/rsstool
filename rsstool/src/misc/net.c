@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #ifdef  HAVE_CONFIG_H
 #include "config.h"
 #endif
+#if     (defined USE_TCP || defined USE_UDP)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +40,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <curl/curl.h>
 #endif
 
-#if     (defined USE_TCP || defined USE_UDP)
 #ifdef  _WIN32
 #include <winsock2.h>
 #include <io.h>
@@ -49,7 +49,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #endif
-#endif  // #if     (defined USE_TCP || defined USE_UDP)
 
 #include "misc.h"
 #include "base64.h"
@@ -63,25 +62,44 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define MAXBUFSIZE 32768
 
 
-#ifdef  DEBUG
-static void
-st_strurl_t_sanity_check (st_strurl_t *url)
+#ifdef  HAVE_ERRNO_H
+static const char *
+net_error (int e)
 {
-  printf ("url_s:    %s\n", url->url_s);
-  printf ("user:     %s\n", url->user);
-  printf ("pass:     %s\n", url->pass);
-  printf ("protocol: %s\n", url->protocol);
-  printf ("hostname: %s\n", url->host);
-  printf ("port:     %d\n", url->port);
-  printf ("request:  %s\n", url->request);
-  printf ("query:    %s\n", url->query);
-  fflush (stdout);
+  int i = 0;
+  struct
+    {   
+      int e;
+      const char *msg;
+    } error_msg[] =    
+    {
+      {EACCES,        "The calling process does not have the appropriate privileges"},
+      {EADDRINUSE,    "Some other socket is already using the specified address"},
+      {EADDRNOTAVAIL, "The specified address is not available on this machine"},
+      {EAGAIN,        "O_NONBLOCK is set for the socket file descriptor and no connections are present to be accepted"},
+      {EBADF,         "The socket argument is not a valid file descriptor"},
+      {ECONNABORTED,  "A connection has been aborted"},
+      {EDESTADDRREQ,  "The socket is not bound to a local address, and the protocol does not support listening on an unbound socket"},
+      {EINTR,         "The accept() function was interrupted by a signal that was caught before a valid connection arrived"},
+      {EINVAL,        "The socket is not accepting connections"},
+      {EMFILE,        "{OPEN_MAX} file descriptors are currently open in the calling process"},
+      {ENFILE,        "The maximum number of file descriptors in the system are already open"},
+      {ENOBUFS,       "Insufficient resources are available in the system to complete the call"},
+      {ENOMEM,        "There was insufficient memory available to complete the operation"},
+      {ENOTSOCK,      "The socket argument does not refer to a socket"},
+      {EOPNOTSUPP,    "The socket type of the specified socket does not support accepting connections"},
+      {EPROTO,        "A protocol error has occurred; for example, the STREAMS protocol stack has not been initialized"},
+      {EWOULDBLOCK,   "O_NONBLOCK is set for the socket file descriptor and no connections are present to be accepted"},
+      {0, NULL}
+    };
+  for (; error_msg[i].msg; i++)
+    if (e == error_msg[i].e)
+      return error_msg[i].msg;
+  return "Uknown error";
 }
 #endif
 
 
-
-#if     (defined USE_TCP || defined USE_UDP)
 st_net_t *
 net_init (int flags, int timeout)
 {
@@ -91,6 +109,23 @@ net_init (int flags, int timeout)
     return NULL;
 
   memset (n, 0, sizeof (st_net_t));
+
+  if (flags & NET_DEBUG)
+    {
+      fputs ("net_init(): NET_DEBUG", stderr);
+      if (flags & NET_UDP)
+        fputs ("|NET_UDP", stderr);
+      if (flags & NET_TCP)
+        fputs ("|NET_TCP", stderr);
+      if (flags & NET_CLIENT)
+        fputs ("|NET_CLIENT", stderr);
+      if (flags & NET_SERVER)
+        fputs ("|NET_SERVER", stderr);
+      if (flags & NET_LOCALONLY)
+        fputs ("|NET_LOCALONLY", stderr);
+      fputs ("\n", stderr);
+      fflush (stderr);
+    }
 
   n->flags = flags;
   n->timeout = timeout;
@@ -120,7 +155,7 @@ net_quit (st_net_t *n)
 int
 net_open (st_net_t *n, const char *url_s, int port)
 {
-  st_strurl_t url;
+  st_parse_url_t url;
 //  int result; 
 //  struct sockaddr_in addr; 
   struct hostent *host;
@@ -130,11 +165,11 @@ net_open (st_net_t *n, const char *url_s, int port)
 //  struct timeval tv; 
 //  socklen_t lon; 
 
-  if (!strurl (&url, url_s)) // parse URL
+  if (!parse_url (&url, url_s)) // parse URL
     return -1;
 
   if (!port)
-    port = url.port > -1 ? url.port : 80;
+    port = url.port_s ? url.port : 80;
                     
   if (!(host = gethostbyname (url.host)))
     return -1;
@@ -167,6 +202,8 @@ net_open (st_net_t *n, const char *url_s, int port)
   if (connect (n->socket, (struct sockaddr *) &n->addr, sizeof (struct sockaddr)) < 0)
     {
       fprintf (stderr, "ERROR: connect()\n");
+      fflush (stderr);
+
       return -1;
     }
 #else
@@ -241,128 +278,11 @@ net_open (st_net_t *n, const char *url_s, int port)
 
 
 int
-net_bind (st_net_t *n, int port)
-{
-  struct sockaddr_in addr;
-  n->flags |= NET_SERVER;
-
-  if (n->flags & NET_UDP)
-    {
-      n->socket = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-      if (n->socket < 0)
-        {
-          fprintf (stderr, "ERROR: socket creation failed (%s)\n", strerror (errno));
-          return -1;
-        }
-
-      memset (&addr, 0, sizeof (addr));
-      addr.sin_family = AF_INET;
-      addr.sin_addr.s_addr = htonl (INADDR_ANY);
-      addr.sin_port = htons (port);
-
-      if (bind (n->socket, (struct sockaddr *) &addr, sizeof (struct sockaddr)) < 0)
-        {
-          fprintf (stderr, "ERROR: socket binding failed (%s)\n",
-                   strerror (errno));
-
-          close (n->socket);
-
-          return -1;
-        }
-
-      return 0;
-    }
-
-  n->sock0 = socket (AF_INET, SOCK_STREAM, 0);
-  if (n->sock0 < 0)
-    return -1; 
-
-  memset (&addr, 0, sizeof (struct sockaddr_in));
-  addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = htonl (INADDR_ANY);
-  addr.sin_port = htons (port);
-
-  if (bind (n->sock0, (struct sockaddr *) &addr, sizeof (struct sockaddr)) < 0)
-    {
-#ifdef  HAVE_ERRNO_H
-      int e = 0;
-      struct
-        {
-           int e;
-           const char *msg;
-        } error_msg[] = 
-        {
-          {EBADF,         "The argument is not a valid file descriptor"},
-          {ENOTSOCK,      "The descriptor is not a socket"},
-          {EADDRNOTAVAIL, "The specified address is not available on this machine"},
-          {EADDRINUSE,    "Some other socket is already using the specified address"},
-          {EINVAL,        "The socket already has an address"},
-          {EACCES,        "You do not have permission to access the requested address"},
-          {0, NULL}
-        };
-      for (; error_msg[e].msg; e++)
-        if (errno == error_msg[e].e)
-          break;
-
-      fprintf (stderr, "ERROR: bind() %s\n", error_msg[e].msg ? error_msg[e].msg : "");
-#else
-      fprintf (stderr, "ERROR: bind()\n");
-#endif
-      fflush (stderr);
-
-      close (n->socket);
-
-      return -1;
-    }
-
-  return 0;
-}
-
-
-int
-net_listen (st_net_t *n)
-{
-  // wait for client connections
-  if (listen (n->sock0, 5) < 0)
-    {
-#ifdef  HAVE_ERRNO_H
-      fprintf (stderr, "ERROR: listen() %s\n",
-        errno == EOPNOTSUPP ? "The socket does not support this operation" :
-          "The argument is not a valid file descriptor/is not a socket");
-#else
-      fprintf (stderr, "ERROR: listen()\n");
-#endif
-      fflush (stderr);
-
-      return -1;
-    }
-
-  return 0;
-}
-
-
-st_net_t *
-net_accept (st_net_t *n)
-{
-  // TODO: fork()
-
-  // accept waits and "dupes" the socket
-  if ((n->socket = accept (n->sock0, 0, 0)) < 0)
-    {
-      fprintf (stderr, "ERROR: accept()\n");
-      fflush (stderr);
-
-      return NULL;
-    }
-
-  return n;
-}
-
-
-int
 net_close (st_net_t *n)
 {
-  return close (n->socket);
+  if (n->socket)
+    return close (n->socket);
+  return 0;
 }
 
 
@@ -384,8 +304,11 @@ net_read (st_net_t *n, void *buffer, int buffer_len)
           addrlen = sizeof (n->udp_addr);
           result = recvfrom (n->socket, buffer, buffer_len, 0, (struct sockaddr *) &n->udp_addr, &addrlen);
 
-          if (!ntohs (n->udp_addr.sin_port))       
-            fprintf (stderr, "WARNING: rejected packet (source port = 0)\n");
+          if (!ntohs (n->udp_addr.sin_port))
+            {
+              fprintf (stderr, "WARNING: rejected packet (source port = 0)\n");
+              fflush (stderr);
+            }
 
           return result;
         }
@@ -531,6 +454,7 @@ net_puts (st_net_t *n, char *buffer)
 }
 
 
+#if 0
 int   
 net_sync (st_net_t *n)
 {
@@ -540,31 +464,24 @@ net_sync (st_net_t *n)
   return 0;
 #endif
 }
-#endif  // #if     (defined USE_TCP || defined USE_UDP)
-
-
-char *
-net_build_http_request (const char *url_s, const char *user_agent, int keep_alive, int method, int gzip)
-{
-  static char buf[MAXBUFSIZE];
-  char buf2[MAXBUFSIZE];
-  st_strurl_t url;
-
-  if (!strurl (&url, url_s))
-    return NULL;
-
-#ifdef  DEBUG
-  st_strurl_t_sanity_check (&url);
 #endif
 
-  sprintf (buf, "%s ", method == NET_METHOD_POST ? "POST" : "GET");
 
-  if (*url.request)
-    strcat (buf, url.request);
-  else
-    strcat (buf, "/");
+int
+net_build_http_request (char *http_header, const char *url_s, const char *user_agent, int keep_alive, int method, int gzip)
+{
+  char buf[MAXBUFSIZE];
+  st_parse_url_t url;
 
-  sprintf (strchr (buf, 0), " HTTP/1.0\r\n"
+  if (!parse_url (&url, url_s))
+    return -1;
+
+  *http_header = 0;
+  sprintf (http_header, "%s ", method == NET_METHOD_POST ? "POST" : "GET");
+
+  strcat (http_header, parse_url_component (url_s, URL_REQUEST)); // the request
+
+  sprintf (strchr (http_header, 0), " HTTP/1.0\r\n"
     "Connection: %s\r\n"
     "User-Agent: %s\r\n"
     "Pragma: no-cache\r\n"
@@ -575,157 +492,200 @@ net_build_http_request (const char *url_s, const char *user_agent, int keep_aliv
     url.host);
 
   if (gzip)
-    strcpy (strchr (buf, 0), "Accept-encoding: x-gzip\r\n");
+    strcpy (strchr (http_header, 0), "Accept-encoding: x-gzip\r\n");
 
   if (*url.user || *url.pass)
     {
-      sprintf (buf2, "%s:%s", url.user, url.pass);
-      sprintf (strchr (buf, 0), "Authorization: Basic %s\r\n", base64_enc (buf2));
+      sprintf (buf, "%s:%s", url.user, url.pass);
+      sprintf (strchr (http_header, 0), "Authorization: Basic %s\r\n", base64_enc (buf));
     } 
 
-  strcat (buf, "\r\n");
+  strcat (http_header, "\r\n");
 
-#ifdef  DEBUG 
-  fputs (buf, stdout);
-  fflush (stdout);
-#endif
+  // DEBUG 
+//  fputs (http_header, stdout);
+//  fflush (stdout);
     
-  return buf;
+  return 0;
 }
 
 
-char *
-net_build_http_response (const char *user_agent, int keep_alive, unsigned int content_len, int gzip)
+int
+net_build_http_response (char *http_header, const char *user_agent, int keep_alive, unsigned int content_len, int gzip)
 {
-  static char buf[MAXBUFSIZE];
-  char buf2[64];
+  char buf[64];
   time_t t = time (0);
 
-  strftime (buf2, 64, "%a, %d %b %Y %H:%M:%S %Z", localtime (&t)); // "Sat, 20 Sep 2003 12:30:58 GMT"
+  *http_header = 0;
+  strftime (buf, 64, "%a, %d %b %Y %H:%M:%S %Z", localtime (&t)); // "Sat, 20 Sep 2003 12:30:58 GMT"
 
-  sprintf (buf,
+  sprintf (http_header,
     "HTTP/1.0 302 Found\r\n"
     "Connection: %s\r\n"
     "Date: %s\r\n"
     "Content-Type: %s\r\n"
     "Server: %s\r\n",
     keep_alive ? "Keep-Alive" : "close",
-    buf2,
+    buf,
     "text/html",
     user_agent);
 
   if (gzip)
-    strcpy (strchr (buf, 0), "Content-encoding: x-gzip\r\n");  
+    strcpy (strchr (http_header, 0), "Content-encoding: x-gzip\r\n");  
 
   if (content_len)
-    sprintf (strchr (buf, 0), "Content-length: %d\r\n", content_len);
+    sprintf (strchr (http_header, 0), "Content-length: %d\r\n", content_len);
 
-  strcat (buf, "\r\n");
+  strcat (http_header, "\r\n");
 
-#ifdef  DEBUG
-  fputs (buf, stdout);
-  fflush (stdout);
-#endif
+  // DEBUG
+//  fputs (http_header, stdout);
+//  fflush (stdout);
 
-  return buf;
+  return 0;
 }
 
 
-#if     (defined USE_TCP || defined USE_UDP)
-st_http_header_t *
-net_parse_http_request (st_net_t *n)
+int
+net_get_http_header (char *http_header, st_net_t *n)
 {
   char buf[MAXBUFSIZE];
+
+  *http_header = 0;
+
+  while (net_gets (n, buf, MAXBUFSIZE))
+    {
+#ifdef  DEBUG
+      fputs (buf, stdout);
+      fflush (stdout);
+#endif
+      if (strlen (http_header) + strlen (buf) > NET_MAXHTTPHEADERSIZE - 1)
+        {
+          // too large http header
+          break; 
+        }
+
+      if (!(*buf) || *buf == 0x0d || *buf == 0x0a)
+        break;
+
+      strcat (http_header, buf);
+    }
+
+  return 0;
+}
+
+
+int
+net_parse_http_request (st_http_header_t *h, const char *http_header)
+{
   char *p = NULL; 
-  static st_http_header_t h;
-  int line = 0;
 
-  memset (&h, 0, sizeof (st_http_header_t));
-
-  while (net_gets (n, buf, MAXBUFSIZE))
-    {
-#ifdef  DEBUG
-      fputs (buf, stdout);
-      fflush (stdout);
+  memset (h, 0, sizeof (st_http_header_t));
+  strncpy (h->header, http_header, NET_MAXHTTPHEADERSIZE)[(NET_MAXHTTPHEADERSIZE) - 1] = 0;
+#if 1
+  p = strstr (h->header, "\n\n");
+  if (p)
+    *p = 0;
+  p = strstr (h->header, "\n\r");
+  if (p)
+    *p = 0;
 #endif
 
-      p = strchr (buf, '\n');
-      if (p)
-        *p = 0;
+  // DEBUG
+//  printf ("%s\n", http_header);
+//  fflush (stdout);
 
-      sprintf (strchr (h.header, 0), "%s\n", buf);
-
-      if (!line)
-        {
-          p = strstr (buf, "HTTP");
-          if (p)
-            p += 4;
-          strncpy (h.request, p, NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
-          p = strchr (h.request, ' ');
-          if (p)
-            *p = 0;
-          strtriml (strtrimr (h.request));
-        }
-      else if (stristr (buf, "Host: "))
-        strncpy (h.host, buf + strlen ("Host: "), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
-      else if (stristr (buf, "Accept-encoding: "))
-        {
-          if (stristr (buf, "x-gzip"))
-            h.gzip = 1;
-        }
-      else if (stristr (buf, "User-Agent: "))
-        strncpy (h.user_agent, buf + strlen ("User-Agent: "), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
-      else if (!(*buf) || *buf == 0x0d || *buf == 0x0a)
-        return &h;
-
-      line++;
+  strncpy (h->request, http_header + strlen ("POST"), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
+  if ((p = strstr (h->request, "HTTP")))
+    {
+     if ((p = strpbrk (h->request, " \r\n")))
+       *p = 0;
+      strtriml (strtrimr (h->request));
+    }
+  else
+    {
+      return -1; // no http header
     }
 
-  return NULL;
+  // fast-forward past the request line
+  http_header = strpbrk (http_header, "\r\n"); 
+  if (!http_header)
+    return -1;
+
+  if ((p = stristr (http_header, "Host:")))
+    {
+      strncpy (h->host, p + strlen ("Host:"), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
+      if ((p = strpbrk (h->host, "\r\n")))
+        *p = 0;
+      strtriml (strtrimr (h->host));
+    }
+  else if ((p = stristr (http_header, "Accept-encoding:")))
+    {
+      if (stristr (p, "x-gzip"))
+        h->gzip = 1;
+#warning fix header parsing
+printf ("SHIT");  
+fflush (stdout);
+    }
+  else if ((p = stristr (http_header, "User-Agent:")))
+    { 
+      strncpy (h->user_agent, p + strlen ("User-Agent:"), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
+      if ((p = strpbrk (h->user_agent, "\r\n")))
+        *p = 0;
+      strtriml (strtrimr (h->user_agent));
+printf ("SHIT");  
+printf (h->user_agent);
+fflush (stdout);
+    }
+
+  return 0;
 }
 
 
-st_http_header_t *
-net_parse_http_response (st_net_t *n)
+int
+net_parse_http_response (st_http_header_t *h, const char *http_header)
 {
-  char buf[MAXBUFSIZE];
   char *p = NULL;
-  static st_http_header_t h;
-  int line = 0;
 
-  memset (&h, 0, sizeof (st_http_header_t));
-
-  while (net_gets (n, buf, MAXBUFSIZE))
-    {
-#ifdef  DEBUG
-      fputs (buf, stdout);
-      fflush (stdout);
+  memset (h, 0, sizeof (st_http_header_t));
+  strncpy (h->header, http_header, NET_MAXHTTPHEADERSIZE)[(NET_MAXHTTPHEADERSIZE) - 1] = 0;
+#if 1
+  p = strstr (h->header, "\n\n");   
+  if (p)
+    *p = 0;
+  p = strstr (h->header, "\n\r");
+  if (p)
+    *p = 0;
 #endif
 
-      p = strchr (buf, '\n');
-      if (p)
+  if ((p = stristr (http_header, "Host:")))
+    {
+      strncpy (h->host, p + strlen ("Host:"), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
+      if ((p = strpbrk (h->host, "\r\n")))
         *p = 0;
-
-      sprintf (strchr (h.header, 0), "%s\n", buf);
-
-      if (stristr (buf, "Host: "))
-        strncpy (h.host, buf + strlen ("Host: "), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
-      else if (stristr (buf, "Server: "))
-        strncpy (h.user_agent, buf + strlen ("User-Agent: "), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
-      else if (stristr (buf, "Content-encoding: "))
-        {
-          if (stristr (buf, "x-gzip"))
-            h.gzip = 1;
-        }
-      else if (stristr (buf, "Content-type: "))
-        strncpy (h.content_type, buf + strlen ("Content-type: "), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
-      else if (!(*buf) || *buf == 0x0d || *buf == 0x0a)
-        return &h;
-
-      line++;
+      strtriml (strtrimr (h->host));
+    }
+  else if ((p = stristr (http_header, "Server:")))
+    {
+      strncpy (h->user_agent, p + strlen ("Server:"), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
+      if ((p = strpbrk (h->user_agent, "\r\n")))
+        *p = 0;
+      strtriml (strtrimr (h->user_agent));
+    }
+  else if ((p = stristr (http_header, "Content-encoding:")))
+    {
+      if (stristr (p, "x-gzip"))
+        h->gzip = 1;
+    }
+  else if ((p = stristr (http_header, "Content-type:")))
+    {
+      strncpy (h->content_type, p + strlen ("Content-type:"), NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
+      if ((p = strpbrk (h->content_type, "\r\n")))
+        *p = 0;
+      strtriml (strtrimr (h->content_type));
     }
 
-  return NULL;
+  return 0;
 }
 
 
@@ -742,11 +702,11 @@ const char *
 net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
 {
   static char tname[FILENAME_MAX];
+  char http_header_s[NET_MAXHTTPHEADERSIZE];
   char buf[MAXBUFSIZE];
   FILE *tmp = NULL;
   st_net_t *client = NULL;
-  char *p = NULL;
-  st_strurl_t url;
+  st_parse_url_t url;
   int len = 0;
 
   *tname = 0;
@@ -762,6 +722,8 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
 #else
       fprintf (stderr, "ERROR: could not write %s\n", tname);
 #endif
+      fflush (stderr);
+
       return NULL;
     } 
 
@@ -775,6 +737,8 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
       if (!curl)
         {
           fprintf (stderr, "ERROR: curl_easy_init() failed\n");
+          fflush (stderr);
+
           return NULL;
         }
 
@@ -807,29 +771,43 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
 #endif  // USE_CURL
 
   fprintf (stderr, "WARNING: compiled without cURL support, switching to workaround\n");
+  fflush (stderr);
 
-  if (!(client = net_init (0, 5)))
+  if (!(client = net_init (NET_TCP|NET_CLIENT, 5)))
     {
       fprintf (stderr, "ERROR: net_http_get_to_temp()/net_init() failed\n");
+      fflush (stderr);
+
       fclose (tmp);   
       remove (tname);
       return NULL;
     }
 
-  strurl (&url, url_s);
-  if (net_open (client, url.host, (url.port > -1) ? url.port : 80) != 0)
+  if (parse_url (&url, url_s) != 0)
     {
-      fprintf (stderr, "ERROR: net_http_get_to_temp()/net_open() failed to open %s\n", url_s);
+      fprintf (stderr, "ERROR: net_http_get_to_temp()/parse_url() failed\n");
+      fflush (stderr);
+
       fclose (tmp);  
       remove (tname);
       return NULL;
     }
 
-  p = net_build_http_request (url_s, user_agent, 0, NET_METHOD_GET, flags & GET_USE_GZIP);
-  net_write (client, (char *) p, strlen (p));
+  if (net_open (client, url.host, url.port_s ? url.port : 80) != 0)
+    {
+      fprintf (stderr, "ERROR: net_http_get_to_temp()/net_open() failed to open %s\n", url_s);
+      fflush (stderr);
+
+      fclose (tmp);  
+      remove (tname);
+      return NULL;
+    }
+
+  if (!net_build_http_request (http_header_s, url_s, user_agent, 0, NET_METHOD_GET, flags & GET_USE_GZIP))
+    net_write (client, http_header_s, strlen (http_header_s));
 
   // skip http header
-  if (net_parse_http_request (client))
+  if (!net_get_http_header (http_header_s, client))
     while ((len = net_read (client, buf, MAXBUFSIZE)))
       fwrite (buf, len, 1, tmp);
 
@@ -839,197 +817,260 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
 
   return tname;
 }
-#endif  // #if     (defined USE_TCP || defined USE_UDP
 
 
-char *
-strunesc (char *dest, const char *src)
+int
+net_bind (st_net_t *n, int port)
 {
-  unsigned int c;
-  char *p = dest;
-
-  if (!src)
-    return NULL;
-  if (!src[0])
-    return (char *) "";
-
-  while ((c = *src++))
+  if (!(n->flags & NET_SERVER))
     {
-      if (c == '%')
-        {
-          unsigned char buf[4];
+      fprintf (stderr, "ERROR: net_bind(): NET_SERVER flag not set\n");
+      fflush (stderr);
 
-          buf[0] = *src++;
-          buf[1] = *src++;
-          buf[2] = 0;
-        
-          sscanf ((const char *) buf, "%x", &c);
+      return -1;
+    }
+
+  if (n->flags & NET_UDP)
+    {
+      n->socket = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+      if (n->socket < 0)
+        {
+#ifdef  HAVE_ERRNO_H
+          fprintf (stderr, "ERROR: net_bind(): socket creation failed; %s\n", strerror (errno));
+#else
+          fprintf (stderr, "ERROR: net_bind(): socket creation failed\n");
+#endif
+          fflush (stderr);
+
+          return -1;
+        }
+
+      memset (&n->addr, 0, sizeof (struct sockaddr_in));
+      n->addr.sin_family = AF_INET;
+      n->addr.sin_addr.s_addr = htonl (INADDR_ANY);
+      n->addr.sin_port = htons (port);
+#if 1
+      if (bind (n->socket, (struct sockaddr *) &n->addr, sizeof (struct sockaddr)) < 0)
+#else
+      n->addr_len = strlen (n->addr.sin_data) + sizeof (n->addr.sin_family);
+      if (bind (n->socket, (struct sockaddr *) &n->addr, n->addr_len) < 0)
+#endif
+        {
+          fprintf (stderr, "ERROR: net_bind(): socket binding failed (%s)\n", strerror (errno));
+          fflush (stderr);
+
+          close (n->socket);
+
+          return -1;
+        }
+
+      return 0;
+    }
+
+  n->sock0 = socket (AF_INET, SOCK_STREAM, 0);
+  if (n->sock0 < 0)
+    {
+      fprintf (stderr, "ERROR: net_bind()/socket() failed\n");
+      return -1; 
+    }
+
+  memset (&n->addr, 0, sizeof (struct sockaddr_in));
+  n->addr.sin_family = AF_INET;
+  if (n->flags & NET_LOCALONLY) // allow connections from localhost only
+    {
+      struct hostent *host = gethostbyname ("localhost");
+      n->addr.sin_addr = *((struct in_addr *) host->h_addr);
+    }
+  else
+    n->addr.sin_addr.s_addr = htonl (INADDR_ANY);
+  n->addr.sin_port = htons (port);
+
+  if (bind (n->sock0, (struct sockaddr *) &n->addr, sizeof (struct sockaddr)) < 0)
+    {
+#ifdef  HAVE_ERRNO_H   
+      fprintf (stderr, "ERROR: net_bind(): %s\n", net_error (errno));
+#else
+      fprintf (stderr, "ERROR: net_bind()\n");
+#endif
+      fflush (stderr);
+
+      close (n->sock0);
+
+      return -1;
+    }
+
+  return 0;
+}
+
+
+int
+net_listen (st_net_t *n)
+{
+  // wait for client connections
+  if (listen (n->sock0, SOMAXCONN) < 0)
+    {
+#ifdef  HAVE_ERRNO_H
+      fprintf (stderr, "ERROR: net_listen(): %s\n", net_error (errno));
+#else
+      fprintf (stderr, "ERROR: net_listen()\n");
+#endif
+      fflush (stderr);
+
+      return -1;
+    }
+
+  return 0;
+}
+
+
+st_net_t *
+net_accept (st_net_t *n)
+{
+#if 1
+  if ((n->socket = accept (n->sock0, 0, 0)) < 0)
+#else
+  if ((n->socket = accept (n->sock0, &n->addr, sizeof (struct sockaddr)) < 0)
+#endif
+    {
+#ifdef  HAVE_ERRNO_H
+      fprintf (stderr, "ERROR: net_accept(): %s\n", net_error (errno));
+#else
+      fprintf (stderr, "ERROR: net_accept()\n");
+#endif
+      fflush (stderr);
+
+      return NULL;
+    }
+
+  return n;
+}
+
+
+int
+net_server (st_net_t *n, int port, int (* callback_func) (const void *, int, void *, int *), int max_content_len)
+{
+  unsigned char *request = NULL;
+  unsigned char *response = NULL;
+  int request_len = 0;
+  int response_len = 0;
+
+  if (net_bind (n, port) != 0)
+    return -1;
+
+  if (!(request = (unsigned char *) malloc (max_content_len + 1)))
+    {
+      fprintf (stderr, "ERROR: net_server()/malloc() failed\n");
+      return -1;
+    }
+
+  if (!(response = (unsigned char *) malloc (max_content_len + 1)))
+    {
+      fprintf (stderr, "ERROR: net_server()/malloc() failed\n");
+      free (request);
+      return -1;
+    }
+
+#if 1
+  if (net_listen (n) == -1)
+    {
+      net_close (n);
+
+      free (request);
+      free (response);
+
+      return -1;
+    }
+#endif
+
+  // ignore child process termination
+//  signal (SIGCHLD, SIG_IGN);
+
+  while (1)
+    {
+      int pid = 0;
+
+#if 0
+      if (net_listen (n) == -1)
+        break;
+#endif
+
+      if (!net_accept (n))
+        {
+          return -1;
+//          exit (1);
+        }
+
+      if ((pid = fork()) < 0)
+        {
+          fprintf (stderr, "ERROR: net_server()/fork() failed\n");
+          fflush (stderr);
+        }
+      else if (pid == 0) // child 
+        {
+          close (n->sock0); // do not need listen socket in child
+
+          request_len = recv (n->socket, request, max_content_len, 0);
+
+          if (callback_func (request, request_len, response, &response_len) == -1)
+            {
+              fprintf (stderr, "ERROR: net_server()/callback_func() failed\n");
+              fflush (stderr);
+#warning causes strange problem
+//              response_len = 0;
+            }
+
+          // DEBUG
+//          fprintf (stderr, "DEBUG: net_server()/request_len: %d, response_len: %d\n", request_len, response_len);
+//          fflush (stderr);
+
+          send (n->socket, response, response_len, 0);
+
+          close (n->socket);
+
+          exit (0);
         }
       else
-        if (c == '+')
-          c = ' ';
-
-       *p++ = c;
-     }
-  *p = 0;
-  
-  return dest;
-}
-
-
-char *
-stresc (char *dest, const char *src)
-{
-//TODO: what if the src was already escaped?
-  unsigned char c;
-  char *p = dest;
-  const char *positiv =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" 
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789"
-    "-_.!~"                     // mark characters
-    "*\\()%"                    // do not touch escape character
-    ";/?:@"                     // reserved characters
-    "&=+$,"                     // see RFC 2396
-//  "\x7f ... \xff"    far east languages(Chinese, Korean, Japanese)
-//    "+" // "/"
-    ;
-
-  if (!src)
-    return NULL;
-  if (!src[0])
-    return (char *) "";
-            
-  while ((c = *src++))
-    if (strchr (positiv, c) != NULL || c >= 0x7f)
-      *p++ = c;
-    else
-      {
-        sprintf (p, "%%%02X", c);
-        p += 3;
-      }
-  *p = 0;
-
-  return dest;
-}
-
-
-st_strurl_t *
-strurl (st_strurl_t *url, const char *url_s)
-{
-  int pos = 0, pos2 = 0;
-  char *p = NULL, *p2 = NULL, *p3 = NULL;
-
-#ifdef  DEBUG
-  printf ("strurl() url_s: %s\n\n", url_s);
-  fflush (stdout);
-#endif
-
-  if (!url)
-    return NULL;
-  if (!url_s)
-    return NULL;
-  if (!url_s[0])
-    return NULL;
-
-  memset (url, 0, sizeof (st_strurl_t));
-  strcpy (url->url_s, url_s);
-  url->port = -1;
-
-  // look for "://"
-  if ((p = strstr ((char *) url_s, "://")))
-    {
-      // extract the protocol
-      pos = p - url_s;
-      strncpy (url->protocol, url_s, MIN (pos, NET_MAXBUFSIZE))[MIN (pos, NET_MAXBUFSIZE - 1)] = 0;
-
-      // jump the "://"
-      p += 3;
-      pos += 3;
-    }
-  else
-    p = (char *) url_s;
-
-  // check if a user:pass is given
-  if ((p2 = strchr (p, '@')))
-    {
-      int len = p2 - p;
-      strncpy (url->user, p, MIN (len, NET_MAXBUFSIZE))[MIN (len, NET_MAXBUFSIZE - 1)] = 0;
-
-      p3 = strchr (p, ':');
-      if (p3 != NULL && p3 < p2)
         {
-          int len2 = p2 - p3 - 1;
-
-          url->user[p3 - p] = 0;
-          strncpy (url->pass, p3 + 1, MIN (len2, NET_MAXBUFSIZE))[MIN (len2, NET_MAXBUFSIZE - 1)] = 0;
+          close (n->socket);
         }
-      p = p2 + 1;
-      pos = p - url_s;
     }
 
-  // look if the port is given
-  p2 = strchr (p, ':');                 // If the : is after the first / it isn't the port
-  p3 = strchr (p, '/');
-  if (p3 && p3 - p2 < 0)
-    p2 = NULL;
-  if (!p2)
-    {
-      pos2 =
-        (p2 = strchr (p, '/')) ?        // Look if a path is given
-        (p2 - url_s) :                  // We have an URL like http://www.hostname.com/file.txt
-        (int) strlen (url_s);           // No path/filename
-                                        // So we have an URL like http://www.hostname.com
-    }
-  else
-    {
-      // We have an URL beginning like http://www.hostname.com:1212
-      url->port = atoi (p2 + 1);  // Get the port number
-      pos2 = p2 - url_s;
-    }
+  net_close (n);
 
-  // copy the hostname into st_strurl_t
-  strncpy (url->host, p, MIN (pos2 - pos, NET_MAXBUFSIZE))[MIN (pos2 - pos, NET_MAXBUFSIZE - 1)] = 0;
+  free (request);
+  free (response);
 
-  // look if a path is given
-  if ((p2 = strchr (p, '/')))
-    if (strlen (p2) > 1)                // A path/filename is given check if it's not a trailing '/'
-      strcpy (url->request, p2);           // copy the path/filename into st_strurl_t
-
-  if ((p2 = strchr (p, '?')))
-    {
-      strcpy (url->query, p2 + 1);
-      if ((p2 = strchr (url->query, '#')))
-        *p2 = 0;
-    }
-
-#ifdef  DEBUG
-  st_strurl_t_sanity_check (url);
-#endif
-
-#if 0
-  // turn request into args
-  strncpy (url->priv, url->request, NET_MAXBUFSIZE)[NET_MAXBUFSIZE - 1] = 0;
-  // argc < 2
-  if (!strcmp (url->priv, "/"))
-    *(url->priv) = 0;
-  url->argc = strarg (url->argv, url->priv, "?&", NET_MAXBUFSIZE);
-#endif
-
-  return url;
+  return 0;
 }
 
 
-//#ifdef  TEST
-#if 0
+#ifdef  TEST
+//#if 0
+int
+net_server_cb (const void *request, int request_len, void *response, int *response_len)
+{
+  char http_header_s[NET_MAXHTTPHEADERSIZE];
+  st_http_header_t http_header;
+
+  net_parse_http_request (&http_header, request);
+  printf ("%s", http_header.request);
+  fflush (stdout);
+   
+  net_build_http_response (http_header_s, "example", 0, 0, 0);
+ 
+  sprintf (response, "%sHello World!", http_header_s);
+  *response_len = strlen (response);
+
+  return 0;
+}
+
+
 int
 main (int argc, char ** argv)
 {
-  char buf[MAXBUFSIZE];
-  st_net_t *net = net_init (0, 5);
-
 #if 0
   // client test
+  st_net_t *net = net_init (NET_TCP|NET_SERVER, 5);
   if (!net_open (net, "http://www.google.de", 80))
     {
       char *p = net_build_http_request ("http://www.google.de/index.html", "example", 0);
@@ -1038,29 +1079,20 @@ main (int argc, char ** argv)
 
       while (net_gets (net, buf, MAXBUFSIZE))
         fputs (buf, stdout);
+
+      net_close (net);
+      net_quit (net);
     }
 #else
   // server test
-  while (1)
-    {
-      if (!net_bind (net, 80))
-        { 
-          char *p = net_build_http_response ("example", 0);
-          
-          net_read (net, buf, MAXBUFSIZE);
-          fputs (buf, stdout);
-          
-          net_write (net, p, strlen (p));
-          net_puts (net, "Hello World!");
-          
-          break;
-        }
-      else break;
-    }
+  st_net_t *net = net_init (NET_TCP|NET_SERVER, 5);
+  net_server (net, 80, &net_server_cb, MAXBUFSIZE * 2);
+  net_quit (net); 
 #endif
-  net_close (net);
-  net_quit (net);
 
   return 0;
 }
 #endif  // TEST
+
+
+#endif  // #if     (defined USE_TCP || defined USE_UDP

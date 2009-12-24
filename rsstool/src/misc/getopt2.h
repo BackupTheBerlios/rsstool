@@ -1,7 +1,8 @@
 /*
-getopt2.h - getopt1() extension
+getopt2.h - getopt() extension
+              new structure for defining options, build-in CGI support
 
-Copyright (c) 2004 - 2005 NoisyB
+Copyright (c) 2004 - 2009 NoisyB
 
 
 This program is free software; you can redistribute it and/or modify
@@ -20,77 +21,68 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 #ifndef MISC_GETOPT2_H
 #define MISC_GETOPT2_H
-
-#ifdef  HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #ifdef  __cplusplus
 extern "C" {
 #endif
-#include "getopt.h"                       // getopt2 needs struct option from getopt1
+#include "getopt.h"  // struct option
 
 
-/*
-  Extended getopt1(), usage and workflow handling
-
-  getopt2_usage()       render usage output from st_getopt2_t array
-  getopt2_long()        turn st_getopt2_t into struct option for getopt1_long()
-  getopt2_long_only()   turn st_getopt2_t into struct option for getopt1_long_only()
-  getopt2_short()       turn st_getopt2_t into short options string for getopt1_*()
-  getopt2_get_index_by_val() return single st_getopt2_t by val
-
-                some useful defines:
-  OPTION        option marker (default: '-')
-  OPTION_S      option marker as string (default: "-")
-  OPTION_LONG_S long option marker as string (default: "--")
-  OPTARG        optarg separator (default: '=')
-  OPTARG_S      optarg separator as string (default: "=")
-                <imperative>
-                  you will use THESE everywhere and you will NEVER change them
-                </imperative>
-
-  Debugging and Development
-
-  getopt2_sanity_check() check the whole st_getopt2_t array for dupes/errors/etc...
-  getopt2_sanity_check_output() called by getopt2_sanity_check()
-
-  getopt2_parse_usage() parse usage output into st_getopt2_t array
-  getopt2_usage_code()  turn a st_getopt2_t array into C code
-*/
+// NEVER change these
 #define OPTION '-'
 #define OPTION_S "-"
 #define OPTION_LONG_S "--"
 #define OPTARG '='
 #define OPTARG_S "="
+#define QUERY_START '?'
+#define QUERY_SEPARATOR '&'
 
+
+/*
+  getopt2_get_option()  find st_getopt2_t in array by val (option integer id)
+  getopt2_usage()       render usage output from st_getopt2_t array to stdout
+  getopt2_cgi()         explode QUERY_STRING into argc and argv[]
+                          returns argc
+  getopt2_cgi_ui()      render HTML form from st_getopt2_t
+
+
+  getopt2_long()       turn st_getopt2_t into struct option for getopt_long()
+  getopt2_long_only()  turn st_getopt2_t into struct option for getopt_long_only()
+  getopt2_short()      turn st_getopt2_t into short options string for getopt_*()
+
+
+  OPTION           option marker (default: '-')
+  OPTION_S         option marker as string (default: "-")
+  OPTION_LONG_S    long option marker as string (default: "--")
+  OPTARG           optarg separator (default: '=')
+  OPTARG_S         optarg separator as string (default: "=")
+  QUERY_START      for getopt2_cgi()
+  QUERY_SEPARATOR  for getopt2_cgi()
+*/
 typedef struct
 {
-  const char *name;           // see getopt()
-  int has_arg;                // see getopt()
-  int *flag;                  // see getopt()
-  int val;                    // see getopt()
-  const char *arg_name;       // name of the options arg as it should be
+  char *name;           // option name
+  int has_arg;                // has_arg == 0 no arg
+                              // has_arg == 1 reqired
+                              // has_arg == 2 optional
+  int *flag;
+  int val;                    // option integer id
+  char *arg_name;       // name of the options arg as it should be
                               // displayed in the --help output
                               // "--name=arg_name" if has_arg == 1
                               // "--name[=arg_name]" if has_arg == 2
-  const char *help;           // --help, -h, -? output for the current option
+  char *help;           // --help, -h, -? output/description for the current option
 } st_getopt2_t;
 
+
+extern const st_getopt2_t *getopt2_get_option (const st_getopt2_t *option, int val);
 extern void getopt2_usage (const st_getopt2_t *option);
-extern int getopt2_long (struct option *long_option, const st_getopt2_t *option, int n);
-extern int getopt2_long_only (struct option *long_option, const st_getopt2_t *option, int n);
-extern int getopt2_short (char *short_option, const st_getopt2_t *option, int n);
-extern const st_getopt2_t *getopt2_get_index_by_val (const st_getopt2_t *option, int val);
+//extern int getopt2_cgi (char **argv, const st_getopt2_t *option, int args_max);
+//extern const char *getopt_cgi_ui (const st_getopt2_t *option);
 
+extern int getopt2_long (struct option *long_option, const st_getopt2_t *option, int args_max);
+extern int getopt2_long_only (struct option *long_option, const st_getopt2_t *option, int args_max);
+extern int getopt2_short (char *short_option, const st_getopt2_t *option, int args_max);
 
-#ifdef  DEBUG
-extern void getopt2_sanity_check (const st_getopt2_t *option);
-extern void getopt2_sanity_check_output (const st_getopt2_t *option);
-
-extern void getopt2_parse_usage (const char *usage_output);
-extern void getopt2_usage_code (const st_getopt2_t *usage);
-#endif
 
 #ifdef  __cplusplus
 }

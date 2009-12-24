@@ -1,7 +1,7 @@
 /*
-  simple wrapper for ODBC or libmysql
+  simple libmysql (and unixODBC) wrapper    
   
-  Copyright (c) 2006 Dirk
+  Copyright (c) 2006 - 2009 NoisyB
                             
                             
   This library is free software; you can redistribute it and/or
@@ -30,13 +30,11 @@
 #endif
 #ifdef  USE_MYSQL
 #include <mysql/mysql.h>
-#include "sql_mysql.c"
 #endif
 #ifdef  USE_ODBC
 #include <sql.h>
 #include <sqlext.h>
 #include <sqltypes.h>
-#include "sql_odbc.c"
 #endif
 #include "sql.h"
 
@@ -45,6 +43,166 @@
 #undef MAXBUFSIZE
 #endif
 #define MAXBUFSIZE 32768
+
+
+#ifdef  USE_MYSQL
+//#include "sql_mysql.c"
+static int
+sql_free_array (st_sql_t *sql)
+{
+/*
+  int r = 0;
+
+  if (!sql->array)
+    return 0;
+
+  for (; sql->array[r]; r++)
+    {
+      free (sql->array[r]);
+      sql->array[r] = NULL;
+    }
+
+  free (sql->array);
+  sql->array = NULL;
+*/
+  return 0;
+}
+
+
+static int
+sql_malloc_array (st_sql_t *sql, int rows, int cols)
+{
+/*
+  int r = 0;
+
+  if (sql->array)
+    sql_free_array (sql);
+
+  sql->array = (const char ***) malloc (rows * sizeof (const char **));
+  if (!sql->array)
+    return -1;
+
+  for (r = 0; r <= rows; r++)
+    {
+      sql->array[r] = (const char **) malloc (cols * sizeof (const char *));
+      if (!sql->array[r])
+        return -1;
+    }
+*/
+  return 0;
+}
+
+
+st_sql_t *
+sql_mysql_open (st_sql_t *sql,
+                const char *host, int port,
+                const char *user, const char *password,
+                const char *db_name)
+{
+  mysql_init (&sql->db);
+  mysql_options (&sql->db, MYSQL_READ_DEFAULT_GROUP, "random");
+
+  if (!mysql_real_connect (&sql->db, host, user, password, db_name, port, NULL, 0))
+    {
+      fprintf (stderr, "ERROR: mysql_real_connect(): %s\n", mysql_error (&sql->db));
+      return NULL;
+    }
+
+#if 1
+  if (mysql_select_db (&sql->db, db_name))  // select the database we want to use
+    {
+      fprintf (stderr, "ERROR: mysql_select_db(): %s\n", mysql_error (&sql->db));
+      return NULL;
+    }
+#endif
+
+  return sql;
+}
+
+
+int
+sql_mysql_close (st_sql_t *sql)
+{
+  if (sql->res)
+    {
+      mysql_free_result (sql->res);
+      sql->res = NULL;
+    }
+
+  mysql_close (&sql->db);
+  sql_free_array (sql);
+
+  return 0;
+}
+
+
+const char ***
+sql_mysql_read (st_sql_t *sql)
+{
+  int row = 0, col = 0;
+  int rows = 0, cols = 0;
+
+  if (!sql->res)
+    return NULL;
+
+  rows = mysql_num_rows (sql->res);
+  cols = mysql_num_fields (sql->res);
+  if (sql_malloc_array (sql, rows, cols))
+    {
+      mysql_free_result (sql->res);
+      sql->res = NULL;
+      return NULL;
+    }
+
+  // free and re-malloc the result array in st_sql_t
+  sql_free_array (sql);
+  if (sql_malloc_array (sql, rows, cols) != 0)
+    {
+      mysql_free_result (sql->res);
+      sql->res = NULL;
+      return NULL;
+    }
+
+  for (row = 0; row < rows; row++)
+    if ((sql->row = mysql_fetch_row (sql->res)))
+      for (col = 0; col < cols; col++)
+        sql->array[row][col] = sql->row[col];
+
+  return (const char ***) sql->array;
+}
+
+
+const char **
+sql_mysql_getrow (st_sql_t *sql, int row)
+{
+  sql_mysql_read (sql);
+
+  if (sql->array)
+    if (mysql_num_rows (sql->res) > (unsigned int) row)
+      return sql->array[row];
+
+  return NULL;
+}
+
+
+int
+sql_mysql_write (st_sql_t *sql, const char *sql_statement)
+{
+  if (mysql_real_query (&sql->db, sql_statement, strlen (sql_statement)))
+    {
+      fprintf (stderr, "ERROR: mysql_real_query(): %s\n", mysql_error (&sql->db));
+      return -1;
+    }
+
+  sql->res = mysql_store_result (&sql->db);  // download result from server
+
+  return 0;
+}
+
+#endif
+#ifdef  USE_ODBC
+#include "sql_odbc.c"
+#endif
 
 
 #ifdef  USE_MYSQL
@@ -64,7 +222,7 @@ sql_strrealesc (st_sql_t *sql, char *s)
 char *
 sql_stresc (char *s)
 {
-#warning TODO: sql_stresc for odbc
+#warning TODO: sql_stresc for unixODBC
   return s;
 }
 #else
@@ -131,52 +289,6 @@ sql_stresc (char *s)
 #endif
 
 
-int
-sql_free_array (st_sql_t *sql)
-{
-/*
-  int r = 0;
-
-  if (!sql->array)
-    return 0;
-
-  for (; sql->array[r]; r++)
-    {
-      free (sql->array[r]);
-      sql->array[r] = NULL;
-    }
-
-  free (sql->array);
-  sql->array = NULL;
-*/
-  return 0;
-}
-
-
-int
-sql_malloc_array (st_sql_t *sql, int rows, int cols)
-{
-/*
-  int r = 0;
-
-  if (sql->array)
-    sql_free_array (sql);
-
-  sql->array = (const char ***) malloc (rows * sizeof (const char **));
-  if (!sql->array)
-    return -1;
-
-  for (r = 0; r <= rows; r++)
-    {
-      sql->array[r] = (const char **) malloc (cols * sizeof (const char *));
-      if (!sql->array[r])
-        return -1;
-    }
-*/
-  return 0;
-}
-
-
 st_sql_t *
 sql_open (const char *host, int port,
           const char *user, const char *password,
@@ -184,20 +296,30 @@ sql_open (const char *host, int port,
 {
   static st_sql_t sql;
 
-  if (!(flags & SQL_MYSQL) &&
-      !(flags & SQL_ODBC))
-    return NULL;
+#ifndef  USE_MYSQL
+  if (flags == SQL_MYSQL)
+    {
+      fprintf (stderr, "ERROR: sql_open(): libmysql support missing\n");
+      return NULL;
+    }
+#endif
+#ifndef  USE_ODBC
+  if (flags == SQL_ODBC)
+    {
+      fprintf (stderr, "ERROR: sql_open(): unixODBC support missing\n");
+      return NULL;
+    } 
+#endif
 
   memset (&sql, 0, sizeof (st_sql_t));
-
   sql.flags = flags;
 
 #ifdef  USE_MYSQL
-  if (flags & SQL_MYSQL)
+  if (flags == SQL_MYSQL)
     return sql_mysql_open (&sql, host, port, user, password, db_name);
 #endif
 #ifdef  USE_ODBC
-  if (flags & SQL_ODBC)
+  if (flags == SQL_ODBC)
     return sql_odbc_open (&sql, host, port, user, password, db_name);
 #endif
 
@@ -209,11 +331,11 @@ const char ***
 sql_read (st_sql_t *sql)
 {
 #ifdef  USE_MYSQL
-  if (sql->flags & SQL_MYSQL)
+  if (sql->flags == SQL_MYSQL)
     return sql_mysql_read (sql);
 #endif
 #ifdef  USE_ODBC
-  if (sql->flags & SQL_ODBC)
+  if (sql->flags == SQL_ODBC)
     return sql_odbc_read (sql);
 #endif
 
@@ -225,11 +347,11 @@ const char **
 sql_getrow (st_sql_t *sql, int row)
 {
 #ifdef  USE_MYSQL
-  if (sql->flags & SQL_MYSQL)
+  if (sql->flags == SQL_MYSQL)
     return sql_mysql_getrow (sql, row);
 #endif
 #ifdef  USE_ODBC
-  if (sql->flags & SQL_ODBC)
+  if (sql->flags == SQL_ODBC)
     return sql_odbc_getrow (sql, row);
 #endif
 
@@ -241,11 +363,11 @@ int
 sql_write (st_sql_t *sql, const char *sql_statement)
 {
 #ifdef  USE_MYSQL
-  if (sql->flags & SQL_MYSQL)
+  if (sql->flags == SQL_MYSQL)
     return sql_mysql_write (sql, sql_statement);
 #endif
 #ifdef  USE_ODBC
-  if (sql->flags & SQL_ODBC)
+  if (sql->flags == SQL_ODBC)
     return sql_odbc_write (sql, sql_statement);
 #endif
 
@@ -257,11 +379,11 @@ int
 sql_close (st_sql_t *sql)
 {
 #ifdef  USE_MYSQL
-  if (sql->flags & SQL_MYSQL)
+  if (sql->flags == SQL_MYSQL)
     return sql_mysql_close (sql);
 #endif
 #ifdef  USE_ODBC
-  if (sql->flags & SQL_ODBC)
+  if (sql->flags == SQL_ODBC)
     return sql_odbc_close (sql);
 #endif
 

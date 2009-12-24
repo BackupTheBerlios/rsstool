@@ -75,11 +75,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "file.h"
 #include "misc.h"                               // getenv2()
 
-#ifdef  DJGPP
-#ifdef  DLL
-#include "dxedll_priv.h"
-#endif
-#endif
 
 #ifndef MAXBUFSIZE
 #define MAXBUFSIZE 32768

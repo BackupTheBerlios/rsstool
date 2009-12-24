@@ -130,6 +130,7 @@ extern void gauge (int percent, int width, char char_done, char char_todo, const
 #define RANDOM(min, max) ((rand () % ((max + 1) - min)) + min)
 #define OFFSET(a, offset) ((((unsigned char *) &(a)) + (offset))[0])
 #define SIZEOF_ARRAY(a) (sizeof(a)/sizeof(a[0]))
+#define ARGS_MAX 512
 #endif
 
 

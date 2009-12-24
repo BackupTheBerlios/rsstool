@@ -29,6 +29,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "string.h"
 
 
+#ifndef MAX
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#endif
+#ifndef MIN
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#endif
+
+
 #if 0
 static int
 is_func (char *s, int len, int (*func) (int))
@@ -62,7 +70,7 @@ to_func (char *s, int len, int (*func) (int))
 #endif
 
 
-/*
+#if 0
 unsigned char *
 strutf8 (const char *s)
 {
@@ -143,7 +151,7 @@ utf8str (const unsigned char *s)
 
   return d;
 }
-*/
+#endif
 
 
 char *
@@ -451,38 +459,180 @@ str_escape_xml (char *str)
 }
 
 
-#ifdef  DEBUG
+char *
+strunesc (char *dest, const char *src)
+{
+  unsigned int c;
+  char *p = dest;
+
+  if (!src)
+    return NULL;
+  if (!(*src))
+    {
+      *dest = 0;
+      return dest;
+    }
+
+  while ((c = *src++))
+    {
+      if (c == '%')
+        {
+          unsigned char buf[4];
+
+          buf[0] = *src++;
+          buf[1] = *src++;
+          buf[2] = 0;
+        
+          sscanf ((const char *) buf, "%x", &c);
+        }
+      else
+        if (c == '+')
+          c = ' ';
+
+       *p++ = c;
+     }
+  *p = 0;
+  
+  return dest;
+}
+
+
+char *
+stresc (char *dest, const char *src)
+{
+//TODO: what if the src was already escaped?
+  unsigned char c;
+  char *p = dest;
+  const char *positiv =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" 
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789"
+    "-_.!~"                     // mark characters
+    "*\\()%"                    // do not touch escape character
+    ";/?:@"                     // reserved characters
+    "&=+$,"                     // see RFC 2396
+//  "\x7f ... \xff"    far east languages(Chinese, Korean, Japanese)
+//    "+" // "/"
+    ;
+
+  if (!src)
+    return NULL;
+  if (!(*src))
+    {
+      *dest = 0;
+      return dest;
+    }
+            
+  while ((c = *src++))
+    if (strchr (positiv, c) != NULL || c >= 0x7f)
+      *p++ = c;
+    else
+      {
+        sprintf (p, "%%%02X", c);
+        p += 3;
+      }
+  *p = 0;
+
+  return dest;
+}
+
+
+//#ifdef  DEBUG
 static int
 explode_debug (int argc, char **argv)
 {
   int pos;
-  fprintf (stderr, "argc:     %d\n", argc);
+  fprintf (stdout, "argc:     %d\n", argc);
   for (pos = 0; pos < argc; pos++)
-    fprintf (stderr, "argv[%d]:  %s\n", pos, argv[pos]);
+    fprintf (stdout, "argv[%d]:  %s\n", pos, argv[pos]);
 
-  fflush (stderr);
+  fflush (stdout);
 
   return 0;
 }
-#endif
+//#endif
+
+
+int
+strarg (char **argv, char *str, const char *separators, int max_args)
+{
+  // any of the characters of separators breaks the string
+  int argc = 0;
+
+  if (str)
+    if (*str)
+      for (; (argv[argc] = (char *) strtok (!argc ? str : NULL, separators)) &&
+           (argc < (max_args - 1)); argc++)
+        ;
+
+  // DEBUG
+//  explode_debug (argc, argv);
+
+  return argc;
+}
 
 
 int
 explode (char **argv, char *str, const char *separator_s, int max_args)
 {
+  // only the whole separator_s breaks the string
+  char *o = NULL, *l = NULL; // offset, length
   int argc = 0;
 
-  if (str)
-    if (*str)
-      for (; (argv[argc] = (char *) strtok (!argc ? str : NULL, separator_s)) &&
-           (argc < (max_args - 1)); argc++)
-        ;
+  if (!str)
+    return 0;
+    
+  if (!(*str))
+    return 0;
+    
+  o = str;
+  for (; argc < (max_args - 1); argc++)
+    {
+      l = strstr (o, separator_s);
+      if (l)
+        {
+          argv[argc] = o;
+          *l = 0;
+          o = l + strlen (separator_s);
+        }
+      else
+        {
+          argv[argc] = o;
+          break;
+        }
+    }
 
-#ifdef  DEBUG
-  explode_debug (argc, argv);
-#endif
+  argc++;
+
+  // DEBUG
+//  explode_debug (argc, argv);
 
   return argc;
+}
+
+
+const char *
+implode (const char *separator_s, char **argv)
+{
+  int i = 0;
+  static char *buffer = NULL;
+  int buffer_len = 0;
+
+  for (; argv[i]; i++)
+    buffer_len += strlen (argv[i]);
+  buffer_len += ((i + 1) * strlen (separator_s));
+
+  if (buffer)
+    free (buffer);
+
+  if (!(buffer = (char *) malloc (buffer_len)))
+    return NULL;
+
+  *buffer = 0;
+  for (i = 0; argv[i]; i++)
+    sprintf (strchr (buffer, 0), "%s%s", (i > 0 ? separator_s : ""), argv[i]);
+
+  return buffer;
 }
 
 
@@ -554,6 +704,232 @@ memmem2 (const void *buffer, size_t bufferlen,
 }
 
 
+#ifdef  DEBUG
+static void
+st_parse_url_t_sanity_check (st_parse_url_t *url)
+{
+  printf ("scheme:   %s\n", url->scheme);
+  printf ("user:     %s\n", url->user);
+  printf ("pass:     %s\n", url->pass);
+  printf ("host:     %s\n", url->host);
+  printf ("port:     %d\n", url->port);
+  printf ("path:     %s\n", url->path);
+  printf ("query:    %s\n", url->query);
+  printf ("fragment: %s\n", url->fragment);
+  fflush (stdout);   
+}
+#endif
+
+
+int
+parse_url (st_parse_url_t *url, const char *url_s)
+{
+  /*
+    foo://username:password@example.com:8042/over/there/index.dtb;type=animal?name=ferret#nose
+    \ /   \________________/\_________/ \__/            \___/ \_/ \_________/ \_________/ \__/
+     |           |               |       |                |    |       |           |       |
+     |       userinfo         hostname  port              |    |       parameter query  fragment
+     |    \_______________________________/ \_____________|____|____________/
+  scheme                  |                               | |  |
+     |                authority                           |path|
+     |                                                    |    |
+     |            path                       interpretable as filename
+     |   ___________|____________                              |
+    / \ /                        \                             |
+    urn:example:animal:ferret:nose               interpretable as extension   
+  */
+  char *o = NULL, *l = NULL; // offset, length
+  char *p = NULL;
+
+  memset (url, 0, sizeof (st_parse_url_t));
+  strncpy (url->private, url_s, PARSE_URL_MAXBUFSIZE)[PARSE_URL_MAXBUFSIZE - 1] = 0;
+
+  o = url->private;
+
+  // scheme
+  l = strstr (o, "://");
+  if (l)
+    {
+      url->scheme = o;
+      *l = 0;
+      o = l + 3;
+    }
+
+  if (strcasecmp (url->scheme, "file") != 0)
+    {
+      l = strchr (o, '@');
+      if (l) // has user (and pass)
+        {
+          p = strchr (o, ':');
+          if (p)
+            {
+              if (p < l) // is pass
+                {
+                  // user
+                  l = strchr (o, ':');
+                  if (l)
+                    {
+                      url->user = o;
+                      *l = 0;
+                      o = l + 1;
+                    }
+    
+                  // pass
+                  l = strchr (o, '@');
+                  if (l)
+                    {
+                      url->pass = o;
+                      *l = 0;
+                      o = l + 1;
+                    }
+                }
+              else
+                {
+                  // user
+                  url->user = o;
+                  *l = 0;
+                  o = l + 1;
+                }
+            }
+          else
+            { 
+              // user
+              url->user = o;
+              *l = 0;
+              o = l + 1;
+            }
+        }
+    
+      // host (w/ port)
+      l = strchr (o, ':');
+      if (l)
+        {
+          url->host = o;
+          *l = 0;   
+          o = l + 1;
+    
+          // port
+          l = strchr (o, '/');
+          if (!l)
+            l = strchr (o, 0);
+          if (l)
+            {
+              url->port_s = o;
+              *l = 0;
+              url->port = strtol (o, NULL, 10);
+              o = l + 1;
+            }
+        }
+      else
+        {
+          // host (w/o port)
+          l = strchr (o, '/');
+          if (!l)
+            l = strchr (o, 0);
+          if (l)
+            {
+              url->host = o;
+              *l = 0;
+              o = l + 1;
+            }
+        }
+    }
+
+  // path
+  if (o)
+    {
+      // path
+      url->path = o;
+
+      // fragment
+      l = strchr (o, '?');
+      if (l)
+        {
+          url->query = l + 1;
+          *l = 0;
+          o = l + 1;
+        }
+
+      // fragment
+      l = strchr (o, '#');
+      if (l)
+        {
+          url->fragment = l + 1;
+          *l = 0;
+        }
+    }
+  
+  return 0;
+}
+
+
+const char *
+parse_url_component (const char *url_s, int component) 
+{
+  static char request[PARSE_URL_MAXBUFSIZE];
+  static st_parse_url_t url;
+
+  if (!parse_url (&url, url_s))
+    switch (component)
+      {
+        case PHP_URL_SCHEME:
+          return url.scheme;
+        case PHP_URL_USER:
+          return url.user;
+        case PHP_URL_PASS:
+          return url.pass;
+        case PHP_URL_HOST:
+          return url.host;
+        case PHP_URL_PORT:
+          return url.port_s;
+        case PHP_URL_PATH:
+          return url.path;
+        case PHP_URL_QUERY:
+          return url.query;
+        case PHP_URL_FRAGMENT:
+          return url.fragment;
+        case URL_REQUEST:
+          sprintf (request, "%s%s%s%s%s", url.path ? url.path : "",
+                            url.query ? "?" : "",
+                            url.query ? url.query : "",
+                            url.fragment ? "#" : "",
+                            url.fragment ? url.fragment : "");
+          return (*request) ? request : NULL;
+      }
+
+  return NULL;
+}
+
+
+int
+parse_str (st_parse_str_t *pairs, const char *query)
+{
+  int i = 0, argc = 0;
+  char *argv[PARSE_STR_MAXPAIRS], *p = NULL;
+
+  strncpy (pairs->private, query, PARSE_STR_MAXBUFSIZE)[PARSE_STR_MAXBUFSIZE - 1] = 0;
+
+  argc = explode (argv, pairs->private, "&", PARSE_STR_MAXPAIRS);
+
+  for (; i < argc; i++)
+    { 
+      pairs->p[i].name = argv[i];
+      p = strchr (argv[i], '=');
+      if (p)
+        {
+          *p = 0;
+          pairs->p[i].value = p + 1;
+        }
+        
+      // DEBUG
+//      printf ("%s=%s\n", pairs->p[i].name, pairs->p[i].value);
+//      fflush (stdout);
+    }
+
+  return 0;
+}
+
+
 #if 0
 int
 strfilter (const char *s, const char *implied_boolean_logic)
@@ -564,12 +940,14 @@ strfilter (const char *s, const char *implied_boolean_logic)
 #endif
 
 
-#if 0
-//#ifdef  TEST
+//#if 0
+#ifdef  TEST
 int
 main (int argc, char **argv)
 {
 #define MAXBUFSIZE 32768
+  st_parse_url_t url;
+  st_parse_str_t pairs;
   char buf[MAXBUFSIZE];
   const char *b = "123(123.32.21.44)214";
   const char *s = "(xxx.xx.xx.xx)";
@@ -590,7 +968,34 @@ main (int argc, char **argv)
   printf (buf);
 #endif  
 
+#if 0
   printf ("%s", strrep (buf, "1", "X"));
+#endif
+
+#if 0
+  printf ("%s", implode ("&", argv));
+#endif
+
+#if 0
+/*
+foo://username:password@example.com:8042/over/there/index.dtb;type=animal?name=ferret#nose
+foo://username@example.com:8042/over/there/index.dtb;type=animal?name=ferret#nose
+foo://example.com:8042/over/there/index.dtb;type=animal?name=ferret#nose
+foo://example.com/over/there/index.dtb;type=animal?name=ferret#nose
+foo://example.com/over/there/index.dtb;type=animal
+foo://example.com/?name=ferret#nose     
+foo://example.com?name=ferret#nose                                     
+foo://example.com?name=ferret
+foo://example.com#nose                                      
+foo://example.com
+*/
+  parse_url (&url, argv[1]);
+  st_parse_url_t_sanity_check (&url);
+#endif
+
+#if 1
+  parse_str (&pairs, argv[1]);
+#endif
 
   return 0;
 }
