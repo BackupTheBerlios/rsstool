@@ -537,7 +537,7 @@ stresc (char *dest, const char *src)
 }
 
 
-//#ifdef  DEBUG
+#ifdef  DEBUG
 static int
 explode_debug (int argc, char **argv)
 {
@@ -550,11 +550,11 @@ explode_debug (int argc, char **argv)
 
   return 0;
 }
-//#endif
+#endif
 
 
 int
-strarg (char **argv, char *str, const char *separators, int max_args)
+strtok2 (char **argv, char *str, const char *separators, int max_args)
 {
   // any of the characters of separators breaks the string
   int argc = 0;
@@ -909,7 +909,7 @@ parse_str (st_parse_str_t *pairs, const char *query)
 
   strncpy (pairs->private, query, PARSE_STR_MAXBUFSIZE)[PARSE_STR_MAXBUFSIZE - 1] = 0;
 
-  argc = explode (argv, pairs->private, "&", PARSE_STR_MAXPAIRS);
+  argc = strtok2 (argv, pairs->private, "&", PARSE_STR_MAXPAIRS);
 
   for (; i < argc; i++)
     { 

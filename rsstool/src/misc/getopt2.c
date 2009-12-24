@@ -66,7 +66,7 @@ getopt2_cgi (char **argv, const st_getopt2_t *option, int args_max)
 //  printf ("query_string: %s\n", query_string);
 
   strncpy (buf, query_string, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-//  argc = explode (char **argv, buf, "?&", args_max);
+//  argc = strtok2 (char **argv, buf, "?&", args_max);
 
   return argc;
 }

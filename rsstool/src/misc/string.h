@@ -69,7 +69,10 @@ TODO:  utf8str()     decode utf-8 to string
   strrstr()     like strstr() but reverse
   strristr()    like strrstr() but case-insensitive
 
-  explode()     break string into array[max_args]
+  strtok2()     break string into array[max_args]
+                  any of the characters of separators breaks the string
+  explode()     like strtok2() but
+                  only the whole separator_s breaks the string
   implode()     turn array into string
 
   memcmp2()     memcmp() replacement with flags for wildcard and
@@ -120,6 +123,7 @@ extern char *strunesc (char *dest, const char *src);
 extern char *strrstr (char *str, const char *search);
 extern char *strristr (char *str, const char *search);
 
+extern int strtok2 (char **argv, char *str, const char *separators, int max_args);
 extern int explode (char **argv, char *str, const char *separator_s, int max_args);
 extern const char *implode (const char *separator_s, char **argv);
 
