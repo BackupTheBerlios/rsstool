@@ -334,7 +334,7 @@ strtrim_s (char *str, const char *left, const char *right)
 
 
 char *
-stritrim_s (char *str, const char *left, const char *right)
+strcasetrim_s (char *str, const char *left, const char *right)
 {
   if (left)
     {
@@ -382,6 +382,24 @@ strrep (char *str, const char *orig, const char *rep)
   char *p = str;
 
   while ((p = strstr (p, orig)))
+    {
+      strmove (p + r_len, p + o_len);
+      memcpy (p, rep, r_len);
+      p += r_len;
+    }
+
+  return str;
+}
+
+
+char *
+strcaserep (char *str, const char *orig, const char *rep)
+{
+  int o_len = strlen (orig);
+  int r_len = strlen (rep);
+  char *p = str;
+
+  while ((p = strcasestr2 (p, orig)))
     {
       strmove (p + r_len, p + o_len);
       memcpy (p, rep, r_len);
@@ -576,7 +594,7 @@ int
 explode (char **argv, char *str, const char *separator_s, int max_args)
 {
   // only the whole separator_s breaks the string
-  char *o = NULL, *l = NULL; // offset, length
+  char *s = NULL, *e = NULL; // start, end
   int argc = 0;
 
   if (!str)
@@ -585,19 +603,19 @@ explode (char **argv, char *str, const char *separator_s, int max_args)
   if (!(*str))
     return 0;
     
-  o = str;
+  s = str;
   for (; argc < (max_args - 1); argc++)
     {
-      l = strstr (o, separator_s);
-      if (l)
+      e = strstr (s, separator_s);
+      if (e)
         {
-          argv[argc] = o;
-          *l = 0;
-          o = l + strlen (separator_s);
+          argv[argc] = s;
+          *e = 0;
+          s = e + strlen (separator_s);
         }
       else
         {
-          argv[argc] = o;
+          argv[argc] = s;
           break;
         }
     }
@@ -633,6 +651,114 @@ implode (const char *separator_s, char **argv)
     sprintf (strchr (buffer, 0), "%s%s", (i > 0 ? separator_s : ""), argv[i]);
 
   return buffer;
+}
+
+
+#if 0
+const char *
+get_property_from_string (char *str, const char *propname, const char prop_sep, const char comment_sep)
+{
+  static char value_s[MAXBUFSIZE];
+  char str_end[8], *p = NULL, buf[MAXBUFSIZE];
+  int len = strlen (str);
+
+  if (len >= MAXBUFSIZE)
+    len = MAXBUFSIZE - 1;
+  memcpy (buf, str, len);
+  buf[len] = 0;
+
+  p = strtriml (buf);
+  if (*p == comment_sep || *p == '\n' || *p == '\r')
+    return NULL;                                // text after comment_sep is comment
+
+  strcpy (str_end, "\r\n");
+  if ((p = strpbrk (buf, str_end)))             // strip *any* returns and comments
+    *p = 0;
+
+  // terminate at unescaped '#'
+  for (p = buf + 1; *p; p++)
+    if (*p == '#')
+      {
+        if (*(p - 1) == '\\')
+          p = strmove (p - 1, p);
+        else
+          {
+            *p = 0;
+            break;
+          }
+      }
+
+  p = strchr (buf, prop_sep);
+  if (p)
+    {
+      *p = 0;                                   // note that this "cuts" _buf_ ...
+      p++;
+    }
+  strtriml (strtrimr (buf));
+
+  if (!strcasecmp (buf, propname))                 // ...because we do _not_ use strncasecmp()
+    {
+      // if no divider was found the propname must be a bool config entry
+      //  (present or not present)
+      if (p)
+        {
+          strncpy (value_s, p, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+
+          // terminate at unescaped '#'
+          for (p = value_s + 1; *p; p++)
+          if (*p == '#')
+            {
+              if (*(p - 1) == '\\')
+                p = strmove (p - 1, p);
+              else
+                {
+                  *p = 0;
+                  break;
+                }
+            }
+
+//          strtriml (strtrimr (value_s));
+        }
+      else
+        strcpy (value_s, "1");
+    }
+  else
+    return NULL;
+
+  return value_s;
+}
+#endif
+
+
+int
+str_getline (char *line, int line_num, const char *buffer, int buffer_len)
+{
+  (void) buffer_len;
+  int i = 0;
+  const char *s = NULL, *e = NULL;
+
+  s = buffer;
+  for (; i < line_num; i++)
+    {
+      s = strchr (s, '\n');
+      if (s)
+        s++;
+      else
+        break;
+    }
+
+  if (i < line_num)
+    return -1;
+
+  if ((e = strchr (s, '\n')))
+    {
+      e++;
+      strncpy (line, s, e - s)[e - (s + 1)] = 0;
+    }
+  else
+    strcpy (line, s);
+
+  return strlen (line);
 }
 
 
@@ -712,7 +838,7 @@ st_parse_url_t_sanity_check (st_parse_url_t *url)
   printf ("user:     %s\n", url->user);
   printf ("pass:     %s\n", url->pass);
   printf ("host:     %s\n", url->host);
-  printf ("port:     %d\n", url->port);
+  printf ("port:     %s\n", url->port);
   printf ("path:     %s\n", url->path);
   printf ("query:    %s\n", url->query);
   printf ("fragment: %s\n", url->fragment);
@@ -738,127 +864,131 @@ parse_url (st_parse_url_t *url, const char *url_s)
     / \ /                        \                             |
     urn:example:animal:ferret:nose               interpretable as extension   
   */
-  char *o = NULL, *l = NULL; // offset, length
+  char *s = NULL, *e = NULL; // start, end
   char *p = NULL;
 
   memset (url, 0, sizeof (st_parse_url_t));
-  strncpy (url->private, url_s, PARSE_URL_MAXBUFSIZE)[PARSE_URL_MAXBUFSIZE - 1] = 0;
+  strncpy (url->priv, url_s, PARSE_URL_MAXBUFSIZE)[PARSE_URL_MAXBUFSIZE - 1] = 0;
 
-  o = url->private;
+  s = url->priv;
 
   // scheme
-  l = strstr (o, "://");
-  if (l)
+  e = strstr (s, "://");
+  if (e)
     {
-      url->scheme = o;
-      *l = 0;
-      o = l + 3;
+      url->scheme = s;
+      *e = 0;
+      s = e + 3;
     }
 
-  if (strcasecmp (url->scheme, "file") != 0)
+//  if (url->scheme)
+//    if (strcasecmp (url->scheme, "file") != 0)
     {
-      l = strchr (o, '@');
-      if (l) // has user (and pass)
+      e = strchr (s, '@');
+      if (e) // has user (and pass)
         {
-          p = strchr (o, ':');
+          p = strchr (s, ':');
           if (p)
             {
-              if (p < l) // is pass
+              if (p < e) // is pass
                 {
                   // user
-                  l = strchr (o, ':');
-                  if (l)
+                  e = strchr (s, ':');
+                  if (e)
                     {
-                      url->user = o;
-                      *l = 0;
-                      o = l + 1;
+                      url->user = s;
+                      *e = 0;
+                      s = e + 1;
                     }
     
                   // pass
-                  l = strchr (o, '@');
-                  if (l)
+                  e = strchr (s, '@');
+                  if (e)
                     {
-                      url->pass = o;
-                      *l = 0;
-                      o = l + 1;
+                      url->pass = s;
+                      *e = 0;
+                      s = e + 1;
                     }
                 }
               else
                 {
                   // user
-                  url->user = o;
-                  *l = 0;
-                  o = l + 1;
+                  url->user = s;
+                  *e = 0;
+                  s = e + 1;
                 }
             }
           else
             { 
               // user
-              url->user = o;
-              *l = 0;
-              o = l + 1;
+              url->user = s;
+              *e = 0;
+              s = e + 1;
             }
         }
     
       // host (w/ port)
-      l = strchr (o, ':');
-      if (l)
+      e = strchr (s, ':');
+      if (e)
         {
-          url->host = o;
-          *l = 0;   
-          o = l + 1;
+          url->host = s;
+          *e = 0;   
+          s = e + 1;
     
           // port
-          l = strchr (o, '/');
-          if (!l)
-            l = strchr (o, 0);
-          if (l)
+          e = strchr (s, '/');
+          if (!e)
+            e = strchr (s, 0);
+          if (e)
             {
-              url->port_s = o;
-              *l = 0;
-              url->port = strtol (o, NULL, 10);
-              o = l + 1;
+              url->port = s;
+              *e = 0;
+              s = e + 1;
             }
         }
       else
         {
           // host (w/o port)
-          l = strchr (o, '/');
-          if (!l)
-            l = strchr (o, 0);
-          if (l)
+          e = strchr (s, '/');
+          if (!e)
+            e = strchr (s, 0);
+          if (e)
             {
-              url->host = o;
-              *l = 0;
-              o = l + 1;
+              url->host = s;
+              *e = 0;
+              s = e + 1;
             }
         }
     }
 
   // path
-  if (o)
+  if (s)
     {
       // path
-      url->path = o;
+      url->path = s;
 
       // fragment
-      l = strchr (o, '?');
-      if (l)
+      e = strchr (s, '?');
+      if (e)
         {
-          url->query = l + 1;
-          *l = 0;
-          o = l + 1;
+          url->query = e + 1;
+          *e = 0;
+          s = e + 1;
         }
 
       // fragment
-      l = strchr (o, '#');
-      if (l)
+      e = strchr (s, '#');
+      if (e)
         {
-          url->fragment = l + 1;
-          *l = 0;
+          url->fragment = e + 1;
+          *e = 0;
         }
     }
   
+#ifdef  DEBUG
+  st_parse_url_t_sanity_check (url);
+#endif
+
   return 0;
 }
 
@@ -881,7 +1011,7 @@ parse_url_component (const char *url_s, int component)
         case PHP_URL_HOST:
           return url.host;
         case PHP_URL_PORT:
-          return url.port_s;
+          return url.port;
         case PHP_URL_PATH:
           return url.path;
         case PHP_URL_QUERY:
@@ -907,9 +1037,9 @@ parse_str (st_parse_str_t *pairs, const char *query)
   int i = 0, argc = 0;
   char *argv[PARSE_STR_MAXPAIRS], *p = NULL;
 
-  strncpy (pairs->private, query, PARSE_STR_MAXBUFSIZE)[PARSE_STR_MAXBUFSIZE - 1] = 0;
+  strncpy (pairs->priv, query, PARSE_STR_MAXBUFSIZE)[PARSE_STR_MAXBUFSIZE - 1] = 0;
 
-  argc = strtok2 (argv, pairs->private, "&", PARSE_STR_MAXPAIRS);
+  argc = strtok2 (argv, pairs->priv, "&", PARSE_STR_MAXPAIRS);
 
   for (; i < argc; i++)
     { 
@@ -935,6 +1065,12 @@ int
 strfilter (const char *s, const char *implied_boolean_logic)
 {
   // TODO:
+  char *arg[ARGS_MAX];
+  int arg_cmd[ARGS_MAX]; // OR + -
+  explode (against, "OR")
+    explode (against[], " ")
+  for (i = 0; i < argc; i++)
+    if (*arg[i] == '+')
   return 1;
 }
 #endif
@@ -964,7 +1100,7 @@ main (int argc, char **argv)
   printf ("%s\n", buf);
 
   strcpy (buf, "12434akjgkjh56453fdsg");
-  stritrim_s (buf, "sg", "xx");
+  strcasetrim_s (buf, "sg", "xx");
   printf (buf);
 #endif  
 

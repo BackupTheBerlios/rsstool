@@ -22,7 +22,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define MISC_BASE64_H
 
 
-extern char *base64_enc (char *src);
+extern char *base64_enc (char *src, int add_linefeeds);
 extern void base64_dec (char *ret, char *src, int length);
 
 

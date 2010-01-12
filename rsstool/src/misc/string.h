@@ -52,7 +52,7 @@ TODO:  utf8str()     decode utf-8 to string
                   strtrimr (strtriml ())
   strtrim_s()   same as strtrim() but compares strings instead of chars
                   strtrim_s("123bla456", "23", "45) == "bla"
-  stritrim_s()  same as strtrim_s() but case-insensitive
+  strcasetrim_s()  same as strtrim_s() but case-insensitive
 
   strmove()     copy/move (overlapping) strings
   strins()      insert string in front of string
@@ -67,13 +67,16 @@ TODO:  utf8str()     decode utf-8 to string
   strunesc()           replace %xx escape sequences with the char
 
   strrstr()     like strstr() but reverse
-  strristr()    like strrstr() but case-insensitive
+  strrcasestr()    like strrstr() but case-insensitive
+  strcasestr2() strcasestr() clone for non-GNU platforms
 
   strtok2()     break string into array[max_args]
                   any of the characters of separators breaks the string
   explode()     like strtok2() but
                   only the whole separator_s breaks the string
   implode()     turn array into string
+
+  str_getline() like fgets but works with strings instead with FILE
 
   memcmp2()     memcmp() replacement with flags for wildcard and
                   relative/shifted similarities support
@@ -93,7 +96,6 @@ TODO:  utf8str()     decode utf-8 to string
                   look for relative/shifted similarities
                   MEMMEM2_CASE
                   ignore case of isalpha() bytes
-  strcasestr2() strcasestr() clone for non-GNU platforms
 */
 //extern unsigned char *strutf8 (const char *s);
 //extern char *utf8str (const unsigned char *s);
@@ -105,12 +107,18 @@ extern char *strtrim (char *str, int (*left) (int), int (*right) (int));
 extern char *strtriml (char *str);
 extern char *strtrimr (char *str);
 extern char *strtrim_s (char *str, const char *left, const char *right);
-extern char *stritrim_s (char *str, const char *left, const char *right);
+extern char *strcasetrim_s (char *str, const char *left, const char *right);
+#define stritrim_s strcasetrim_s
+//#define trim(s) strtriml(strtrimr(s))
 
 extern char *strmove (char *to, char *from);
 extern char *strins (char *str, const char *ins);
 extern char *strrep_once (char *str, const char *orig, const char *rep);
 extern char *strrep (char *str, const char *orig, const char *rep);
+extern char *strcaserep (char *str, const char *orig, const char *rep);
+#define str_replace strrep
+#define str_ireplace strcaserep
+
 extern char *strcat2 (const char *a, const char *b);
 
 extern char *str_escape_code (char *str);
@@ -121,11 +129,22 @@ extern char *stresc (char *dest, const char *src);
 extern char *strunesc (char *dest, const char *src); 
 
 extern char *strrstr (char *str, const char *search);
-extern char *strristr (char *str, const char *search);
+extern char *strrcasestr (char *str, const char *search);
+#define strristr strrcasestr
+extern char *strcasestr2 (const char *str, const char *search);
+//#ifndef __USE_GNU
+//#define strcasestr strcasestr2
+//#endif
+#define stristr strcasestr2
 
 extern int strtok2 (char **argv, char *str, const char *separators, int max_args);
 extern int explode (char **argv, char *str, const char *separator_s, int max_args);
+//extern int explode_csv (char **argv, char *str, const char *delimiter, // ','
+//                                                const char *enclosure, // '"'
+//                                                const char *escape);   // '\\'
 extern const char *implode (const char *separator_s, char **argv);
+
+extern int str_getline (char *line, int line_num, const char *buffer, int buffer_len);
 
 
 #define MEMCMP2_WCARD(WC)                 ((1 << 17) | ((WC) & 0xff))
@@ -139,20 +158,29 @@ extern int memcmp2 (const void *buffer,
 extern const void *memmem2 (const void *buffer, size_t bufferlen,
                             const void *search, size_t searchlen, unsigned int flags);
 
-extern char *strcasestr2 (const char *str, const char *search);
-// #define strcasestr strcasestr2
-#define stristr strcasestr2
-
 
 /*
   these are clones of PHP functions with the same name
 
   parse_url_component()  http://username:password@hostname/path?arg=value#anchor
   parse_url()            like parse_url_component() but returns all components
-  parse_str()            parses query as if it were the query string passed via a URL
-                           and sets variables as name and value pairs
-                         TODO: support arrays arr[]=foo+bar&arr[]=baz
+
+  RFC 2068 states:
+
+  Servers should be cautious about depending on URI lengths above 255 bytes,
+  because some older client or proxy implementations may not properly support
+  these lengths.
+
+  The spec for URL length does not dictate a minimum or maximum URL length,
+  but implementation varies by browser.  On Windows: Opera supports ~4050
+  characters, IE 4.0+ supports exactly 2083 characters, Netscape 3 -> 4.78
+  support up to 8192 characters before causing errors on shut-down, and
+  Netscape 6 supports ~2000 before causing errors on start-up.
+
+  Note that there is no limit on the number of parameters you can stuff into a
+  URL, but only on the length it can aggregate to.
 */
+#define PARSE_URL_MAXBUFSIZE 8192 
 enum {
   PHP_URL_SCHEME = 0,  // components
   PHP_URL_USER,
@@ -166,23 +194,26 @@ enum {
   URL_REQUEST  // PHP_URL_PATH + PHP_URL_QUERY + PHP_URL_FRAGMENT
 };
 extern const char *parse_url_component (const char *url_s, int component);
-#define PARSE_URL_MAXBUFSIZE 32768
 typedef struct
 {
   const char *scheme;    // http
   const char *user;
   const char *pass;
   const char *host;
-  const char *port_s;
-  int port;
+  const char *port;      // do NOT add a port_s to the structure again
   const char *path;      // /path
   const char *query;     // arg=value
   const char *fragment;  // anchor
-  char private[PARSE_URL_MAXBUFSIZE];
+  char priv[PARSE_URL_MAXBUFSIZE];
 } st_parse_url_t;
 extern int parse_url (st_parse_url_t *url, const char *url_s);
 
 
+/*
+  parse_str()            parses query as if it were the query string passed via a URL
+                           and sets variables as name and value pairs
+                         TODO: support arrays arr[]=foo+bar&arr[]=baz
+*/
 typedef struct
 {
   const char *name;
@@ -193,7 +224,7 @@ typedef struct
 typedef struct
 {
   st_parse_str_pairs_t p[PARSE_STR_MAXPAIRS];
-  char private[PARSE_STR_MAXBUFSIZE];
+  char priv[PARSE_STR_MAXBUFSIZE];
 } st_parse_str_t;
 extern int parse_str (st_parse_str_t *pairs, const char *query);
 

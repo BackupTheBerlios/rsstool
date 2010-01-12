@@ -40,7 +40,7 @@ const char *cvt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   "0123456789+/";
 
 char *
-base64_enc (char *src)
+base64_enc (char *src, int add_linefeeds)
 {
   static unsigned char
     alphabet[] =
@@ -63,8 +63,9 @@ base64_enc (char *src)
 
   while (i < len)
     {
-      if (i && i % 54 == 0)
-        dst[j++] = '\n';
+      if (add_linefeeds)
+        if (i && i % 54 == 0)
+          dst[j++] = '\n';
 
       bits = src[i++];
       for (k = 0; k < 2; k++)

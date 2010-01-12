@@ -51,36 +51,6 @@ getopt2_get_option (const st_getopt2_t *option, int val)
 }
 
 
-#if 0
-int
-getopt2_cgi (char **argv, const st_getopt2_t *option, int args_max)
-{
-  int argc = 0;
-  char buf[MAXBUFSIZE];
-  const char *query_string = getenv ("QUERY_STRING");
-
-  if (!query_string)
-    return 0; // no args
-
-  // DEBUG
-//  printf ("query_string: %s\n", query_string);
-
-  strncpy (buf, query_string, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-//  argc = strtok2 (char **argv, buf, "?&", args_max);
-
-  return argc;
-}
-
-
-const char *
-getopt_cgi_ui (const st_getopt2_t *option)
-{
-  getopt2_usage (option); // writes to stdout
-  return "";
-}
-#endif
-
-
 void
 getopt2_usage (const st_getopt2_t *usage)
 {

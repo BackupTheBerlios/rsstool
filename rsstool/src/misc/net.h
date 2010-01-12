@@ -1,7 +1,7 @@
 /*
 net.h - miscellaneous network functions
 
-Copyright (c) 2006 Dirk
+Copyright (c) 2006 NoisyB
            
 
 This library is free software; you can redistribute it and/or
@@ -81,10 +81,12 @@ typedef struct
 {
   int flags;
   int timeout;
+#define HOSTNAME_SIZE 4096
+  char host[HOSTNAME_SIZE];
+  int port;  
 
   int sock0;
   int socket;
-  int port;
 
   struct sockaddr_in addr;
   struct sockaddr_in udp_addr;
@@ -95,7 +97,7 @@ extern st_net_t *net_init (int flags, int timeout);
 extern int net_quit (st_net_t *n);
 
 // client
-extern int net_open (st_net_t *n, const char *address, int port);
+extern int net_open (st_net_t *n, const char *host_s, int port);
 extern int net_close (st_net_t *n);
 
 extern int net_read (st_net_t *n, void *buffer, int buffer_len);
@@ -113,49 +115,49 @@ extern st_net_t *net_accept (st_net_t *n);
 // server with callback
 extern int net_server (st_net_t *n, int port, int (* callback_func) (const void *, int, void *, int *), int max_content_len);
 
+extern int net_select (st_net_t *n, int (* ping_func) (st_net_t *),
+                                    int (* read_func) (st_net_t *),
+                                    int (* write_func) (st_net_t *),
+                                    int timeout);
+
 
 /*
   HTTP header build and read/parse functions
 
+  net_get_http_header()     read and parse http header (from client or server)
+  net_get_http_header_s()   read and parse http header (from string buffer)
+                              both return the header size in bytes
+  net_get_http_value()      get value from parsed http header
+
   net_build_http_request()  build http header (for client request)
   net_build_http_response() build http header (for server response) 
-
-  net_get_http_header()     reads http header (from client or server)
-
-  net_parse_http_request()  http header parser (of client request)
-  net_parse_http_response() http header parser (of server response)
 */
-#define NET_MAXBUFSIZE 1024  
-#define NET_MAXHTTPHEADERSIZE (NET_MAXBUFSIZE*16)
+typedef struct
+{
+  const char *name;
+  const char *value;
+} st_http_header_pairs_t;
+#define HTTPHEADER_MAXPAIRS 255
+#define HTTPHEADER_MAXBUFSIZE 32768
+typedef struct
+{
+  st_http_header_pairs_t p[HTTPHEADER_MAXPAIRS];
+  int pairs;
+  char priv[HTTPHEADER_MAXBUFSIZE];
+} st_http_header_t;
 enum {
   NET_METHOD_GET = 0,
   NET_METHOD_POST
 };
-typedef struct
-{
-  char header[NET_MAXHTTPHEADERSIZE];   // the whole header
+#define NAME_FIRSTLINE "0" // name for request/response line at top of http header
+#define NAME_METHOD "1"    // name for the method
+#define NAME_REQUEST "2"   // name for the request
+extern int net_get_http_header (st_http_header_t *h, st_net_t *n); 
+extern int net_http_get_header_s (st_http_header_t *h, const char *buffer, int buffer_len);
+extern const char *net_http_get_value (st_http_header_t *h, const char *name, char *value);
 
-//  int method;                         // the method
-//  char method_s[NET_MAXBUFSIZE];      // the method as string "GET", "POST", ...
-
-  char host[NET_MAXBUFSIZE];          // "localhost", ...
-  char request[NET_MAXBUFSIZE];
-
-  char user_agent[NET_MAXBUFSIZE];    // or "server:"
-
-//  char connection[NET_MAXBUFSIZE];    // "close", "keep-alive"
-//  int keep_alive;
-
-  int gzip;                           // compression enabled
-
-  char content_type[NET_MAXBUFSIZE];
-//  int content_length;
-} st_http_header_t;
 extern int net_build_http_request (char *http_header, const char *url_s, const char *user_agent, int keep_alive, int method, int gzip);
 extern int net_build_http_response (char *http_header, const char *user_agent, int keep_alive, unsigned int content_len, int gzip);
-extern int net_get_http_header (char *http_header, st_net_t *n);
-extern int net_parse_http_request (st_http_header_t *h, const char *http_header);
-extern int net_parse_http_response (st_http_header_t *h, const char *http_header);
 
 
 /*
@@ -172,6 +174,19 @@ extern int net_parse_http_response (st_http_header_t *h, const char *http_header
 #define GET_VERBOSE  (1<<3)
 extern const char *net_http_get_to_temp (const char *url_s, const char *user_agent, int flags);
                                               
+
+/*
+  net_get_mime_type_by_suffix() get the apropriate mime type for the specified suffix
+                                  default: text/plain
+*/
+extern const char *net_get_mime_type_by_suffix (const char *suffix);
+
+
+/*
+  net_cgi()  common gateway interface
+*/
+extern int net_cgi (st_http_header_t *h, const char *filename, void *response, int *response_len, int max_content_len);
+
 
 #endif  // (defined USE_TCP || defined USE_UDP)
 #ifdef  __cplusplus

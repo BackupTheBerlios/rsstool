@@ -82,6 +82,7 @@ extern int fcopy (const char *src, size_t start, size_t len, const char *dest,
 
 extern unsigned char *file_get_contents (const char *filename, int maxlength);
 extern int mkdir2 (const char *path, int mode);
+extern int rmdir2 (const char *path);
 
 
 #endif // MISC_FILE_H

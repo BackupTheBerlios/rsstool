@@ -451,7 +451,7 @@ basename2 (const char *path)
   if (p2 > p1)                                  // use the last separator in path
     p1 = p2;
 #else
-  p1 = strrchr (path, FILE_SEPARATOR);
+  p1 = strrchr ((char *) path, FILE_SEPARATOR);
 #endif
 
 #if     defined DJGPP || defined __CYGWIN__ || defined _WIN32
@@ -759,7 +759,7 @@ mkdir2_func (const char *path, int mode)
     }
   chdir (dir);
 
-  if (!(p = strchr (path, '/')))
+  if (!(p = strchr ((char *) path, '/')))
     return 0;
  
   return mkdir2_func (p, mode);
@@ -769,6 +769,7 @@ mkdir2_func (const char *path, int mode)
 int
 mkdir2 (const char *path, int mode)
 {
+  // TODO: make mkdir2() work the same way as rmdir2() instead of recursion
   char buf[FILENAME_MAX];
   int result = 0;
 
@@ -779,6 +780,8 @@ mkdir2 (const char *path, int mode)
     }
 
   getcwd (buf, FILENAME_MAX);
+  if (*path == '/')
+    chdir ("/");
   result = mkdir2_func (path, mode);
   chdir (buf);
 
@@ -786,3 +789,49 @@ mkdir2 (const char *path, int mode)
 }
 
 
+int
+rmdir2 (const char *path)
+{
+  char cwd[FILENAME_MAX];
+  struct dirent *ep;
+  struct stat fstate;
+  DIR *dp;
+
+  if (!(dp = opendir (path)))
+    return -1;
+ 
+  getcwd (cwd, FILENAME_MAX);
+  chdir (path);  
+
+  while ((ep = readdir (dp)) != NULL)
+    {
+      if (stat (ep->d_name, &fstate) == -1)
+        return -1;
+
+      if (S_ISDIR (fstate.st_mode))
+        {
+          if (strcmp (ep->d_name, "..") != 0 &&
+              strcmp (ep->d_name, ".") != 0)
+            rmdir2 (ep->d_name);
+        }
+      else
+        remove (ep->d_name);
+    }
+
+  closedir (dp);
+  chdir (cwd);
+ 
+  return rmdir (path);   
+}
+
+
+//#if 0
+#ifdef  TEST
+int
+main (int argc, char **argv)
+{
+  mkdir2 ("/test/test2", 0755);
+
+  return 0;
+}
+#endif
