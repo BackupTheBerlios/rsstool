@@ -883,8 +883,6 @@ net_get_http_header (st_http_header_t *h, st_net_t *n)
         break;
     }
 
-//  len += 3;
-
   net_http_get_header_normalize (h);
 
   return len;
@@ -915,8 +913,6 @@ net_http_get_header_s (st_http_header_t *h, const char *buffer, int buffer_len)
       if (!(*buf) || strchr ("\r\n", *buf))
         break;
     }
-
-//  len += 3;
 
   net_http_get_header_normalize (h);
 
@@ -1642,11 +1638,12 @@ _ENV["HTTP_REFERER"]	http://debian2/test/
 int
 net_server_cb (const void *request, int request_len, void *response, int *response_len)
 {
+  char buf[MAXBUFSIZE];
   char http_header_s[HTTPHEADER_MAXBUFSIZE];
   st_http_header_t http_header;
 
-  net_parse_http_request (&http_header, request);
-  printf ("%s", http_header.request);
+  net_http_get_header_s (&http_header, request, request_len);
+  printf ("%s", net_http_get_value (&http_header, NAME_REQUEST, buf));
   fflush (stdout);
    
   net_build_http_response (http_header_s, "example", 0, 0, 0);
