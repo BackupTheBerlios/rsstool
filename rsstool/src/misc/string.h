@@ -116,8 +116,8 @@ extern char *strins (char *str, const char *ins);
 extern char *strrep_once (char *str, const char *orig, const char *rep);
 extern char *strrep (char *str, const char *orig, const char *rep);
 extern char *strcaserep (char *str, const char *orig, const char *rep);
-#define str_replace strrep
-#define str_ireplace strcaserep
+#define str_replace(o,r,s) strrep(s,o,r)
+#define str_ireplace(o,r,s) strcaserep(s,o,r)
 
 extern char *strcat2 (const char *a, const char *b);
 
@@ -238,7 +238,7 @@ TODO:  strfilter()  filter string with implied boolean logic
                  returns 1 true, 0 false
                  NOTE: works pretty much like "MATCH ... AGAINST" in ANSI SQL
 */
-//extern int strfilter (const char *s, const char *implied_boolean_logic);
+extern int strfilter (const char *s, const char *implied_boolean_logic);
 
 
 #ifdef  __cplusplus

@@ -1060,20 +1060,55 @@ parse_str (st_parse_str_t *pairs, const char *query)
 }
 
 
-#if 0
 int
 strfilter (const char *s, const char *implied_boolean_logic)
 {
-  // TODO:
-  char *arg[ARGS_MAX];
-  int arg_cmd[ARGS_MAX]; // OR + -
-  explode (against, "OR")
-    explode (against[], " ")
+  char *against = strdup (implied_boolean_logic);
+  char *arg[512];
+  int result = 0;
+  int i;
+  int argc;
+
+  str_replace ("OR", " ", against);
+
+  argc = explode (arg, against, " ", 512);
+
   for (i = 0; i < argc; i++)
-    if (*arg[i] == '+')
-  return 1;
+    if (*(arg[i]))
+      {
+        if (*arg[i] == '+')
+          {
+            if (!stristr (s, &arg[i][1]))
+              {
+                result = 0;
+                break;
+              }
+            else
+              result = 1;
+          }
+        else if (*arg[i] == '-')
+          {
+            if (stristr (s, &arg[i][1]))
+              {
+                result = 0;
+                break;
+              }
+            else
+              result = 1;
+          }
+      }
+
+  if (!result)
+    for (i = 0; i < argc; i++)
+      if (*(arg[i]))
+        if (*arg[i] != '+' && *arg[i] != '-') // OR
+          if (stristr (s, arg[i]))
+            result = 1;
+
+  free (against);
+
+  return result;
 }
-#endif
 
 
 //#if 0
