@@ -29,6 +29,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #ifdef  HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef  HAVE_DIRENT_H
+#include <dirent.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -57,15 +60,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #elif   defined _WIN32
 #include <windows.h>                            // Sleep(), milliseconds
 #include "misc/win32.h"
-#endif
-#ifdef  HAVE_DIRENT_H
-#include <dirent.h>
-#endif
-#ifdef  HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifdef  _WIN32
-#include <windows.h>
 #ifndef __MINGW32__
 #include <io.h>
 #define S_ISDIR(mode) ((mode) & _S_IFDIR ? 1 : 0)

@@ -1065,7 +1065,7 @@ strfilter (const char *s, const char *implied_boolean_logic)
 {
   char *against = strdup (implied_boolean_logic);
   char *arg[512];
-  int result = 0;
+  int res = 0;
   int i;
   int argc;
 
@@ -1074,40 +1074,40 @@ strfilter (const char *s, const char *implied_boolean_logic)
   argc = explode (arg, against, " ", 512);
 
   for (i = 0; i < argc; i++)
-    if (*(arg[i]))
+    if (*arg[i])
       {
         if (*arg[i] == '+')
           {
             if (!stristr (s, &arg[i][1]))
               {
-                result = 0;
+                res = 0;
                 break;
               }
             else
-              result = 1;
+              res = 1;
           }
         else if (*arg[i] == '-')
           {
             if (stristr (s, &arg[i][1]))
               {
-                result = 0;
+                res = 0;
                 break;
               }
             else
-              result = 1;
+              res = 1;
           }
       }
 
-  if (!result)
+  if (!res)
     for (i = 0; i < argc; i++)
-      if (*(arg[i]))
+      if (*arg[i])
         if (*arg[i] != '+' && *arg[i] != '-') // OR
           if (stristr (s, arg[i]))
-            result = 1;
+            res = 1;
 
   free (against);
 
-  return result;
+  return res;
 }
 
 
