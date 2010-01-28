@@ -104,7 +104,7 @@
 <p>
 <a name="101">1.0.1</a><br>
 - some code cleanups and fixes
-- added --enc=ENCODING overrides the encoding specified in RSS header
+- added support for Atom 1.0 feeds (they worked before but now it says so in the usage too)
 - deprecated --joomla and --dragonfly options and replaced them with scripts in contrib/
 - deprecated --sqlold and support for the other old database structures
 - added xmlget as download on the website (accesses XML files using XPath syntax)
@@ -117,6 +117,7 @@
   a script instead
 - added --parse=FILE|URL generate RSS feed from random HTML document
 - added --enc=ENCODING overrides the encoding specified in RSS header
+  (useful for some broken RSS feeds)
 - added --filter=LOGIC sometimes referred to as implied Boolean LOGIC
   use this to remove items from the RSS feed before output
 </tt></body></html>
