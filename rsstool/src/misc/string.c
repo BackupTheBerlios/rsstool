@@ -1063,6 +1063,7 @@ parse_str (st_parse_str_t *pairs, const char *query)
 int
 strfilter (const char *s, const char *implied_boolean_logic)
 {
+#warning TODO: test strfilter()
   char *against = strdup (implied_boolean_logic);
   char *arg[512];
   int res = 0;
