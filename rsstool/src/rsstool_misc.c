@@ -217,6 +217,14 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (title_s, title, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (desc_s, desc, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
 
+  if (rsstool.strip_filter)
+    {
+      if (strfilter (title_s, rsstool.strip_filter) == 1)
+        return 0;
+      if (strfilter (desc_s, rsstool.strip_filter) == 1)
+        return 0;
+    }
+
   if (rsstool.strip_desc)
     *desc_s = 0;
 
@@ -241,10 +249,6 @@ rsstool_add_item_s (st_rsstool_t *rt,
       rsstool_strip_whitespace (desc_s);
     }
 
-  // TODO: turn title_s and desc_s into keywords
-//  keywords_s[0] = 0;
-
-#if 0
   for (i = 0; i < rt->item_count && rt->item[i]; i++)
     {
       if (rt->item[i]->url && url)
@@ -255,12 +259,13 @@ rsstool_add_item_s (st_rsstool_t *rt,
         if (!strncmp (rt->item[i]->title, title_s, RSSTOOL_MAXBUFSIZE))
           return 0; // dupe
 
-//      there are feeds w/ items that have no description
-//      if (rt->item[i]->desc)
-//        if (!strcmp (rt->item[i]->desc, desc_s, RSSTOOL_MAXBUFSIZE))
-//          return 0; // dupe
-    }
+// because there are feeds w/ items that have no description
+#if 0
+      if (rt->item[i]->desc)
+        if (!strcmp (rt->item[i]->desc, desc_s, RSSTOOL_MAXBUFSIZE))
+          return 0; // dupe
 #endif
+    }
 
   if (date <= rt->since)
     return -1;
@@ -296,16 +301,16 @@ rsstool_add_item (st_rsstool_t *rt, st_rss_t *rss, const char *feed_url)
   int i = 0;
 
   for (; i < rss->item_count; i++)
-    {
-      if (!rsstool_add_item_s (rt, rss->title,
-                               feed_url,
-                               rss->item[i].date,
-                               rss->item[i].url,
-                               rss->item[i].title,
-                               rss->item[i].desc,
-                               rss->item[i].media_duration))
-       rt->item[i]->version = rss->version;
-    }
+    rsstool_add_item_s (rt, rss->title,
+                            feed_url,
+                            rss->item[i].date,
+                            rss->item[i].url,
+                            rss->item[i].title,
+                            rss->item[i].desc,
+                            rss->item[i].media_duration);
+
+  for (i = 0; i < rt->item_count; i++)
+    rt->item[i]->version = rss->version;
 
 #ifdef  DEBUG
   rsstool_st_rsstool_t_sanity_check (rt);
@@ -408,6 +413,7 @@ rsstool_get_links (const char *file)
   if (!(fh = fopen (file, "rb")))
     return -1;
 
+#warning TODO: WTF?
   while (fgets (buf, MAXBUFSIZE, fh))
 {
 printf (buf);

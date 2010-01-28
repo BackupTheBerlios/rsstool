@@ -66,6 +66,7 @@ typedef struct
   int strip_desc;
   int strip_lf;
   int strip_whitespace;
+  const char *strip_filter;
 
 //  char property[FILENAME_MAX];
   char template_file[FILENAME_MAX];

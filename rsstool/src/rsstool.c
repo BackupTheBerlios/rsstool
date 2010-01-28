@@ -193,7 +193,6 @@ main (int argc, char **argv)
       NULL,   "\nStrip & Sort"
     },
     {
-#warning --filter
       "filter", 1, 0, RSSTOOL_FILTER,
       "LOGIC", "sometimes referred to as implied Boolean LOGIC, in which\n"
                "+ stands for AND\n"
@@ -253,7 +252,7 @@ main (int argc, char **argv)
       NULL, 0, 0, 0,
       NULL,   "\nOutput"
     },
-#warning test all Output options
+#warning TODO: test all Output options before release
     {
       "o",       1, 0, RSSTOOL_O,
       "FILE",   "output into FILE (default: stdout)"
@@ -337,7 +336,6 @@ main (int argc, char **argv)
       "sql", 2, 0, RSSTOOL_SQL,
       "VALUE",   "output as ANSI SQL script"
 #if 0
-"\n"
                  // deprecated
                  "VALUE=092       RSStool 0.9.2 db format\n"
                  "VALUE=094       RSStool 0.9.4 db format\n"
@@ -369,11 +367,11 @@ main (int argc, char **argv)
   };
 
 #if 0
-  realpath2 (PROPERTY_HOME_RC ("quh"), quh.configfile);
+  realpath2 (PROPERTY_HOME_RC ("rsstool"), rsstool.configfile);
 
-  result = property_check (quh.configfile, QUH_CONFIG_VERSION, 1);
+  result = property_check (rsstool.configfile, QUH_CONFIG_VERSION, 1);
   if (result == 1) // update needed
-    result = set_property_array (quh.configfile, props);
+    result = set_property_array (rsstool.configfile, props);
   if (result == -1) // property_check() or update failed
     return -1;
 #endif
@@ -387,12 +385,15 @@ main (int argc, char **argv)
   atexit (rsstool_exit);
 
   memset (&rsstool, 0, sizeof (st_rsstool_t));
-
+  // defaults
   strncpy (rsstool.user_agent, RSSTOOL_USER_AGENT_S, sizeof (rsstool.user_agent))[sizeof (rsstool.user_agent) - 1] = 0;
   rsstool.start_time = time (0);
   rsstool.output_file = stdout;
   rsstool.csv_separator = ',';
   rsstool.timeout = 2; // default
+#ifdef  USE_CURL
+//  rsstool.get_flags = GET_NO_CURL; // curl is always the default
+#endif
 
 //  getopt2_short (short_options, options, ARGS_MAX);
   getopt2_long_only (long_only_options, options, ARGS_MAX);
@@ -411,6 +412,12 @@ main (int argc, char **argv)
         case RSSTOOL_HELP:
           getopt2_usage (options);
           exit (0);
+
+        case RSSTOOL_FILTER:
+          p = optarg;
+          if (p)
+            rsstool.strip_filter = p;
+          break;
 
         case RSSTOOL_NOSORT:
           rsstool.nosort = 1;
@@ -625,31 +632,6 @@ main (int argc, char **argv)
           rsstool.output = RSSTOOL_OUTPUT_DRAGONFLY;
           break;
 
-#ifdef  USE_ODBC
-        case RSSTOOL_ODBC:
-          p = optarg;
-          if (p)
-            {
-              rsstool.output = RSSTOOL_OUTPUT_ODBC;
-              strncpy (rsstool.dburl, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
-            }
-          else
-            fputs ("ERROR: db not found\n", stderr);
-          break;
-#endif
-#ifdef  USE_MYSQL
-        case RSSTOOL_MYSQL:
-          p = optarg;
-          if (p)
-            {
-              rsstool.output = RSSTOOL_OUTPUT_MYSQL;
-              strncpy (rsstool.dburl, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
-            }
-          else
-            fputs ("ERROR: db not found\n", stderr);
-          break;
-#endif
-
         default:
           fputs ("Try 'rsstool " OPTION_LONG_S "help' for more information\n\n", stdout);
           exit (-1);
@@ -821,18 +803,6 @@ main (int argc, char **argv)
         case RSSTOOL_OUTPUT_RSS:
           rsstool_write_rss (&rsstool, rsstool.rss_version);
           break;
-
-#ifdef  USE_ODBC
-        case RSSTOOL_OUTPUT_ODBC:
-          rsstool_write_odbc (&rsstool);
-          break;
-#endif
-
-#ifdef  USE_MYSQL
-        case RSSTOOL_OUTPUT_MYSQL:
-          rsstool_write_mysql (&rsstool);
-          break;
-#endif
 
         case RSSTOOL_OUTPUT_TEMPLATE:
           if (*rsstool.template_file)
