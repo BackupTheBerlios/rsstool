@@ -396,6 +396,7 @@ a_pass (const char *s)
 }
 
 
+#warning TODO: test rsstool_get_links()
 int
 rsstool_get_links (const char *file)
 {
@@ -413,12 +414,9 @@ rsstool_get_links (const char *file)
   if (!(fh = fopen (file, "rb")))
     return -1;
 
-#warning TODO: WTF?
   while (fgets (buf, MAXBUFSIZE, fh))
-{
-printf (buf);
     cf = xml_tag_filter (buf, f, cf);
-}
+
   fclose (fh);
 
   return 0;
