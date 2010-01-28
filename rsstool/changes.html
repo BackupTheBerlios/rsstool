@@ -106,8 +106,17 @@
 - some code cleanups and fixes
 - added --enc=ENCODING overrides the encoding specified in RSS header
 - deprecated --joomla and --dragonfly options and replaced them with scripts in contrib/
+- deprecated --sqlold and support for the other old database structures
 - added xmlget as download on the website (accesses XML files using XPath syntax)
-- added new fields to the database structure rsstool_keywords and rsstool_media_duration
-  if the rss feed containes durations for some kind of media it will hopefully parse them
-  as seconds into rsstool_media_duration
+- added a new field to the database structure: rsstool_media_duration
+  IF rsstool finds durations for some kind of media in the feed it will parse them
+  into rsstool_media_duration (in seconds)
+- added --nosort do not sort items by date (default: on)
+- removed the --curl option; it is always the default now (IF libcurl is available)
+- removed the --wget option; you may want to rely on the curl support or use wget from
+  a script instead
+- added --parse=FILE|URL generate RSS feed from random HTML document
+- added --enc=ENCODING overrides the encoding specified in RSS header
+- added --filter=LOGIC sometimes referred to as implied Boolean LOGIC
+  use this to remove items from the RSS feed before output
 </tt></body></html>
