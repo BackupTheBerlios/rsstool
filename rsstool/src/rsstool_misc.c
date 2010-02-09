@@ -396,7 +396,6 @@ a_pass (const char *s)
 }
 
 
-#warning TODO: test rsstool_get_links()
 int
 rsstool_get_links (const char *file)
 {

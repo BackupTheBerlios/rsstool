@@ -252,7 +252,6 @@ main (int argc, char **argv)
       NULL, 0, 0, 0,
       NULL,   "\nOutput"
     },
-#warning TODO: test all Output options before release
     {
       "o",       1, 0, RSSTOOL_O,
       "FILE",   "output into FILE (default: stdout)"
