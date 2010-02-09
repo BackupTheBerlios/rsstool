@@ -113,21 +113,33 @@ get_item_value (const char *tag)
 static const char *
 template_url_filter (const char *s)
 {
-  return rsstool.item[get_item_value (s)]->url;
+  st_rsstool_item_t *item = rsstool.item[get_item_value (s)];
+
+  if (item)
+    return item->url;
+  return "";
 }
 
 
 static const char *
 template_site_filter (const char *s)
 {
-  return rsstool.item[get_item_value (s)]->site;
+  st_rsstool_item_t *item = rsstool.item[get_item_value (s)]; 
+
+  if (item)
+    return item->site;
+  return "";
 }
 
 
 static const char *
 template_feed_url_filter (const char *s)
 {
-  return rsstool.item[get_item_value (s)]->feed_url;
+  st_rsstool_item_t *item = rsstool.item[get_item_value (s)]; 
+
+  if (item)
+    return item->feed_url;
+  return "";
 }
 
 
@@ -150,14 +162,22 @@ template_date_filter (const char *s)
 static const char *
 template_title_filter (const char *s)
 {
-  return rsstool.item[get_item_value (s)]->title;
+  st_rsstool_item_t *item = rsstool.item[get_item_value (s)]; 
+
+  if (item)
+    return item->title;
+  return "";
 }
 
 
 static const char *
 template_desc_filter (const char *s)
 {
-  return rsstool.item[get_item_value (s)]->desc;
+  st_rsstool_item_t *item = rsstool.item[get_item_value (s)]; 
+
+  if (item)
+    return item->desc;
+  return "";
 }
 
 
