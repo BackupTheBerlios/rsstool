@@ -306,7 +306,7 @@ main (int argc, char **argv)
     },
     {
       "template", 1, 0, RSSTOOL_TEMPLATE,
-      "FILE|URL",   "parse template file and replace tags with content\n"  
+      "FILE",   "parse template file and replace tags with content\n"  
                     "Tags: \"<rsstool:url item=NUM>\"   url/link of item NUM\n"
                     "      \"<rsstool:title item=NUM>\" title of item NUM\n"
                     "      \"<rsstool:desc item=NUM>\"  description of item\n"
@@ -329,12 +329,12 @@ main (int argc, char **argv)
     },
     {
       "template2", 1, 0, RSSTOOL_TEMPLATE2,
-      "FILE|URL",   "same as " OPTION_LONG_S "template but repeats the whole\n"
+      "FILE",   "same as " OPTION_LONG_S "template but repeats the whole\n"
                     "template for every single item"
     },
     {
-      "sql", 2, 0, RSSTOOL_SQL,
-      "VALUE",   "output as ANSI SQL script"
+      "sql", 0, 0, RSSTOOL_SQL,
+      NULL,   "output as ANSI SQL script"
 #if 0
                  // deprecated
                  "VALUE=092       RSStool 0.9.2 db format\n"
@@ -613,10 +613,6 @@ main (int argc, char **argv)
           break;
 
         case RSSTOOL_SQL:
-          rsstool.ansisql_version = 0;
-          p = optarg;
-          if (p)
-            rsstool.ansisql_version = strtol (p, NULL, 10);
           rsstool.output = RSSTOOL_OUTPUT_SQL;
           break;
 
@@ -753,39 +749,7 @@ main (int argc, char **argv)
           break;
 
         case RSSTOOL_OUTPUT_SQL:
-          switch (rsstool.ansisql_version)
-            {
-#if 0
-              // deprecated
-              case 92:
-                rsstool_write_ansisql_092 (&rsstool);
-                break;
-
-              case 94:
-                rsstool_write_ansisql_094 (&rsstool);
-                break;
-
-              case 95:
-                rsstool_write_ansisql_095 (&rsstool);
-                break;
-#endif
-              default:
-                rsstool_write_ansisql (&rsstool);
-            }
-          break;
-
-#if 0
-        // deprecated
-        case RSSTOOL_OUTPUT_SQLOLD:
-          rsstool_write_ansisql_095 (&rsstool);
-          break;
-#endif
-        case RSSTOOL_OUTPUT_JOOMLA:
-          rsstool_write_ansisql_joomla (&rsstool);
-          break;
-
-        case RSSTOOL_OUTPUT_DRAGONFLY:
-          rsstool_write_ansisql_dragonfly (&rsstool);
+          rsstool_write_ansisql (&rsstool);
           break;
 
         case RSSTOOL_OUTPUT_BOOKMARKS:
@@ -820,6 +784,15 @@ main (int argc, char **argv)
 
         case RSSTOOL_OUTPUT_PROPERTY:
           rsstool_write_property (&rsstool);
+          break;
+
+        // deprecated
+        case RSSTOOL_OUTPUT_JOOMLA:
+          rsstool_write_ansisql_joomla (&rsstool);
+          break;
+
+        case RSSTOOL_OUTPUT_DRAGONFLY:
+          rsstool_write_ansisql_dragonfly (&rsstool);
           break;
     }
  

@@ -57,7 +57,6 @@ typedef struct
   int nosort;         // sort?
   int reverse;      // sort reverse before output
   int rss_version;  // version of RSS
-  int ansisql_version; // which version of ANSI SQL output to use
   time_t since;     // no feed items older than since
   int fixdate;
   int csv_separator;
