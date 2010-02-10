@@ -27,7 +27,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <ctype.h>
 #include <signal.h>
 #ifdef  _WIN32
-#include "misc/win32.h"
+//#include "misc/win32.h"
 #endif
 #ifdef  HAVE_UNISTD_H
 #include <unistd.h>

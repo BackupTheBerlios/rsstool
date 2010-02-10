@@ -96,7 +96,8 @@ wait2 (int nmillis)
 #elif   defined AMIGA
   Delay (nmillis * 1000);
 #elif   defined _WIN32
-  Sleep (nmillis);
+//  Sleep (nmillis);
+  usleep (nmillis * 1000);
 #else
 #ifdef  __GNUC__
 #warning Please provide a wait2() implementation

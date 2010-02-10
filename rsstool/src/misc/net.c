@@ -76,22 +76,23 @@ net_error (int e)
     } error_msg[] =    
     {
       {EACCES,        "The calling process does not have the appropriate privileges"},
-      {EADDRINUSE,    "Some other socket is already using the specified address"},
-      {EADDRNOTAVAIL, "The specified address is not available on this machine"},
       {EAGAIN,        "O_NONBLOCK is set for the socket file descriptor and no connections are present to be accepted"},
       {EBADF,         "The socket argument is not a valid file descriptor"},
-      {ECONNABORTED,  "A connection has been aborted"},
-      {EDESTADDRREQ,  "The socket is not bound to a local address, and the protocol does not support listening on an unbound socket"},
       {EINTR,         "The accept() function was interrupted by a signal that was caught before a valid connection arrived"},
       {EINVAL,        "The socket is not accepting connections"},
-      {EMFILE,        "{OPEN_MAX} file descriptors are currently open in the calling process"},
       {ENFILE,        "The maximum number of file descriptors in the system are already open"},
-      {ENOBUFS,       "Insufficient resources are available in the system to complete the call"},
       {ENOMEM,        "There was insufficient memory available to complete the operation"},
+#ifndef _WIN32
+      {EADDRINUSE,    "Some other socket is already using the specified address"},
+      {EADDRNOTAVAIL, "The specified address is not available on this machine"},
+      {ECONNABORTED,  "A connection has been aborted"},
+      {EDESTADDRREQ,  "The socket is not bound to a local address, and the protocol does not support listening on an unbound socket"},
+      {ENOBUFS,       "Insufficient resources are available in the system to complete the call"},
       {ENOTSOCK,      "The socket argument does not refer to a socket"},
       {EOPNOTSUPP,    "The socket type of the specified socket does not support accepting connections"},
       {EPROTO,        "A protocol error has occurred; for example, the STREAMS protocol stack has not been initialized"},
       {EWOULDBLOCK,   "O_NONBLOCK is set for the socket file descriptor and no connections are present to be accepted"},
+#endif
       {0, NULL}
     };
   for (; error_msg[i].msg; i++)
@@ -659,7 +660,11 @@ net_read (st_net_t *n, void *buffer, int buffer_len)
 
       if (n->flags & NET_SERVER)
         {
+#ifdef  _WIN32
+          int addrlen;
+#else
           socklen_t addrlen;
+#endif
           int result = 0;
 
           addrlen = sizeof (n->udp_addr);
@@ -1281,10 +1286,12 @@ net_bind (st_net_t *n, int port)
 
       close (n->sock0);
 
+#ifndef _WIN32
 #ifdef  HAVE_ERRNO_H
       if (errno == EADDRINUSE)
         return -2; // try another port
       else
+#endif
 #endif
         return -1;
     }

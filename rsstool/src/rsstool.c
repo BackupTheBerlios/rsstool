@@ -103,7 +103,7 @@ main (int argc, char **argv)
   const st_getopt2_t options[] = {
     {
       NULL,      0, 0, 0, NULL,
-      "rsstool " RSSTOOL_VERSION_S " " CURRENT_OS_S " 2006-2009 by NoisyB\n"
+      "rsstool " RSSTOOL_VERSION_S " " CURRENT_OS_S " 2006-2010 by NoisyB\n"
       "This may be freely redistributed under the terms of the GNU Public License\n\n"
       "Usage: rsstool [OPTION] FILE(S)... URL(S)...\n"
     },

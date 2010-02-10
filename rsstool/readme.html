@@ -1,24 +1,23 @@
 <html><head>
 <link rel="icon" href="images/icon.png" type="image/png">
 <title>RSStool - README</title></head><body bgcolor="#ffffff"><pre><tt>
-rsstool 1.0.0rc4 Unix (Linux) 2006 by NoisyB
+rsstool 1.0.1rc1 Unix (Linux) 2006-2010 by NoisyB
 This may be freely redistributed under the terms of the GNU Public License
 
 Usage: rsstool [OPTION] FILE(S)... URL(S)...
 
-Read, parse, merge and write RSS (and ATOM) feeds
+Read, parse, merge and write RSS and Atom feeds
 
-Supports: RSS 0.9x, 1.0, 2.0 and ATOM 0.1, 0.2, 0.3
+Supports: RSS 0.9x, 1.0, 2.0 and Atom 0.1, 0.2, 0.3, 1.0
 
-The RSS (or ATOM) feeds will be merged and re-sorted if you enter more than
+The RSS or Atom feeds will be merged and re-sorted if you enter more than
 one URL or FILEname
 
 Options
    -u=AGENT     use user-AGENT for connecting
-  --curl        use libcURL for downloading
-  --wget        launch wget for downloading
   --input-file=FILE download feeds found in FILE
    -i=FILE      same as --input-file
+  --parse=FILE|URL generate RSS feed from random HTML document
   --log=FILE    write a log to FILE (including HTTP headers)
   --since=DATE  pass only items (of feeds) newer than DATE
                   DATE can have the following formats
@@ -26,15 +25,24 @@ Options
                   "YYYY-MM-DDTHH:MM", "DD MMM YYYY HH:MM",
                   or "YYYY-MM-DD"
   --fixdate     missing dates will be replaced with the current date
+  --enc=ENCODING overrides the encoding specified in RSS header
   --version     output version information and exit
   --help        display this help and exit
 
 Strip & Sort
+  --filter=LOGIC sometimes referred to as implied Boolean LOGIC, in which
+                  + stands for AND
+                  - stands for NOT
+                  no operator implies OR
+                  use this to remove items from the RSS feed before output
+                  (nested) parentheses are not supported
+                  Example: --filter="+important -unimportant"
   --shtml       strip HTML code from descriptions
   --shtml2      like --shtml but keeps links intact
   --swhite      strip whitespace from descriptions
   --slf         strip line feeds/carriage returns from descriptions
   --sdesc       strip the whole descriptions from feeds
+  --nosort      do not sort items by date (default: on)
    -r           sort reverse
 
 Output
@@ -44,17 +52,18 @@ Output
   --rss[=VERSION] output as RSS feed
                   VERSION=1 will write RSS v1.0
                   VERSION=2 will write RSS v2.0 (default)
+  --php         output as PHP code (array ())
   --html        output as html
   --bookmarks   output as bookmarks.html for use with Mozilla or Firefox
   --href        output only the links as plain text
   --txt         output as plain text
-  --csv         output as comma-separated values CSV
+  --csv[=SEPARATOR] output as comma-separated values CSV
   --prop        output as properties
                   Layout: NAME_NUM=VALUE
                           NAME  will be "title", "url", etc..
                           NUM   will be an integer counting the items
                           VALUE will be the content
-  --template=FILE|URL parse template file and replace tags with content
+  --template=FILE parse template file and replace tags with content
                   Tags: "<rsstool:url item=NUM>"   url/link of item NUM
                         "<rsstool:title item=NUM>" title of item NUM
                         "<rsstool:desc item=NUM>"  description of item
@@ -74,14 +83,11 @@ Output
                                                      version
                         "<rsstool:updated>"        rsstool notice with
                                                      version and date
-  --template2=FILE|URL same as --template but repeats the whole
+  --template2=FILE same as --template but repeats the whole
                   template for every single item
-  --sql[=VALUE] output as ANSI SQL script
-                  VALUE=092       RSStool 0.9.2 db format
-                  VALUE=094       RSStool 0.9.4 db format
-                  VALUE=095       RSStool 0.9.5 db format
-                  VALUE="current" use current db format (default)
-  --sqlold      same as --sql=095
+  --sql         output as ANSI SQL script
+
+Deprecated
   --joomla      output as ANSI SQL script for import into Joomla! CMS
   --dragonfly   output as ANSI SQL script for import into Dragonfly CMS
 
