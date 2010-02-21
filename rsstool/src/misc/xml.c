@@ -44,8 +44,83 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 #ifdef  USE_XML2
+xmlDocPtr
+xml_xpath_open (const char *fname)
+{
+  static xmlDocPtr doc;
+
+  xmlInitParser ();
+  LIBXML_TEST_VERSION
+
+  if (!(doc = xmlParseFile (fname)))
+    {
+      fprintf (stderr, "ERROR: unable to parse file \"%s\"\n", fname);
+      return NULL;
+    }
+
+  return doc;
+}
+
+
 const char *
-xml_xpath (const char *fname, const char *xpath_expr)
+xml_xpath (xmlDocPtr doc, const char *xpath_expr)
+{
+  int size;
+  int i;
+  const xmlChar *p = NULL;
+  xmlNodeSetPtr nodes;
+  xmlXPathContextPtr xpathCtx;
+  xmlXPathObjectPtr xpathObj;
+
+  if (!(xpathCtx = xmlXPathNewContext (doc)))
+    {
+      fprintf (stderr, "ERROR: unable to create new XPath context\n");
+      xmlFreeDoc (doc);
+      return NULL;
+    }
+
+  if (!(xpathObj = xmlXPathEvalExpression ((const xmlChar *) xpath_expr, xpathCtx)))
+    {
+      fprintf (stderr, "ERROR: unable to evaluate xpath expression \"%s\"\n", xpath_expr);
+      xmlXPathFreeContext (xpathCtx);
+      xmlFreeDoc (doc);
+      return NULL;
+    }
+
+  nodes = xpathObj->nodesetval;
+  size = (nodes) ? nodes->nodeNr : 0;
+
+  for (i = size - 1; i >= 0; i--)
+    {
+      p = xmlNodeGetContent (nodes->nodeTab[i]);
+#ifdef  DEBUG
+      printf (p);
+      fflush (stdout);
+#endif
+      if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL)
+        nodes->nodeTab[i] = NULL;
+    }
+
+  xmlXPathFreeObject (xpathObj);
+
+  xmlXPathFreeContext (xpathCtx);
+
+  return (const char *) p;
+}
+
+
+void
+xml_xpath_close (xmlDocPtr doc)
+{
+//    xmlDocDump(stdout, doc);
+
+  xmlFreeDoc (doc);   
+  xmlCleanupParser ();
+}
+
+
+const char *
+xml_xpath_once (const char *fname, const char *xpath_expr)
 {
   int size;
   int i;
@@ -376,7 +451,6 @@ xml_tag_filter (char *str, st_tag_filter_t *f, unsigned long continuous_flag)
                     fputs (f[i].start_tag, stderr);
                     fflush (stderr);
 #endif
-
                     rep = f[i].filter (tag_full);
                     if (rep)
                       {

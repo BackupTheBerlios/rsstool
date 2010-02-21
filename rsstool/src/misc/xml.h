@@ -32,6 +32,7 @@ typedef nxml_data_t xml_node_t;
 typedef struct _xmlDoc xml_doc_t;
 typedef struct _xmlNode xml_node_t;
 #endif
+#include "xml.h"
 
 
 #if     (defined USE_NXML || defined USE_XML2)
@@ -89,7 +90,13 @@ extern const char *xml_get_name (xml_node_t *n);
 extern const unsigned char *xml_get_value (xml_node_t *n, const char *name);
 
 
-extern const char *xml_xpath (const char *fname, const char *xpath_expr);
+#ifdef  USE_XML2  
+extern const char *xml_xpath_once (const char *fname, const char *xpath_expr);
+
+extern xmlDocPtr xml_xpath_open (const char *fname);
+extern const char *xml_xpath (xmlDocPtr ctx, const char *xpath_expr);
+extern void xml_xpath_close (xmlDocPtr ctx);
+#endif
 
 
 #endif  // #if     (defined USE_NXML || defined USE_XML2)

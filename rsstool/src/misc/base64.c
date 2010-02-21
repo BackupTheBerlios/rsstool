@@ -40,23 +40,17 @@ const char *cvt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   "0123456789+/";
 
 char *
-base64_enc (char *src, int add_linefeeds)
+base64_enc (const char *src, int add_linefeeds)
 {
   static unsigned char
     alphabet[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  unsigned int
-    bits;
-  int
-    i = 0;
-  int
-    j = 0;
-  int
-    k;
-  int
-    len;
-  char *
-    dst;
+  unsigned int bits;
+  int i = 0;
+  int j = 0;
+  int k;
+  int len;
+  char *dst;
 
   len = strlen (src);
   dst = (char *) malloc (((((len - 1) / 3) + 1) * 4) + 1 + len / 54);
@@ -95,28 +89,31 @@ base64_enc (char *src, int add_linefeeds)
 }
 
 
-static const char cd64[]="|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
-void decodeblock( unsigned char in[4], unsigned char out[3] )
-{   
-  out[ 0 ] = (unsigned char ) (in[0] << 2 | in[1] >> 4);
-  out[ 1 ] = (unsigned char ) (in[1] << 4 | in[2] >> 2);
-  out[ 2 ] = (unsigned char ) (((in[2] << 6) & 0xc0) | in[3]);
-}
-            
-            
+static const char cd64[] =
+  "|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
 void
-base64_dec (char *ret, char *src, int length)
+decodeblock (unsigned char in[4], unsigned char out[3])
+{
+  out[0] = (unsigned char) (in[0] << 2 | in[1] >> 4);
+  out[1] = (unsigned char) (in[1] << 4 | in[2] >> 2);
+  out[2] = (unsigned char) (((in[2] << 6) & 0xc0) | in[3]);
+}
+
+
+void
+base64_dec (char *dst, const char *src, int maxlength)
 {
   unsigned char in[4], out[3], v;
   int i, len;
   int src_offset = 0;
-  int ret_offset = 0;
+  int dst_offset = 0;
 
-    while( src_offset < length ) {
-          for (len = 0, i = 0; i < 4 && src_offset < length; i++)
+  while (src_offset < maxlength)
+    {
+      for (len = 0, i = 0; i < 4 && src_offset < maxlength; i++)
         {
           v = 0;
-          while (src_offset < length && v == 0)
+          while (src_offset < maxlength && v == 0)
             {
               v = (unsigned char) *(src + src_offset);
               src_offset++;
@@ -126,7 +123,7 @@ base64_dec (char *ret, char *src, int length)
                   v = (unsigned char) ((v == '$') ? 0 : v - 61);
                 }
             }
-          if (src_offset < length)
+          if (src_offset < maxlength)
             {
               len++;
               if (v)
@@ -144,9 +141,9 @@ base64_dec (char *ret, char *src, int length)
           decodeblock (in, out);
           for (i = 0; i < len - 1; i++)
             {
-              *(ret + ret_offset) = out[i];
-              ret_offset++;
+              *(dst + dst_offset) = out[i];
+              dst_offset++;
             }
         }
-}
+    }
 }
