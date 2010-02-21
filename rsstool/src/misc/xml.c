@@ -47,7 +47,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 xmlDocPtr
 xml_xpath_open (const char *fname)
 {
-  static xmlDocPtr doc;
+  xmlDocPtr doc;
 
   xmlInitParser ();
   LIBXML_TEST_VERSION

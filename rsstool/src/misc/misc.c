@@ -251,13 +251,15 @@ getenv2 (const char *variable)
               set, so that the directory from where uCON64 starts will be used.
             */
             {
-              char c;
-              getcwd (value, FILENAME_MAX);
-              c = toupper (*value);
-              // if current dir is root dir strip problematic ending slash (DJGPP)
-              if (c >= 'A' && c <= 'Z' &&
-                  value[1] == ':' && value[2] == '/' && value[3] == 0)
-                value[2] = 0;
+              if (getcwd (value, FILENAME_MAX))
+                {
+                  char c;
+                  c = toupper (*value);
+                  // if current dir is root dir strip problematic ending slash (DJGPP)
+                  if (c >= 'A' && c <= 'Z' &&
+                    value[1] == ':' && value[2] == '/' && value[3] == 0)
+                  value[2] = 0;
+                }
             }
          }
 
@@ -280,7 +282,10 @@ getenv2 (const char *variable)
 #endif
             strcpy (value, FILE_SEPARATOR_S"tmp");
           else
-            getcwd (value, FILENAME_MAX);
+            {
+              if (!getcwd (value, FILENAME_MAX))
+                *value = 0;
+            }
         }
     }
 
