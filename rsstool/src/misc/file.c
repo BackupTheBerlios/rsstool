@@ -181,19 +181,21 @@ realpath (const char *path, char *full_path)
 #endif
   if (*path != FILE_SEPARATOR)
     {
-      getcwd (new_path, FILENAME_MAX - 1);
+      if (getcwd (new_path, FILENAME_MAX - 1))
+        {
 #ifdef  DJGPP
-      // DJGPP's getcwd() returns a path with forward slashes
-      {
-        int l = strlen (new_path);
-        for (n = 0; n < l; n++)
-          if (new_path[n] == '/')
-            new_path[n] = FILE_SEPARATOR;
-      }
+          // DJGPP's getcwd() returns a path with forward slashes
+          {
+            int l = strlen (new_path);
+            for (n = 0; n < l; n++)
+              if (new_path[n] == '/')
+                new_path[n] = FILE_SEPARATOR;
+          }
 #endif
-      new_path += strlen (new_path);
-      if (*(new_path - 1) != FILE_SEPARATOR)
-        *new_path++ = FILE_SEPARATOR;
+          new_path += strlen (new_path);
+          if (*(new_path - 1) != FILE_SEPARATOR)
+            *new_path++ = FILE_SEPARATOR;
+        }
     }
   else
     {
@@ -643,11 +645,11 @@ truncate2 (const char *filename, unsigned long new_size)
         }
 
       fclose (file);
-    }
-  else
-    truncate (filename, new_size);
 
-  return 0;                                     // success
+      return 0; // success
+    }
+
+  return truncate (filename, new_size);
 }
 
 
@@ -725,7 +727,10 @@ file_get_contents (const char *filename, int maxlength)
       return NULL;
     }
 
-  fread (p, len, 1, fh);
+  len = fread (p, len, 1, fh);
+#warning check
+  if (!len)
+    p = NULL;
 
   fclose (fh);
 
@@ -749,9 +754,10 @@ mkdir2_func (const char *path, int mode)
 
   result = mkdir (dir, mode);
   if (result == -1)
-    {
-    }
-  chdir (dir);
+    return -1;
+
+  if (chdir (dir) == -1)
+    return -1;
 
   if (!(p = strchr ((char *) path, '/')))
     return 0;
@@ -763,6 +769,7 @@ mkdir2_func (const char *path, int mode)
 int
 mkdir2 (const char *path, int mode)
 {
+#warning test mkdir2()
   // TODO: make mkdir2() work the same way as rmdir2() instead of recursion
   char buf[FILENAME_MAX];
   int result = 0;
@@ -773,11 +780,17 @@ mkdir2 (const char *path, int mode)
       return -1;
     }
 
-  getcwd (buf, FILENAME_MAX);
+  if (!getcwd (buf, FILENAME_MAX))
+    return -1;
+    
   if (*path == '/')
-    chdir ("/");
+    if (chdir ("/") == -1)
+      return -1;
+
   result = mkdir2_func (path, mode);
-  chdir (buf);
+
+  if (chdir (buf) == -1)
+    return -1;
 
   return result;
 }
@@ -786,6 +799,7 @@ mkdir2 (const char *path, int mode)
 int
 rmdir2 (const char *path)
 {
+#warning test rmdir2()
   char cwd[FILENAME_MAX];
   struct dirent *ep;
   struct stat fstate;
@@ -794,8 +808,11 @@ rmdir2 (const char *path)
   if (!(dp = opendir (path)))
     return -1;
  
-  getcwd (cwd, FILENAME_MAX);
-  chdir (path);  
+  if (!getcwd (cwd, FILENAME_MAX))
+    return -1;
+
+  if (chdir (path) == -1)
+    return -1;
 
   while ((ep = readdir (dp)) != NULL)
     {
@@ -813,7 +830,9 @@ rmdir2 (const char *path)
     }
 
   closedir (dp);
-  chdir (cwd);
+
+  if (chdir (cwd) == -1)
+    return -1;
  
   return rmdir (path);   
 }

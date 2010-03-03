@@ -1593,9 +1593,11 @@ _ENV["HTTP_REFERER"]	http://debian2/test/
   setenv2 ("SCRIPT_NAME",       (char *) p, 1);
   setenv2 ("SCRIPT_FILENAME",   (char *) realpath (filename, buf), 1);
   setenv2 ("PATH_INFO",         "/", 1);
-  realpath (filename, buf);
-//  sprintf (buf, "%s/", (char *) realpath (filename, buf));
-  setenv2 ("PATH_TRANSLATED",   buf, 1);
+  if (realpath (filename, buf))
+    {
+//      sprintf (buf, "%s/", (char *) realpath (filename, buf));
+      setenv2 ("PATH_TRANSLATED",   buf, 1);
+    }
   setenv2 ("QUERY_STRING",      url.query ? url.query : "?", 1);
   setenv2 ("REMOTE_ADDR",       url.host, 1);
 //  setenv2 ("HTTP_REFERER",    net_http_get_value (h, "Referer", buf), 1);
