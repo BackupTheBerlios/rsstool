@@ -322,7 +322,7 @@ xml_tag_get_name (const char *tag)
   static char buf[MAXBUFSIZE];
   char *p = NULL;
 
-  p = strchr (tag, '<');
+  p = strchr ((char *) tag, '<');
   if (!p)
     return NULL;
 

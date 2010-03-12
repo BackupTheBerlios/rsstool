@@ -1543,12 +1543,10 @@ net_cgi (st_http_header_t *h, const char *filename, void *response, int *respons
   net_http_get_value (h, NAME_REQUEST, strchr (buf, 0));
   parse_url (&url, buf);
 
-
   // DEBUG
 //  printf ("%s\n", buf);
 //  fflush (stdout);
 //  st_parse_url_t_sanity_check (&url);
-
 
 #if 0
 /*
@@ -1581,6 +1579,7 @@ _ENV["HTTP_REFERER"]	http://debian2/test/
 
   setenv2 ("PATH",              CGI_PATH, 1);
   setenv2 ("LD_LIBRARY_PATH",   CGI_LD_LIBRARY_PATH, 1);
+
   setenv2 ("SERVER_SOFTWARE",   net_http_get_value (h, "User-Agent", buf), 1);
   setenv2 ("SERVER_NAME",       net_http_get_value (h, "Host", buf), 1);
   setenv2 ("GATEWAY_INTERFACE", "CGI/1.1", 1);

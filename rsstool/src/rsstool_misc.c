@@ -267,7 +267,7 @@ rsstool_add_item_s (st_rsstool_t *rt,
 #endif
     }
 
-  if (date <= rt->since)
+  if (date < rt->since)
     return -1;
 
   i = rt->item_count;

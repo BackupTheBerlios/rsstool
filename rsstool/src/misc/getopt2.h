@@ -60,24 +60,22 @@ TODO:  getopt2_cgi_ui()      render HTML form from st_getopt2_t
 */
 typedef struct
 {
-  char *name;           // option name
+  const char *name;           // option name
   int has_arg;                // has_arg == 0 no arg
                               // has_arg == 1 reqired
                               // has_arg == 2 optional
   int *flag;
   int val;                    // option integer id
-  char *arg_name;       // name of the options arg as it should be
+  const char *arg_name;       // name of the options arg as it should be
                               // displayed in the --help output
                               // "--name=arg_name" if has_arg == 1
                               // "--name[=arg_name]" if has_arg == 2
-  char *help;           // --help, -h, -? output/description for the current option
+  const char *help;           // --help, -h, -? output/description for the current option
 } st_getopt2_t;
 
 
 extern const st_getopt2_t *getopt2_get_option (const st_getopt2_t *option, int val);
 extern void getopt2_usage (const st_getopt2_t *option);
-//extern int getopt2_cgi (char **argv, const st_getopt2_t *option, int args_max);
-//extern const char *getopt_cgi_ui (const st_getopt2_t *option);
 
 extern int getopt2_long (struct option *long_option, const st_getopt2_t *option, int args_max);
 extern int getopt2_long_only (struct option *long_option, const st_getopt2_t *option, int args_max);
