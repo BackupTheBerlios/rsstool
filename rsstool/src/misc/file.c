@@ -713,10 +713,13 @@ file_get_contents (const char *filename, int maxlength)
 {
   FILE *fh = NULL;
   unsigned char *p = NULL;
-  int len = filesize (filename);
+  int len = filesize (filename);        
 
-  if (len > maxlength || len == -1)
+  if (len == -1)
     return NULL;
+
+  if (len > maxlength)
+    len = maxlength;  
 
   if (!(fh = fopen (filename, "rb")))
     return NULL;
@@ -725,12 +728,15 @@ file_get_contents (const char *filename, int maxlength)
     {
       fclose (fh);
       return NULL;
-    }
+    } 
 
-  len = fread (p, len, 1, fh);
-#warning check
+  len = fread (p, 1, len, fh);
+
   if (!len)
-    p = NULL;
+    {
+      free (p);
+      p = NULL;
+    }
 
   fclose (fh);
 
@@ -769,7 +775,6 @@ mkdir2_func (const char *path, int mode)
 int
 mkdir2 (const char *path, int mode)
 {
-#warning test mkdir2()
   // TODO: make mkdir2() work the same way as rmdir2() instead of recursion
   char buf[FILENAME_MAX];
   int result = 0;
@@ -799,7 +804,6 @@ mkdir2 (const char *path, int mode)
 int
 rmdir2 (const char *path)
 {
-#warning test rmdir2()
   char cwd[FILENAME_MAX];
   struct dirent *ep;
   struct stat fstate;
