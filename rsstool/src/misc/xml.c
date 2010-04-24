@@ -62,6 +62,25 @@ xml_xpath_open (const char *fname)
 }
 
 
+xmlDocPtr
+xml_xpath_string (const char *s)
+{
+  const char *encoding = NULL;
+  xmlDocPtr doc;
+
+  xmlInitParser ();
+  LIBXML_TEST_VERSION
+
+  if (!(doc = xmlReadMemory (s, strlen (s), "", encoding, 0)))
+    { 
+      fprintf (stderr, "ERROR: unable to parse string\n");
+      return NULL;
+    }
+
+  return doc;   
+}
+
+
 const char *
 xml_xpath (xmlDocPtr doc, const char *xpath_expr)
 {

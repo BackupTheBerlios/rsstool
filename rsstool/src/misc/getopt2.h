@@ -40,10 +40,6 @@ extern "C" {
 /*
   getopt2_get_option()  find st_getopt2_t in array by val (option integer id)
   getopt2_usage()       render usage output from st_getopt2_t array to stdout
-TODO:  getopt2_cgi()         explode QUERY_STRING into argc and argv[]
-                          returns argc
-TODO:  getopt2_cgi_ui()      render HTML form from st_getopt2_t
-
 
   getopt2_long()       turn st_getopt2_t into struct option for getopt_long()
   getopt2_long_only()  turn st_getopt2_t into struct option for getopt_long_only()

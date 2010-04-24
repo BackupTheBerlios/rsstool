@@ -67,8 +67,9 @@ property_check (const char *filename, int version, int verbose)
           fflush (stderr);
         }
 
-      if (!(fh = fopen (filename, "w"))) // opening the file in text mode
-        {                                         //  avoids trouble under DOS
+      // create new config file
+      if (!(fh = fopen (filename, "w")))
+        {
           printf ("FAILED\n\n");
           return -1;
         }
@@ -77,6 +78,7 @@ property_check (const char *filename, int version, int verbose)
   else
     {
       p = get_property (filename, "version");
+
       if (strtol (p ? p : "0", NULL, 10) >= version)
         return 0; // OK
 
@@ -117,77 +119,51 @@ property_check (const char *filename, int version, int verbose)
 }
 
 
-const char *
-get_property_from_string (char *str, const char *propname, const char prop_sep, const char comment_sep)
+static const char *
+get_property_from_line (const char *line, const char *propname)
 {
-  static char value_s[MAXBUFSIZE];
-  char str_end[8], *p = NULL, buf[MAXBUFSIZE];
-  int len = strlen (str);
+  static char buf[MAXBUFSIZE];
+  char *p = NULL;
 
-  if (len >= MAXBUFSIZE)
-    len = MAXBUFSIZE - 1;
-  memcpy (buf, str, len);
-  buf[len] = 0;
-
-  p = strtriml (buf);
-  if (*p == comment_sep || *p == '\n' || *p == '\r')
-    return NULL;                                // text after comment_sep is comment
-
-  strcpy (str_end, "\r\n");
-  if ((p = strpbrk (buf, str_end)))             // strip *any* returns and comments
+  strncpy (buf, line, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+  if ((p = strpbrk (buf, "\r\n" PROPERTY_COMMENT_S)))  // strip any returns and comments
     *p = 0;
 
-  // terminate at unescaped '#'
+  p = strtriml (buf);
+  if (!(*p))
+    return NULL;                                // text after comment_sep is comment
+
+  p = strchr (buf, PROPERTY_SEPARATOR);
+  if (p)
+    *p = 0;
+
+  strtriml (strtrimr (buf));
+  if (strcasecmp (buf, propname) != 0) // check property name
+    return NULL;
+
+  if (!p) // no prop_sep so empty value
+    return "";
+
+  p++;
+  strncpy (buf, line + (p - buf), MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+
   for (p = buf + 1; *p; p++)
-    if (*p == '#')
+    if (*p == PROPERTY_COMMENT)
       {
-        if (*(p - 1) == '\\')
-          p = strmove (p - 1, p);
+        if (*(p - 1) == PROPERTY_ESCAPE)
+          {
+            // unescape escaped PROPERTY_COMMENT
+            p = strmove (p - 1, p);
+          }
         else
           {
+            // break at first not escaped PROPERTY_COMMENT
             *p = 0;
             break;
           }
       }
 
-  p = strchr (buf, prop_sep);
-  if (p)
-    {
-      *p = 0;                                   // note that this "cuts" _buf_ ...
-      p++;
-    }
-  strtriml (strtrimr (buf));
-
-  if (!strcasecmp (buf, propname))                 // ...because we do _not_ use strncasecmp()
-    {
-      // if no divider was found the propname must be a bool config entry
-      //  (present or not present)
-      if (p)
-        {
-          strncpy (value_s, p, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-
-          // terminate at unescaped '#'
-          for (p = value_s + 1; *p; p++)
-          if (*p == '#')
-            {
-              if (*(p - 1) == '\\')
-                p = strmove (p - 1, p);
-              else
-                {
-                  *p = 0;
-                  break;
-                }
-            }
-
-//          strtriml (strtrimr (value_s));
-        }
-      else
-        strcpy (value_s, "1");
-    }
-  else
-    return NULL;
-
-  return value_s;
+  return buf;
 }
 
 
@@ -198,74 +174,37 @@ get_property (const char *filename, const char *propname /*, int mode */)
   FILE *fh;
   const char *value_s = NULL;
 
-  if ((fh = fopen (filename, "r")) != 0)        // opening the file in text mode
-    {                                           //  avoids trouble under DOS
-      while (fgets (line, sizeof line, fh) != NULL)
-        if ((value_s = get_property_from_string (line, propname, PROPERTY_SEPARATOR, PROPERTY_COMMENT)))
-          break;
+  if (!(fh = fopen (filename, "r")))
+    return NULL;
 
-      fclose (fh);
-    }
+  while (fgets (line, sizeof line, fh) != NULL)
+    if ((value_s = get_property_from_line (line, propname)))
+      break;
 
-#if 0
-  p = getenv2 (propname);
-  if (*p == 0)                                  // getenv2() never returns NULL
-    {
-      if (!value_s)
-        value_s = NULL;                         // value_s won't be changed
-                                                  //  after this func (=ok)
-    }
-  else
-    value_s = p;
-#endif
-
-#if 0
-  if (value_s)
-    if (mode == PROPERTY_MODE_FILENAME)
-      {
-        static char tmp[FILENAME_MAX];
-
-#ifdef  __CYGWIN__
-        fix_character_set (value_s);
-#endif
-        realpath2 (value_s, tmp);
-
-        value_s = tmp;
-    }
-#endif
+  fclose (fh);
 
   return value_s;
 }
 
 
-unsigned long
+signed long int
 get_property_int (const char *filename, const char *propname)
-/*
-  get_property_int()   like get_property() but returns an integer which is 0
-                         if the value of propname was 0, [Nn] or [Nn][Oo]
-                         and an integer or at least 1 for every other case
-*/
 {
-  const char *value_s = NULL;
-  int value = 0;
-  value_s = get_property (filename, propname);
+  signed long int value = 0;
+  const char *value_s = get_property (filename, propname);
 
   if (!value_s)
-    value_s = "0";
+    return 0;
 
   if (!(*value_s))
     return 0;
 
-  if (*value_s)
-    switch (tolower (*value_s))
-      {
-        case '0':                                 // 0
-        case 'n':                                 // [Nn]o
-          return 0;
-      }
-
+  if (strchr ("n0", tolower (*value_s))) // 0 or [Nn]o
+    return 0;
+ 
   value = strtol (value_s, NULL, 10);
   return MAX (1, value);     //  we'll return at least 1
+//  return value;
 }
 
 
@@ -273,29 +212,27 @@ int
 set_property (const char *filename, const char *propname,
               const char *value_s, const char *comment_s)
 {
-  int found = 0, result = 0, file_size = 0;
-  char line[MAXBUFSIZE], line2[MAXBUFSIZE], *str = NULL, *p = NULL,
-       line_end[6];
+  int found = 0, result = 0;
+  unsigned long int file_size = 0;
+  char line[MAXBUFSIZE], line2[MAXBUFSIZE], *str = NULL, *p = NULL;
   FILE *fh;
   struct stat fstate;
 
-  if (stat (filename, &fstate) != 0)
+  if (stat (filename, &fstate) == 0)
     file_size = fstate.st_size;
 
   if (!(str = (char *) malloc (file_size + MAXBUFSIZE)))
     return -1;
 
-  sprintf (line_end, "%c\r\n", PROPERTY_COMMENT);
-
   *str = 0;
-  if ((fh = fopen (filename, "r")) != 0)        // opening the file in text mode
-    {                                           //  avoids trouble under DOS
+  if ((fh = fopen (filename, "r")) != 0)
+    {
       // update existing properties
       while (fgets (line, sizeof line, fh) != NULL)
         {
           strcpy (line2, line);
-          if ((p = strpbrk (line2, line_end)))
-            *p = 0;                             // note that this "cuts" _line2_
+          if ((p = strpbrk (line2, "\r\n" PROPERTY_COMMENT_S)))
+            *p = 0;
           p = strchr (line2, PROPERTY_SEPARATOR);
           if (p)
             *p = 0;
@@ -343,10 +280,16 @@ set_property (const char *filename, const char *propname,
       strcat (str, line);
     }
 
-  if ((fh = fopen (filename, "w")) == NULL)     // open in text mode
-    return -1;
+  if ((fh = fopen (filename, "w")) == NULL)
+    {
+      free (str);
+      return -1;
+    }
+
   result = fwrite (str, 1, strlen (str), fh);
   fclose (fh);
+
+  free (str);
 
   return result;
 }
@@ -372,7 +315,7 @@ set_property_array (const char *filename, const st_property_t *prop)
 
 int
 set_property_int (const char *filename, const char *propname,
-                  unsigned long value, const char *comment)
+                  signed long int value, const char *comment)
 {
   char buf[64];
   sprintf (buf, "%ld", value);

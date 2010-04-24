@@ -628,7 +628,7 @@ main (int argc, char **argv)
           break;
 
         default:
-          fputs ("Try 'rsstool " OPTION_LONG_S "help' for more information\n\n", stdout);
+          fputs ("Try 'rsstool " OPTION_LONG_S "help' for more information\n\n", stderr);
           exit (-1);
       }
 

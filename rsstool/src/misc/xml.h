@@ -94,6 +94,7 @@ extern const unsigned char *xml_get_value (xml_node_t *n, const char *name);
 extern const char *xml_xpath_once (const char *fname, const char *xpath_expr);
 
 extern xmlDocPtr xml_xpath_open (const char *fname);
+extern xmlDocPtr xml_xpath_string (const char *s);
 extern const char *xml_xpath (xmlDocPtr ctx, const char *xpath_expr);
 extern void xml_xpath_close (xmlDocPtr ctx);
 #endif

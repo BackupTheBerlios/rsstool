@@ -715,8 +715,11 @@ file_get_contents (const char *filename, int maxlength)
   unsigned char *p = NULL;
   int len = filesize (filename);        
 
-  if (len == -1)
+  if (len < 0)
     return NULL;
+
+  if (len == 0)
+    return (unsigned char *) "";
 
   if (len > maxlength)
     len = maxlength;  
@@ -724,7 +727,7 @@ file_get_contents (const char *filename, int maxlength)
   if (!(fh = fopen (filename, "rb")))
     return NULL;
 
-  if (!(p = (unsigned char *) malloc (len + 1)))
+  if (!(p = (unsigned char *) malloc (len + 2)))
     {
       fclose (fh);
       return NULL;
@@ -737,6 +740,9 @@ file_get_contents (const char *filename, int maxlength)
       free (p);
       p = NULL;
     }
+
+  // terminate anyways
+  p[len] = 0;
 
   fclose (fh);
 
@@ -759,15 +765,15 @@ mkdir2_func (const char *path, int mode)
     *p = 0;
 
   result = mkdir (dir, mode);
-  if (result == -1)
-    return -1;
+// returns also an error if dir exists already
+//  if (result == -1)
+//    return -1;
 
   if (chdir (dir) == -1)
     return -1;
 
   if (!(p = strchr ((char *) path, '/')))
     return 0;
- 
   return mkdir2_func (p, mode);
 }
 
