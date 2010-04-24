@@ -35,7 +35,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 //#define RSSTOOL_STRNCPY(a,b) strncpy(a,b,RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE-1]=0
 #define RSSTOOL_USER_AGENT_S "Mozilla/5.0 (X11; U; Linux i586; en-US; rv:1.7.12) Gecko/20060205 Debian/1.7.12-1.1"
-#define RSSTOOL_VERSION_S "1.0.1rc1"
+#define RSSTOOL_VERSION_S "1.0.1rc2"
 
 
 // item parts

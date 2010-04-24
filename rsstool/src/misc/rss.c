@@ -385,9 +385,7 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
           xml_node_t *pnode = xml_get_childnode (node);
           st_rss_item_t *item = &rss->item[rss->item_count];
           int found = 0;
-#ifdef  USE_HACKS
           const char *p = NULL;
-#endif
           char link[RSSMAXBUFSIZE], guid[RSSMAXBUFSIZE];
 
           *link = *guid = 0;
@@ -444,7 +442,6 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
                   found = 1;
                 }
-#ifdef  USE_HACKS
               else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
                 {
                   xml_node_t *tnode = xml_get_childnode (pnode); 
@@ -467,7 +464,6 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                       tnode = xml_get_nextnode (tnode);
                     }
                 }
-#endif
 #if 0
               else
                 {
@@ -617,7 +613,6 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
                   found = 1;
                 }
-#ifdef  USE_HACKS
               else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
                 {
                   xml_node_t *tnode = xml_get_childnode (pnode); 
@@ -640,7 +635,6 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                       tnode = xml_get_nextnode (tnode);
                     }
                 }
-#endif  // USE_HACKS
 
               pnode = xml_get_nextnode (pnode);
             }
@@ -850,11 +844,9 @@ rss_write (FILE *fp, st_rss_t *rss, int version)
       strftime (buf, RSSMAXBUFSIZE, "%a, %d %b %Y %H:%M:%S %Z", localtime (&rss->item[i].date));
       xmlTextWriterWriteElement (writer, BAD_CAST "pubDate", BAD_CAST buf);
 
-#ifdef  USE_HACKS
       XMLPRINTF("\n      ");
 
       xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_duration", "%d", rss->item[i].media_duration);
-#endif
 
       XMLPRINTF("\n    ");
 
