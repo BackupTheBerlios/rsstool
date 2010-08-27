@@ -197,7 +197,7 @@ rsstool_add_item_s (st_rsstool_t *rt,
   char buf[MAXBUFSIZE];
   char site_s[RSSTOOL_MAXBUFSIZE],
        title_s[RSSTOOL_MAXBUFSIZE],
-//       keywords_s[RSSTOOL_MAXBUFSIZE],
+       keywords_s[RSSTOOL_MAXBUFSIZE],
        desc_s[RSSTOOL_MAXBUFSIZE];
 
   if (rt->item_count == RSSTOOL_MAXITEM)
@@ -216,6 +216,8 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (site_s, site, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (title_s, title, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (desc_s, desc, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+#warning TODO: keywords
+  *keywords_s = 0;
 
   if (rsstool.strip_filter)
     {
@@ -286,7 +288,7 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (rt->item[i]->url, url, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->title, title_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->desc, desc_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-//  strncpy (rt->item[i]->keywords, keywords_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  strncpy (rt->item[i]->keywords, keywords_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   rt->item[i]->media_duration = media_duration;
 
   rt->item_count++;

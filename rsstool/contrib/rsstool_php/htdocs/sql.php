@@ -54,7 +54,7 @@ stresc ($s)
 
 
 function
-sql_open ($host, $user, $password, $database, $memcache_expire = 0)
+sql_open ($host /* = 'localhost' */ , $user, $password, $database, $memcache_expire = 0)
 {
   if ($this->conn)
     {
@@ -188,9 +188,14 @@ function
 sql_write ($sql_query_s, $unbuffered = 0, $debug = 0)
 {
   if ($debug == 1)
-    echo '<br><br><tt>'
-        .$sql_query_s
-        .'</tt><br><br>';
+    {
+//      $sql_query_s = 'explain '.$sql_query_s;
+      echo ''
+          .'<br><br><tt>'
+          .$sql_query_s
+          .'</tt><br><br>'
+;
+    }
 
   if (is_resource ($this->res))
     {
@@ -279,6 +284,15 @@ sql_get_rows ()
   return mysql_num_rows ($this->res);
 }
 
+
+function
+sql_get_table_rows ($table)
+{
+  $sql_query_s = 'SELECT COUNT(*) FROM '.$table.' WHERE 1';
+  $this->sql_write ($sql_query_s);
+  $a = $this->sql_read ();
+  return $a[0][0];
+}
 
 }
 

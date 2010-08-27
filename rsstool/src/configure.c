@@ -1,17 +1,18 @@
 #if 0
 #if 0
-#if 0 // configure - create config.mak and config.h
+#if 0                           // configure - create config.mak and config.h
 #if 0
-#if 0 // Copyright (c) 2005 NoisyB
+#if 0                           // Copyright (c) 2005 NoisyB
 #if 0
 #if 0
-gcc configure.c -o config.status && ./config.status && exit 0
-cc -DCOMPILER=cc configure.c -o config.status && ./config.status && exit 0
-g++ configure.c -o config.status && ./config.status && exit 0
-egcs configure.c -o config.status && ./config.status && exit 0
-c99 configure.c -o config.status && ./config.status && exit 0
-c89 configure.c -o config.status && ./config.status && exit 0
-echo "ERROR: could not find any C or C++ compiler" ; exit 0
+gcc configure.c - o config.status &&. / config.status && exit 0
+  cc - DCOMPILER = cc configure.c - o config.status &&. / config.status
+  && exit 0 g++ configure.c - o config.status &&. / config.status
+  && exit 0 egcs configure.c - o config.status &&. / config.status
+  && exit 0 c99 configure.c - o config.status &&. / config.status
+  && exit 0 c89 configure.c - o config.status &&. / config.status
+  && exit 0 echo "ERROR: could not find any C or C++ compiler";
+exit 0
 #endif
 #endif
 #endif
@@ -22,9 +23,7 @@ echo "ERROR: could not find any C or C++ compiler" ; exit 0
 #include <stdio.h>              // FILENAME_MAX, FILE
 #include <stdlib.h>             // getenv()
 #include <string.h>             // strncpy(), strchr()
-
-
-typedef struct
+  typedef struct
 {
   // search for any of these libs, headers or files
   // using find_lib() of find_header() and find_file()
@@ -343,8 +342,7 @@ main (int argc, char **argv)
         puts (c->failure);
     }
 
-  puts
-    ("\n");
+  puts ("\n");
 //    ("\nYou may edit config.mak and/or config.h by hand to disable features\n");
 
   return 0;

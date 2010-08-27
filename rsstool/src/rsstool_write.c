@@ -646,7 +646,7 @@ rsstool_write_ansisql (st_rsstool_t *rt)
          "--   `rsstool_desc` text NOT NULL,\n"
          "--   `rsstool_date` bigint(20) unsigned NOT NULL default '0',\n"
          "--   `rsstool_dl_date` bigint(20) unsigned NOT NULL default '0',\n"
-//         "--   `rsstool_keywords` text NOT NULL,\n"
+         "--   `rsstool_keywords` text NOT NULL,\n"
          "--   `rsstool_media_duration` bigint(20) unsigned NOT NULL default '0',\n"
          "--   UNIQUE KEY `rsstool_url_crc32` (`rsstool_url_crc32`),\n"
          "--   UNIQUE KEY `rsstool_url_md5` (`rsstool_url_md5`),\n"
@@ -675,7 +675,7 @@ rsstool_write_ansisql (st_rsstool_t *rt)
                " `rsstool_date`,"
                " `rsstool_title`, `rsstool_title_md5`, `rsstool_title_crc32`,"
                " `rsstool_desc`,"
-//               " `rsstool_keywords`,"
+               " `rsstool_keywords`,"
                " `rsstool_media_duration`"
                " ) VALUES ("
                " '%s', '%s', '%u',"
@@ -684,7 +684,7 @@ rsstool_write_ansisql (st_rsstool_t *rt)
                " '%ld',"
                " '%s', '%s', '%u',"
                " '%s',"
-//               " '%s',"
+               " '%s',"
                " '%d'"
               ");\n",
         sql_stresc (rt->item[i]->feed_url),
@@ -700,7 +700,7 @@ rsstool_write_ansisql (st_rsstool_t *rt)
         hash_get_s (title_h, HASH_MD5),
         hash_get_crc32 (title_h),
         sql_stresc (rt->item[i]->desc),
-//        sql_stresc (rt->item[i]->keywords),
+        sql_stresc (rt->item[i]->keywords),
         rt->item[i]->media_duration);
 
       fprintf (rsstool.output_file,
