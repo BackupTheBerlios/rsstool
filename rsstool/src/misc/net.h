@@ -33,7 +33,6 @@ extern "C" {
 #include <sys/socket.h>
 #endif
 
-
 /*
   Network functions
 
@@ -121,6 +120,7 @@ extern int net_select (st_net_t *n, int (* ping_func) (st_net_t *),
                                     int timeout);
 
 
+#ifdef  USE_HTTP
 /*
   HTTP header build and read/parse functions
 
@@ -180,12 +180,15 @@ extern const char *net_http_get_to_temp (const char *url_s, const char *user_age
                                   default: text/plain
 */
 extern const char *net_get_mime_type_by_suffix (const char *suffix);
+#endif  // USE_HTTP
 
 
 /*
   net_cgi()  common gateway interface
 */
+#ifdef  USE_CGI
 extern int net_cgi (st_http_header_t *h, const char *filename, void *response, int *response_len, int max_content_len);
+#endif  // USE_CGI
 
 
 #endif  // (defined USE_TCP || defined USE_UDP)

@@ -52,9 +52,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <arpa/inet.h>
 #endif
 
+#ifdef  USE_TCP
 #include "misc.h"
 #include "base64.h"
 #include "string.h"
+#endif
 #include "net.h"
 
 
@@ -501,7 +503,7 @@ net_quit (st_net_t *n)
     if (n->socket)
       {
         shutdown (n->socket, 2);
-        wait2 (100);
+//        wait2 (100);
         close (n->socket);
       }
 
@@ -514,7 +516,9 @@ net_quit (st_net_t *n)
 int
 net_open (st_net_t *n, const char *host_s, int port)
 {
+#ifdef  USE_TCP
   st_parse_url_t url;
+#endif
 //  int result; 
 //  struct sockaddr_in addr; 
   struct hostent *host;
@@ -524,6 +528,7 @@ net_open (st_net_t *n, const char *host_s, int port)
 //  struct timeval tv; 
 //  socklen_t lon; 
 
+#ifdef  USE_TCP
   parse_url (&url, host_s); // parse in case host is a url
 
   if (!port)
@@ -531,9 +536,16 @@ net_open (st_net_t *n, const char *host_s, int port)
                     
   if (!(host = gethostbyname (url.host)))
     return -1;
-
   // store host and port
-  strncpy (n->host, url.host, HOSTNAME_SIZE)[HOSTNAME_SIZE - 1] = 0;
+  if (n->flags & NET_TCP)
+    strncpy (n->host, url.host, HOSTNAME_SIZE)[HOSTNAME_SIZE - 1] = 0;
+  else
+#endif
+    {
+      strncpy (n->host, host_s, HOSTNAME_SIZE)[HOSTNAME_SIZE - 1] = 0;
+      if (!(host = gethostbyname (host_s)))
+        return -1;
+    }
   n->port = port;
 
   if (n->flags & NET_UDP)
@@ -833,6 +845,7 @@ net_sync (st_net_t *n)
 #endif
 
 
+#ifdef  USE_HTTP
 static void 
 net_http_get_header_normalize (st_http_header_t *h)
 {
@@ -1028,7 +1041,7 @@ net_build_http_request (char *http_header, const char *url_s, const char *user_a
   if (url.user && url.pass)
     {
       sprintf (buf, "%s:%s", url.user, url.pass);
-      sprintf (strchr (http_header, 0), "Authorization: Basic %s\r\n", base64_enc (buf, 0));
+      sprintf (strchr (http_header, 0), "Authorization: Basic %s\r\n", (char *) base64_enc (buf, 0));
     } 
 
   strcat (http_header, "\r\n");
@@ -1207,6 +1220,7 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
 
   return tname;
 }
+#endif  // USE_HTTP
 
 
 int
@@ -1527,6 +1541,7 @@ st_parse_url_t_sanity_check (st_parse_url_t *url)
 #endif
 
 
+#ifdef  USE_CGI
 int
 net_cgi (st_http_header_t *h, const char *filename, void *response, int *response_len, int max_content_len)
 {
@@ -1639,6 +1654,7 @@ _ENV["HTTP_REFERER"]	http://debian2/test/
 
   return 0;
 }
+#endif
 
 
 #ifdef  TEST

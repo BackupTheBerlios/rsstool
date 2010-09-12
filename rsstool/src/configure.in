@@ -371,8 +371,10 @@ st_configure_in_t configure_in[] = {
     {NULL},
     {"arpa/inet.h", "netdb.h", "netinet/in.h", "sys/file.h", "sys/socket.h", NULL},
     {NULL},
-    "USE_TCP=1\n",
-    "#define USE_TCP 1\n",
+    "USE_TCP=1\n"
+    "USE_HTTP=1\n",
+    "#define USE_TCP 1\n"
+    "#define USE_HTTP 1\n",
     "network support...................   yes",
     "network support...................   no\n"
     "*** could not find sys/socket.h and probably other files required for\n"

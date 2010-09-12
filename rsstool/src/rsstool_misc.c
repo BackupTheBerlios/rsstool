@@ -216,8 +216,10 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (site_s, site, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (title_s, title, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (desc_s, desc, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-#warning TODO: keywords
-  *keywords_s = 0;
+#warning TODO: keywords from title AND desc
+  strncpy (buf, desc_s, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+//  misc_get_keywords_html (keywords_s, buf, 0); // isalnum
+  *buf = 0;
 
   if (rsstool.strip_filter)
     {
