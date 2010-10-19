@@ -1199,6 +1199,10 @@ main (int argc, char **argv)
   char buf[MAXBUFSIZE];
   const char *b = "123(123.32.21.44)214";
   const char *s = "(xxx.xx.xx.xx)";
+  char *p = "aaaa bbbb cccc";
+
+  // test strfilter()
+  printf ("%d\n", strfilter (p, "+aaaa -bbbb OR cccc"));
 
   strcpy (buf, b);
 

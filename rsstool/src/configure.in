@@ -452,6 +452,7 @@ st_configure_in_t configure_in[] = {
     "libcurl support...................   yes",
     "libcurl support...................   no\n"
     "*** instead a internal http client will be used :(\n"
+    "*** better install libcurl development files and run this again\n"
   }, 
 #endif
 #if 0

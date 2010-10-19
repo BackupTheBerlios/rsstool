@@ -56,6 +56,10 @@ stresc ($s)
 function
 sql_open ($host /* = 'localhost' */ , $user, $password, $database, $memcache_expire = 0)
 {
+  // DEBUG
+//  print_r ($host.$database);
+//  exit;
+
   if ($this->conn)
     {
       mysql_close ($this->conn);

@@ -1154,6 +1154,8 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
           curl_easy_setopt (curl, CURLOPT_NOPROGRESS, 1);
         }
 
+      curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1); // follow redirects
+      curl_easy_setopt (curl, CURLOPT_MAXREDIRS, 10); 
       curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, curl_write_cb);
       curl_easy_setopt (curl, CURLOPT_WRITEDATA, tmp);
 

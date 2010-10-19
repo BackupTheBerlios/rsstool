@@ -250,8 +250,12 @@ sql_stresc (char *s)
          d = strchr (d, 0);
          break;
 
+       case 39:  // single quote is escaped with another single quote
+         sprintf (d, "'%c", *p);
+         d = strchr (d, 0);
+         break;
+
        case 34:  // quotes
-       case 39:  // single quotes
        case 92:  // backslash
          sprintf (d, "\\%c", *p);
          d = strchr (d, 0);
