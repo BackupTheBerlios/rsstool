@@ -37,6 +37,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define ATOM_V0_2_S "Atom v0.2"
 #define ATOM_V0_3_S "Atom v0.3"
 #define ATOM_V1_0_S "Atom v1.0"
+#define MRSS_V1_0_0_S "MRSS v1.0.0"
+#define MRSS_V1_1_0_S "MRSS v1.1.0"
+#define MRSS_V1_1_1_S "MRSS v1.1.1"
+#define MRSS_V1_1_2_S "MRSS v1.1.2"
+#define MRSS_V1_5_0_S "MRSS v1.5.0"
 
 
 #ifdef  DEBUG
@@ -104,10 +109,18 @@ static st_rss_version_t rss_version[] = {
   {RSS_V1_0,  RSS_V1_0_S,  "1.0"},
   {RSS_V2_0,  RSS_V2_0_S,  "2.0"},
   {RSS_V2_0,  RSS_V2_0_S,  "2"},
+
   {ATOM_V0_1, ATOM_V0_1_S, "0.1"},
   {ATOM_V0_2, ATOM_V0_2_S, "0.2"},
   {ATOM_V0_3, ATOM_V0_3_S, "0.3"},
   {ATOM_V1_0, ATOM_V1_0_S, "1.0"},
+
+// http://video.search.yahoo.com/mrss
+  {MRSS_V1_0_0, MRSS_V1_0_0_S, "1.0.0"},
+  {MRSS_V1_1_0, MRSS_V1_1_0_S, "1.1.0"},
+  {MRSS_V1_1_1, MRSS_V1_1_1_S, "1.1.1"},
+  {MRSS_V1_1_2, MRSS_V1_1_2_S, "1.1.2"},
+  {MRSS_V1_5_0, MRSS_V1_5_0_S, "1.5.0"},
   {0, NULL, NULL}
 };
 

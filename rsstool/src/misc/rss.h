@@ -35,10 +35,17 @@ enum {
   RSS_V0_94,
   RSS_V1_0,
   RSS_V2_0,
+
   ATOM_V0_1,
   ATOM_V0_2,
   ATOM_V0_3,
-  ATOM_V1_0
+  ATOM_V1_0,
+
+  MRSS_V1_0_0,
+  MRSS_V1_1_0,
+  MRSS_V1_1_1,
+  MRSS_V1_1_2,
+  MRSS_V1_5_0
 };
 
 

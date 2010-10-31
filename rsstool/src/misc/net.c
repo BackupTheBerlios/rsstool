@@ -120,7 +120,7 @@ static st_mime_entry_t enc_tab[] = {
 };
 
 
-static st_mime_entry_t typ_tab[] = {
+static st_mime_entry_t type_tab[] = {
   {"a", "application/octet-stream"},
   {"aab", "application/x-authorware-bin"},
   {"aam", "application/x-authorware-map"},
@@ -344,7 +344,7 @@ init_mime (void)
 
   /* Sort the tables so we can do binary search. */
   qsort (enc_tab, n_enc_tab, sizeof (*enc_tab), ext_compare);
-  qsort (typ_tab, n_typ_tab, sizeof (*typ_tab), ext_compare);
+  qsort (type_tab, n_type_tab, sizeof (*type_tab), ext_compare);
 
   /* Fill in the lengths. */
   for (i = 0; i < n_enc_tab; ++i)
@@ -352,10 +352,10 @@ init_mime (void)
       enc_tab[i].ext_len = strlen (enc_tab[i].ext);
       enc_tab[i].val_len = strlen (enc_tab[i].val);
     }
-  for (i = 0; i < n_typ_tab; ++i)
+  for (i = 0; i < n_type_tab; ++i)
     {
-      typ_tab[i].ext_len = strlen (typ_tab[i].ext);
-      typ_tab[i].val_len = strlen (typ_tab[i].val);
+      type_tab[i].ext_len = strlen (type_tab[i].ext);
+      type_tab[i].val_len = strlen (type_tab[i].val);
     }
 }
 
@@ -416,23 +416,23 @@ figure_mime (char *name, char *me, size_t me_size)
     }
 
   /* Binary search for a matching type extension. */
-  top = n_typ_tab - 1;
+  top = n_type_tab - 1;
   bot = 0;
   while (top >= bot)
     {
       mid = (top + bot) / 2;
-      r = strncasecmp (ext, typ_tab[mid].ext, ext_len);
+      r = strncasecmp (ext, type_tab[mid].ext, ext_len);
       if (r < 0)
         top = mid - 1;
       else if (r > 0)
         bot = mid + 1;
-      else if (ext_len < typ_tab[mid].ext_len)
+      else if (ext_len < type_tab[mid].ext_len)
         top = mid - 1;
-      else if (ext_len > typ_tab[mid].ext_len)
+      else if (ext_len > type_tab[mid].ext_len)
         bot = mid + 1;
       else
         {
-          type = typ_tab[mid].val;
+          type = type_tab[mid].val;
           goto done;
         }
     }
@@ -1153,6 +1153,9 @@ net_http_get_to_temp (const char *url_s, const char *user_agent, int flags)
           curl_easy_setopt (curl, CURLOPT_VERBOSE, 0);
           curl_easy_setopt (curl, CURLOPT_NOPROGRESS, 1);
         }
+
+      // allow ssl always
+      curl_easy_setopt (curl, CURLOPT_SSL_VERIFYPEER, 0);
 
       curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1); // follow redirects
       curl_easy_setopt (curl, CURLOPT_MAXREDIRS, 10); 

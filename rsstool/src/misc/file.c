@@ -709,7 +709,7 @@ fcopy (const char *source, size_t start, size_t len, const char *dest, const cha
 
 
 unsigned char *
-file_get_contents (const char *filename, int maxlength)
+file_get_contents (const char *filename, int *maxlength)
 {
   FILE *fh = NULL;
   unsigned char *p = NULL;
@@ -721,8 +721,8 @@ file_get_contents (const char *filename, int maxlength)
   if (len == 0)
     return (unsigned char *) "";
 
-  if (len > maxlength)
-    len = maxlength;  
+  if (len > *maxlength)
+    len = *maxlength;  
 
   if (!(fh = fopen (filename, "rb")))
     return NULL;
@@ -746,6 +746,7 @@ file_get_contents (const char *filename, int maxlength)
 
   fclose (fh);
 
+  *maxlength = len;
   return p;
 }
 
