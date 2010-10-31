@@ -1262,7 +1262,11 @@ net_bind (st_net_t *n, int port)
       if (bind (n->socket, (struct sockaddr *) &n->addr, n->addr_len) < 0)
 #endif
         {
+#ifdef  HAVE_ERRNO_H
           fprintf (stderr, "ERROR: net_bind(): socket binding failed (%s)\n", strerror (errno));
+#else
+          fprintf (stderr, "ERROR: net_bind(): socket binding failed\n");
+#endif
           fflush (stderr);
 
           close (n->socket);
@@ -1471,8 +1475,10 @@ net_select (st_net_t *n, int (* ping_func) (st_net_t *),
       result = select (n->socket + 1, &rd, 0, 0, &tv);
       if (result < 0)
         {
+#ifdef  HAVE_ERRNO_H
           if (errno == EINTR)
             continue;
+#endif
           // error on select()
           return -1;
         }
