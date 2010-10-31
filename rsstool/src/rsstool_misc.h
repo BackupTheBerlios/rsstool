@@ -54,6 +54,7 @@ extern int rsstool_add_item_s (st_rsstool_t *rt,
                                const char *url,
                                const char *title,
                                const char *desc,
+                               const char *keywords,
                                int media_duration);
 extern int rsstool_get_item_count (st_rsstool_t *rt);
 extern int rsstool_sort (st_rsstool_t * rt);

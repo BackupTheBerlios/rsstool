@@ -1,7 +1,7 @@
 /*
-rss.c - RSS and Atom parser and generator (using libxml2)
+rss.c - (M)RSS and Atom parser and generator (using libxml2)
 
-Copyright (c) 2006 NoisyB
+Copyright (c) 2006-2010 NoisyB
 
 
 This program is free software; you can redistribute it and/or modify
@@ -411,10 +411,10 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
               if (!pnode)
                 break;
 
-#ifdef  DEBUG
+//#ifdef  DEBUG
               printf ("%s\n", xml_get_name (pnode));
               fflush (stdout);
-#endif
+//#endif
 
               if (!strcasecmp (xml_get_name (pnode), "title"))
                 {
@@ -455,6 +455,16 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
                   found = 1;
                 }
+              else if (!strcasecmp (xml_get_name (pnode), "duration")) // HACK yt:duration
+                {
+                  p = (const char *) xml_get_value (pnode, "seconds");
+                  if (p)
+                    {
+                      item->media.duration = strtol (p, NULL, 10);
+                      found = 1;
+                      break;
+                    }
+                }
               else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
                 {
                   xml_node_t *tnode = xml_get_childnode (pnode); 
@@ -465,15 +475,39 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
 
                       if (!strcasecmp (xml_get_name (tnode), "content")) // media:content
                         {
-                          // <media:content ... medium="video" ... duration="12606" />
                           p = (const char *) xml_get_value (tnode, "duration");
                           if (p)
                             {
-                              item->media_duration = strtol (p, NULL, 10);
+                              item->media.duration = strtol (p, NULL, 10);
+                              found = 1;
+                              break;
+                            }
+                          p = (const char *) xml_get_value (tnode, "filesize");
+                          if (p)
+                            {
+                              item->media.filesize = strtol (p, NULL, 10);
+                              found = 1;
+                              break;
+                            }
+                          p = (const char *) xml_get_value (tnode, "width");
+                          if (p)
+                            {
+                              item->media.width = strtol (p, NULL, 10);
+                              found = 1;
+                              break;
+                            }
+                          p = (const char *) xml_get_value (tnode, "height");
+                          if (p)
+                            {
+                              item->media.height = strtol (p, NULL, 10);
                               found = 1;
                               break;
                             }
                         }
+//                      else if (!strcasecmp (xml_get_name (tnode), "keywords")) // media:keywords
+//                        {
+//                          rss_read_copy (item->media.keywords, doc, xml_get_childnode (tnode));
+//                        }
                       tnode = xml_get_nextnode (tnode);
                     }
                 }
@@ -626,6 +660,16 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
                   found = 1;
                 }
+              else if (!strcasecmp (xml_get_name (pnode), "duration")) // HACK yt:duration
+                {
+                  p = (const char *) xml_get_value (pnode, "seconds");
+                  if (p)
+                    {
+                      item->media.duration = strtol (p, NULL, 10);
+                      found = 1;
+                      break;
+                    }
+                }
               else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
                 {
                   xml_node_t *tnode = xml_get_childnode (pnode); 
@@ -636,19 +680,42 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
 
                       if (!strcasecmp (xml_get_name (tnode), "content")) // media:content
                         {
-                          // <media:content ... medium="video" ... duration="12606" />
                           p = (const char *) xml_get_value (tnode, "duration");
                           if (p)
                             {
-                              item->media_duration = strtol (p, NULL, 10);
+                              item->media.duration = strtol (p, NULL, 10);
+                              found = 1;
+                              break;
+                            }
+                          p = (const char *) xml_get_value (tnode, "filesize");
+                          if (p)
+                            {
+                              item->media.filesize = strtol (p, NULL, 10);
+                              found = 1;
+                              break;
+                            }
+                          p = (const char *) xml_get_value (tnode, "width");
+                          if (p)
+                            {
+                              item->media.width = strtol (p, NULL, 10);
+                              found = 1;
+                              break;
+                            }
+                          p = (const char *) xml_get_value (tnode, "height");
+                          if (p)
+                            {
+                              item->media.height = strtol (p, NULL, 10);
                               found = 1;
                               break;
                             }
                         }
+//                      else if (!strcasecmp (xml_get_name (tnode), "keywords")) // media:keywords
+//                        {
+//                          rss_read_copy (item->media.keywords, doc, xml_get_childnode (tnode));
+//                        }
                       tnode = xml_get_nextnode (tnode);
                     }
                 }
-
               pnode = xml_get_nextnode (pnode);
             }
 
@@ -858,10 +925,10 @@ rss_write (FILE *fp, st_rss_t *rss, int version)
       xmlTextWriterWriteElement (writer, BAD_CAST "pubDate", BAD_CAST buf);
 
       XMLPRINTF("\n      ");
-
-      xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_duration", "%d", rss->item[i].media_duration);
-
-      XMLPRINTF("\n    ");
+#warning proper MRSS output
+//      xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_duration", "%d", rss->item[i].media_duration);
+//
+//      XMLPRINTF("\n    ");
 
       xmlTextWriterEndElement (writer); // </item>
     }

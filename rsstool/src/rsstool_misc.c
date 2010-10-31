@@ -191,6 +191,7 @@ rsstool_add_item_s (st_rsstool_t *rt,
                     const char *url,
                     const char *title,
                     const char *desc,
+                    const char *keywords,
                     int media_duration)
 {
   int i = 0;
@@ -216,10 +217,17 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (site_s, site, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (title_s, title, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (desc_s, desc, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  if (keywords)
+    {
+      strncpy (keywords_s, keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+    }
+  else
+    {
 #warning TODO: keywords from title AND desc
-  strncpy (buf, desc_s, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-//  misc_get_keywords_html (keywords_s, buf, 0); // isalnum
-  *buf = 0;
+      strncpy (buf, desc_s, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+//      misc_get_keywords_html (keywords_s, buf, 0); // isalnum
+      *buf = 0;
+    }
 
   if (rsstool.strip_filter)
     {
@@ -311,7 +319,8 @@ rsstool_add_item (st_rsstool_t *rt, st_rss_t *rss, const char *feed_url)
                             rss->item[i].url,
                             rss->item[i].title,
                             rss->item[i].desc,
-                            rss->item[i].media_duration);
+                            rss->item[i].media.keywords,
+                            rss->item[i].media.duration);
 
   for (i = 0; i < rt->item_count; i++)
     rt->item[i]->version = rss->version;
@@ -392,6 +401,7 @@ a_pass (const char *s)
                       time (0),
                       p ? p : "",
                       p ? p : "",
+                      "",
                       "",
                       0
 );
