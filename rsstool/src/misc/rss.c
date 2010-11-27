@@ -411,10 +411,10 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
               if (!pnode)
                 break;
 
-//#ifdef  DEBUG
+#ifdef  DEBUG
               printf ("%s\n", xml_get_name (pnode));
               fflush (stdout);
-//#endif
+#endif
 
               if (!strcasecmp (xml_get_name (pnode), "title"))
                 {
