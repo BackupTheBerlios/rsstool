@@ -26,18 +26,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 /*
-  rsstool_write_property()  write feed contents as properties
-  rsstool_write_template()  write feed contents by replacing tags
-                              in a template file
-  rsstool_write_template2() write feed contents by replacing tags
-                              in a template file, once for each item
-  rsstool_write_txt()       write feed contents as txt
-  rsstool_write_href()      write feed contents as a list of URLs
-  rsstool_write_html()      write feed contents as html
-  rsstool_write_ansisql()   write feed contents as ANSI SQL script
-  rsstool_write_bookmarks() write feed contents as bookmarks.html
-  rsstool_write_csv()       write feed contents as CSV
-  rsstool_write_rss()       write feed contents as RSS feed
+  write feed contents...
+
+  rsstool_write_property()  as properties
+  rsstool_write_template()  by replacing tags in a template file
+  rsstool_write_template2() by replacing tags in a template file, once for each item
+  rsstool_write_txt()       as txt
+  rsstool_write_href()      as list of URLs
+  rsstool_write_html()      as html
+  rsstool_write_mediawiki() as XML for MediaWiki Import function
+  rsstool_write_ansisql()   as ANSI SQL script
+  rsstool_write_bookmarks() as bookmarks.html
+  rsstool_write_csv()       as CSV
+  rsstool_write_rss()       as RSS feed
 */
 extern int rsstool_write_property (st_rsstool_t *rsstool);
 extern int rsstool_write_template (st_rsstool_t *rsstool, const char *template_file);
@@ -45,6 +46,7 @@ extern int rsstool_write_template2 (st_rsstool_t *rt, const char *template_file)
 extern int rsstool_write_txt (st_rsstool_t *rsstool);
 extern int rsstool_write_href (st_rsstool_t *rsstool);
 extern int rsstool_write_html (st_rsstool_t *rsstool);
+extern int rsstool_write_mediawiki (st_rsstool_t *rsstool);
 extern int rsstool_write_ansisql (st_rsstool_t *rsstool);
 extern int rsstool_write_bookmarks (st_rsstool_t *rsstool);
 extern int rsstool_write_php (st_rsstool_t *rsstool);

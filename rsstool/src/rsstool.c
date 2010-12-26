@@ -332,6 +332,10 @@ main (int argc, char **argv)
                     "template for every single item"
     },
     {
+      "mediawiki", 0, 0, RSSTOOL_MEDIAWIKI,
+      NULL,   "output as XML for MediaWiki Import function"
+    },
+    {
       "sql", 0, 0, RSSTOOL_SQL,
       NULL,   "output as ANSI SQL script"
 #if 0
@@ -570,6 +574,10 @@ main (int argc, char **argv)
           rsstool.output = RSSTOOL_OUTPUT_RSS;
           break;
 
+        case RSSTOOL_MEDIAWIKI:
+          rsstool.output = RSSTOOL_OUTPUT_MEDIAWIKI;
+          break;
+
         case RSSTOOL_PROP:
           rsstool.output = RSSTOOL_OUTPUT_PROPERTY;
           rsstool.strip_html = 1;
@@ -765,6 +773,11 @@ main (int argc, char **argv)
 
         case RSSTOOL_OUTPUT_RSS:
           rsstool_write_rss (&rsstool, rsstool.rss_version);
+          break;
+
+        case RSSTOOL_OUTPUT_MEDIAWIKI:
+#warning TODO: turn one item or itemS into one page?
+          rsstool_write_mediawiki (&rsstool);
           break;
 
         case RSSTOOL_OUTPUT_TEMPLATE:

@@ -619,6 +619,77 @@ rsstool_write_rss (st_rsstool_t *rt, int version)
 
 
 int
+rsstool_write_mediawiki (st_rsstool_t *rt)
+{
+  char buf[MAXBUFSIZE];
+  int items = rsstool_get_item_count (rt);
+  int i = 0;
+
+  fprintf (rsstool.output_file,
+    "<mediawiki xmlns=\"http://www.mediawiki.org/xml/export-0.4/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.mediawiki.org/xml/export-0.4/ http://www.mediawiki.org/xml/export-0.4.xsd\" version=\"0.4\" xml:lang=\"en\">\n"
+    "  <siteinfo>\n"
+    "    <sitename>RSStool</sitename>\n"
+    "    <base>http://rsstool.sf.net</base>\n"
+    "    <generator>RSStool " RSSTOOL_VERSION_S "</generator>\n"
+    "    <case>first-letter</case>\n"
+    "    <namespaces>\n"
+//    "<namespace key=\"-2\" case=\"first-letter\">Media</namespace>\n"
+//    "<namespace key=\"-1\" case=\"first-letter\">Special</namespace>\n"
+//    "<namespace key=\"0\" case=\"first-letter\" />\n"
+//    "<namespace key=\"1\" case=\"first-letter\">Talk</namespace>\n"
+//    "<namespace key=\"2\" case=\"first-letter\">User</namespace>\n"
+//    "<namespace key=\"3\" case=\"first-letter\">User talk</namespace>\n"
+//    "<namespace key=\"4\" case=\"first-letter\">RSStool</namespace>\n"
+//    "<namespace key=\"5\" case=\"first-letter\">RSStool talk</namespace>\n"
+//    "<namespace key=\"6\" case=\"first-letter\">File</namespace>\n"
+//    "<namespace key=\"7\" case=\"first-letter\">File talk</namespace>\n"
+//    "<namespace key=\"8\" case=\"first-letter\">MediaWiki</namespace>\n"
+//    "<namespace key=\"9\" case=\"first-letter\">MediaWiki talk</namespace>\n"
+//    "<namespace key=\"10\" case=\"first-letter\">Template</namespace>\n"
+//    "<namespace key=\"11\" case=\"first-letter\">Template talk</namespace>\n"
+//    "<namespace key=\"12\" case=\"first-letter\">Help</namespace>\n"
+//    "<namespace key=\"13\" case=\"first-letter\">Help talk</namespace>\n"
+//    "<namespace key=\"14\" case=\"first-letter\">Category</namespace>\n"
+//    "<namespace key=\"15\" case=\"first-letter\">Category talk</namespace>\n"
+    "    </namespaces>\n"
+    "  </siteinfo>");
+
+  for (; i < items; i++)
+    {
+      strncpy (buf, rt->item[i]->desc, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+
+      fprintf (rsstool.output_file,
+        "  <page>\n"
+        "    <title>%s</title>\n"
+        "    <id>1</id>\n"
+        "    <revision>\n"
+        "      <id>1</id>\n"
+//        "      <timestamp>2010-12-28T08:00:19Z</timestamp>\n"
+        "      <timestamp>%s</timestamp>\n"
+        "      <contributor>\n"
+        "        <username>Admin</username>\n"
+        "        <id>1</id>\n"
+        "      </contributor>\n"
+        "      <text xml:space=\"preserve\">"
+        "%s"
+        "</text>\n"
+        "    </revision>\n"
+        "  </page>\n",
+        rt->item[i]->title,
+//        strftime (buf, MAXBUFSIZE, "%a, %d %b %Y %H:%M:%S %Z", localtime (rt->item[i]->date)),
+        "",
+        str_escape_html (buf)
+//        rt->item[i]->media_duration
+);
+    }
+
+  fprintf (rsstool.output_file, "</mediawiki>\n");
+
+  return 0;
+}
+
+
+int
 rsstool_write_ansisql (st_rsstool_t *rt)
 {
   st_hash_t *dl_url_h = NULL;
