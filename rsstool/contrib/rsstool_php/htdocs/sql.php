@@ -105,7 +105,11 @@ sql_read ($assoc = 0, $debug = 0)
 {
   if ($debug == 1)
     if ($this->res == TRUE)
-      echo 'result is TRUE but no resource';
+      {
+        echo 'result is TRUE';
+        if (!is_resource ($this->res))
+          echo 'but no resource';
+      }
 
   if (!is_resource ($this->res)) // either FALSE or just TRUE
     return NULL;  
