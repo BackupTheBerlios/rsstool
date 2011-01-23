@@ -926,9 +926,9 @@ rss_write (FILE *fp, st_rss_t *rss, int version)
 
       XMLPRINTF("\n      ");
 #warning proper MRSS output
-//      xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_duration", "%d", rss->item[i].media_duration);
-//
-//      XMLPRINTF("\n    ");
+      xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_duration", "%d", rss->item[i].media.duration);
+
+      XMLPRINTF("\n    ");
 
       xmlTextWriterEndElement (writer); // </item>
     }
