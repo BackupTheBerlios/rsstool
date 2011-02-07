@@ -87,7 +87,7 @@ static const char *
 strip_html_nopass (const char * s)
 {
   (void) s;
-  return "";
+  return " ";
 }
 
 
