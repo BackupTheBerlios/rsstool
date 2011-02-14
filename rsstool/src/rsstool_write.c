@@ -776,11 +776,12 @@ rsstool_write_ansisql (st_rsstool_t *rt)
 
       fprintf (rsstool.output_file,
                "-- just update if row exists\n"
-               "-- UPDATE `rsstool_table` SET "
+               "%sUPDATE `rsstool_table` SET "
                " `rsstool_title` = '%s', `rsstool_title_md5` = '%s', `rsstool_title_crc32` = %u,"
                " `rsstool_desc` = '%s'"
                " WHERE `rsstool_url_crc32` = %u"
                ";\n",
+        (rsstool.sql_update == 1 ? "" : "-- "),
         sql_stresc (rt->item[i]->title),
         hash_get_s (title_h, HASH_MD5),
         hash_get_crc32 (title_h),

@@ -347,6 +347,10 @@ main (int argc, char **argv)
 #endif
     },
     {
+      "sql-update", 0, 0, RSSTOOL_SQL_UPDATE,
+      NULL,   "update existing rows (requires " OPTION_LONG_S "sql)"
+    },
+    {
       "sqlold", 0, 0, RSSTOOL_SQLOLD,
       NULL,   NULL
     },
@@ -621,6 +625,10 @@ main (int argc, char **argv)
 
         case RSSTOOL_SQL:
           rsstool.output = RSSTOOL_OUTPUT_SQL;
+          break;
+
+        case RSSTOOL_SQL_UPDATE:
+          rsstool.sql_update = 1;
           break;
 
         case RSSTOOL_SQLOLD:

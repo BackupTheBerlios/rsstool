@@ -219,6 +219,25 @@ strcasestr2 (const char *str, const char *search)
   return (char *) memmem2 (str, strlen (str), search, strlen (search), MEMMEM2_CASE);
 }
 
+/*
+char *
+strrev (char *str)
+{
+  char *p1 = NULL, *p2 = NULL;
+
+  if (!str)
+    return str;
+  if (!*str)
+    return str;
+  for (p1 = str, p2 = str + strlen(str) - 1; p2 > p1; ++p1, --p2)
+    {
+      *p1 ^= *p2;
+      *p2 ^= *p1;
+      *p1 ^= *p2;
+    }
+  return str;
+}
+*/
 
 char *
 strrstr (char *str, const char *search)
