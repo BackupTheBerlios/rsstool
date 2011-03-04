@@ -332,10 +332,6 @@ main (int argc, char **argv)
                     "template for every single item"
     },
     {
-      "mediawiki", 0, 0, RSSTOOL_MEDIAWIKI,
-      NULL,   "output as XML for MediaWiki Import function"
-    },
-    {
       "sql", 0, 0, RSSTOOL_SQL,
       NULL,   "output as ANSI SQL script"
 #if 0
@@ -365,6 +361,10 @@ main (int argc, char **argv)
     {
       "dragonfly", 0, 0, RSSTOOL_DRAGONFLY,
       NULL,   "output as ANSI SQL script for import into Dragonfly CMS"
+    },
+    {
+      "mediawiki", 0, 0, RSSTOOL_MEDIAWIKI,
+      NULL,   "output as XML for MediaWiki Import function"
     },
     {
       NULL,       0, 0, 0,

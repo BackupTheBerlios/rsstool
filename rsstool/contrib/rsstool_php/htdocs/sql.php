@@ -227,7 +227,8 @@ sql_write ($sql_query_s, $unbuffered = 0, $debug = 0)
     }
   else
     {
-      $this->res = mysql_query ($sql_query_s, $this->conn);
+      $this->res = mysql_query ($sql_query_s,
+        $this->conn);
       $this->unbuffered = 0;
     }
 
