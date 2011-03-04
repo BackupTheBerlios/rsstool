@@ -394,7 +394,7 @@ const char *
 a_pass (const char *s)
 {
   const char *p = xml_tag_get_value (s, "href");
-
+#warning TODO: get a feed description from html
   rsstool_add_item_s (&rsstool,
                       "rsstool",
                       "--parse",  

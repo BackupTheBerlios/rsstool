@@ -96,6 +96,8 @@ extern const char *xml_xpath_once (const char *fname, const char *xpath_expr);
 extern xmlDocPtr xml_xpath_open (const char *fname);
 extern xmlDocPtr xml_xpath_string (const char *s);
 extern const char *xml_xpath (xmlDocPtr ctx, const char *xpath_expr);
+extern const char *xml_xpath_s (xmlDocPtr doc, const char *xpath_expr);
+extern int xml_xpath_int (xmlDocPtr doc, const char *xpath_expr);
 extern void xml_xpath_close (xmlDocPtr ctx);
 #endif
 

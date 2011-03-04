@@ -128,6 +128,30 @@ xml_xpath (xmlDocPtr doc, const char *xpath_expr)
 }
 
 
+const char *
+xml_xpath_s (xmlDocPtr doc, const char *xpath_expr)
+{
+  const char *p = xml_xpath (doc, xpath_expr);
+  if (p)
+    return p;
+ 
+  fprintf (stderr, "ERROR: %s not configured, aborting\n", xpath_expr);
+  fflush (stderr);
+
+  exit (0);
+}
+
+
+int
+xml_xpath_int (xmlDocPtr doc, const char *xpath_expr)
+{
+  const char *p = xml_xpath_s (doc, xpath_expr);
+  if (p)
+    return strtol (p, NULL, 10);
+  return 0;
+}
+
+
 void
 xml_xpath_close (xmlDocPtr doc)
 {
