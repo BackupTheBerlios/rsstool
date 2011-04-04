@@ -257,114 +257,16 @@ main (int argc, char **argv)
       "FILE",   "output into FILE (default: stdout)"
     },
     {
-      "pipe",       1, 0, RSSTOOL_PIPE,
-      "CMD",   "pipe the output for a _single_ item to CMD\n"
-               "for used with " OPTION_LONG_S "html, " OPTION_LONG_S "txt, " OPTION_LONG_S "href or " OPTION_LONG_S "template2, only"
-    },
-    {
       "rss",       2, 0, RSSTOOL_RSS,
       "VERSION",   "output as RSS feed\n"
                    "VERSION=1 will write RSS v1.0\n"
                    "VERSION=2 will write RSS v2.0 (default)"
     },
     {
-      "php",       0, 0, RSSTOOL_PHP,
-      NULL,   "output as PHP code (array ())"
-    },
-    {
-      "html",       0, 0, RSSTOOL_HTML,
-      NULL,   "output as html"
-    },
-    {
-      "bookmarks",       0, 0, RSSTOOL_BOOKMARKS,
-      NULL,   "output as bookmarks.html for use with Mozilla or Firefox"
-    },
-    {
-      "href", 0, 0, RSSTOOL_HREF,
-      NULL, "output only the links as plain text"
-    },
-    {
-      "txt",        0, 0, RSSTOOL_TXT,
-      NULL,   "output as plain text"
-    },
-    {
-      "csv",       2, 0, RSSTOOL_CSV,
-      "SEPARATOR",   "output as comma-separated values CSV"
-    },
-    {
-      "prop", 0, 0, RSSTOOL_PROP,
-      NULL,   "output as properties\n"
-                    "Layout: NAME_NUM=VALUE\n"
-                    "        NAME  will be \"title\", \"url\", etc..\n"
-                    "        NUM   will be an integer counting the items\n"
-                    "        VALUE will be the content"
-    },
-    {
-      "property",       2, 0, RSSTOOL_PROPERTY,
-      NULL, NULL
-    },
-    {
-      "template", 1, 0, RSSTOOL_TEMPLATE,
-      "FILE",   "parse template file and replace tags with content\n"  
-                    "Tags: \"<rsstool:url item=NUM>\"   url/link of item NUM\n"
-                    "      \"<rsstool:title item=NUM>\" title of item NUM\n"
-                    "      \"<rsstool:desc item=NUM>\"  description of item\n"
-                    "                                   NUM\n"
-                    "      \"<rsstool:date item=NUM>\"  date of item NUM\n"
-                    "      \"<rsstool:site item=NUM>\"  site where item NUM\n"
-                    "                                   came from\n"
-                    "      \"<rsstool:start item=NUM>\" start of item NUM\n"
-                    "                                   will be replaced with\n"
-                    "                                   \"<!--\" if item NUM is\n"
-                    "                                   empty\n"
-                    "      \"<rsstool:end item=NUM>\"   end of item NUM\n"
-                    "                                   will be replaced with\n"
-                    "                                   \"-->\" if item NUM is\n"
-                    "                                   empty\n"
-                    "      \"<rsstool:rsstool>\"        rsstool notice with\n"
-                    "                                   version\n"  
-                    "      \"<rsstool:updated>\"        rsstool notice with\n"
-                    "                                   version and date"
-    },
-    {
-      "template2", 1, 0, RSSTOOL_TEMPLATE2,
-      "FILE",   "same as " OPTION_LONG_S "template but repeats the whole\n"
-                    "template for every single item"
-    },
-    {
-      "sql", 0, 0, RSSTOOL_SQL,
-      NULL,   "output as ANSI SQL script"
-#if 0
-                 // deprecated
-                 "VALUE=092       RSStool 0.9.2 db format\n"
-                 "VALUE=094       RSStool 0.9.4 db format\n"
-                 "VALUE=095       RSStool 0.9.5 db format\n"
-                 "VALUE=\"current\" use current db format (default)"
-#endif
-    },
-    {
-      "sql-update", 0, 0, RSSTOOL_SQL_UPDATE,
-      NULL,   "update existing rows (requires " OPTION_LONG_S "sql)"
-    },
-    {
-      "sqlold", 0, 0, RSSTOOL_SQLOLD,
-      NULL,   NULL
-    },
-    {
-      NULL, 0, 0, 0,
-      NULL,   "\nDeprecated"
-    },
-    {
-      "joomla", 0, 0, RSSTOOL_JOOMLA,
-      NULL,   "output as ANSI SQL script for import into Joomla! CMS"
-    },
-    {
-      "dragonfly", 0, 0, RSSTOOL_DRAGONFLY,
-      NULL,   "output as ANSI SQL script for import into Dragonfly CMS"
-    },
-    {
-      "mediawiki", 0, 0, RSSTOOL_MEDIAWIKI,
-      NULL,   "output as XML for MediaWiki Import function"
+      "xml",       0, 0, RSSTOOL_XML,
+      NULL,   "output as normalized (proprietary) XML (default)\n"
+              "use the PHP and shell scripts that come with the rsstool\n"
+              "release for further processing"
     },
     {
       NULL,       0, 0, 0,
@@ -627,9 +529,9 @@ main (int argc, char **argv)
           rsstool.output = RSSTOOL_OUTPUT_SQL;
           break;
 
-        case RSSTOOL_SQL_UPDATE:
-          rsstool.sql_update = 1;
-          break;
+//        case RSSTOOL_SQL_UPDATE:
+//          rsstool.sql_update = 1;
+//          break;
 
         case RSSTOOL_SQLOLD:
           rsstool.output = RSSTOOL_OUTPUT_SQLOLD;
@@ -751,68 +653,12 @@ main (int argc, char **argv)
   if (rsstool.output)
     switch (rsstool.output)
       {
-        case RSSTOOL_OUTPUT_HTML:
-          rsstool_write_html (&rsstool);
-          break;
-
-        case RSSTOOL_OUTPUT_TXT:
-          rsstool_write_txt (&rsstool);
-          break;
-
-        case RSSTOOL_OUTPUT_HREF:
-          rsstool_write_href (&rsstool);
-          break;
-
-        case RSSTOOL_OUTPUT_SQL:
-          rsstool_write_ansisql (&rsstool);
-          break;
-
-        case RSSTOOL_OUTPUT_BOOKMARKS:
-          rsstool_write_bookmarks (&rsstool);
-          break;
-
-        case RSSTOOL_OUTPUT_CSV:
-          rsstool_write_csv (&rsstool, rsstool.csv_separator);
-          break;
-
-        case RSSTOOL_OUTPUT_PHP:
-          rsstool_write_php (&rsstool);
-          break;
-
         case RSSTOOL_OUTPUT_RSS:
           rsstool_write_rss (&rsstool, rsstool.rss_version);
           break;
 
-        case RSSTOOL_OUTPUT_MEDIAWIKI:
-#warning TODO: turn one item or itemS into one page?
-          rsstool_write_mediawiki (&rsstool);
-          break;
-
-        case RSSTOOL_OUTPUT_TEMPLATE:
-          if (*rsstool.template_file)
-            rsstool_write_template (&rsstool, rsstool.template_file);
-          else
-            fputs ("ERROR: no input template specified\n", stderr);
-          break;
-
-        case RSSTOOL_OUTPUT_TEMPLATE2:
-          if (*rsstool.template_file)
-            rsstool_write_template2 (&rsstool, rsstool.template_file);
-          else
-            fputs ("ERROR: no input template specified\n", stderr);
-          break;
-
-        case RSSTOOL_OUTPUT_PROPERTY:
-          rsstool_write_property (&rsstool);
-          break;
-
-        // deprecated
-        case RSSTOOL_OUTPUT_JOOMLA:
-          rsstool_write_ansisql_joomla (&rsstool);
-          break;
-
-        case RSSTOOL_OUTPUT_DRAGONFLY:
-          rsstool_write_ansisql_dragonfly (&rsstool);
+        case RSSTOOL_OUTPUT_XML:
+          rsstool_write_xml (&rsstool);
           break;
     }
  
