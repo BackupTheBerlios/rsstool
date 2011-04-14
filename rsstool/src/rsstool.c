@@ -59,12 +59,7 @@ rsstool_exit (void)
         }
     }
 
-  if (*(rsstool.pipe_command) && rsstool.output_file != stdout)
-    {
-      pclose (rsstool.output_file);
-      rsstool.output_file = NULL;
-    }
-  else if (rsstool.output_file != stdout && rsstool.output_file != stderr)
+  if (rsstool.output_file != stdout && rsstool.output_file != stderr)
     {
       fclose (rsstool.output_file);
       rsstool.output_file = NULL;
@@ -105,7 +100,7 @@ main (int argc, char **argv)
       NULL,      0, 0, 0, NULL,
       "rsstool " RSSTOOL_VERSION_S " " CURRENT_OS_S " 2006-2010 by NoisyB\n"
       "This may be freely redistributed under the terms of the GNU Public License\n\n"
-      "Usage: rsstool [OPTION] FILE(S)... URL(S)...\n"
+      "Usage: rsstool [OPTION] FILE(S)|URL(S)...\n"
     },
     {
       NULL,      0, 0, 0,
@@ -293,12 +288,11 @@ main (int argc, char **argv)
 
   atexit (rsstool_exit);
 
-  memset (&rsstool, 0, sizeof (st_rsstool_t));
   // defaults
+  memset (&rsstool, 0, sizeof (st_rsstool_t));
   strncpy (rsstool.user_agent, RSSTOOL_USER_AGENT_S, sizeof (rsstool.user_agent))[sizeof (rsstool.user_agent) - 1] = 0;
   rsstool.start_time = time (0);
   rsstool.output_file = stdout;
-  rsstool.csv_separator = ',';
   rsstool.timeout = 2; // default
 #ifdef  USE_CURL
 //  rsstool.get_flags = GET_NO_CURL; // curl is always the default
@@ -382,13 +376,6 @@ main (int argc, char **argv)
             }
           break;
 
-        case RSSTOOL_PIPE:
-          p = optarg;
-          rsstool.output_file = stdout; // default (changed later)
-          if (p)
-            strncpy (rsstool.pipe_command, p, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-          break;
-
 #ifdef  USE_ZLIB
         case RSSTOOL_GZIP:
           rsstool.get_flags |= GET_USE_GZIP;
@@ -438,10 +425,6 @@ main (int argc, char **argv)
             strncpy (rsstool.user_agent, p, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
           break;
 
-        case RSSTOOL_HTML:
-          rsstool.output = RSSTOOL_OUTPUT_HTML;
-          break;
-
         case RSSTOOL_RSS:
           rsstool.rss_version = 2;
           p = optarg;
@@ -455,7 +438,9 @@ main (int argc, char **argv)
           break;
 
         default:
-          fputs ("Try 'rsstool " OPTION_LONG_S "help' for more information\n\n", stderr);
+          fputs ("NOTE: some options have been deprecated\n\n"
+                 "rsstool writes XML which can be used with xml2file and other scripts\n\n"
+                 "Try 'rsstool " OPTION_LONG_S "help' for more information\n\n", stderr);
           exit (-1);
       }
 
