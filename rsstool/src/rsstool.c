@@ -442,36 +442,6 @@ main (int argc, char **argv)
           rsstool.output = RSSTOOL_OUTPUT_HTML;
           break;
 
-        case RSSTOOL_PHP:
-          rsstool.output = RSSTOOL_OUTPUT_PHP;
-          rsstool.strip_html = 1;
-          rsstool.strip_whitespace = 1;
-          rsstool.strip_lf = 1;
-          break;
-
-        case RSSTOOL_TXT:
-          rsstool.output = RSSTOOL_OUTPUT_TXT;
-          rsstool.strip_html = 1;
-          break;
-
-        case RSSTOOL_HREF:
-          rsstool.output = RSSTOOL_OUTPUT_HREF;
-          break;
-
-        case RSSTOOL_BOOKMARKS:
-          rsstool.output = RSSTOOL_OUTPUT_BOOKMARKS;
-          break;
-
-        case RSSTOOL_CSV:
-          rsstool.output = RSSTOOL_OUTPUT_CSV;
-          rsstool.strip_html = 1;
-          rsstool.strip_whitespace = 1;
-          rsstool.strip_lf = 1;
-          p = optarg;
-          if (p)   
-            rsstool.csv_separator = *p;
-          break;
-
         case RSSTOOL_RSS:
           rsstool.rss_version = 2;
           p = optarg;
@@ -480,69 +450,8 @@ main (int argc, char **argv)
           rsstool.output = RSSTOOL_OUTPUT_RSS;
           break;
 
-        case RSSTOOL_MEDIAWIKI:
-          rsstool.output = RSSTOOL_OUTPUT_MEDIAWIKI;
-          break;
-
-        case RSSTOOL_PROP:
-          rsstool.output = RSSTOOL_OUTPUT_PROPERTY;
-          rsstool.strip_html = 1;
-          rsstool.strip_whitespace = 1;
-          rsstool.strip_lf = 1;
-          break;
-
-        case RSSTOOL_PROPERTY:
-          fputs ("WARNING: " OPTION_LONG_S "property has bee deprecated; use " OPTION_LONG_S "prop and " OPTION_S "o instead\n", stderr);
-          break;
-
-        case RSSTOOL_TEMPLATE:
-          p = optarg;
-          if (p)
-            if (access (p, R_OK) != 0)
-              p = net_http_get_to_temp (p, rsstool.user_agent, rsstool.get_flags);
-
-          if (p)
-            {
-              rsstool.output = RSSTOOL_OUTPUT_TEMPLATE;
-              strncpy (rsstool.template_file, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
-            }
-          else
-            fputs ("ERROR: template not found\n", stderr);
-          break;
-
-        case RSSTOOL_TEMPLATE2:
-          p = optarg;
-          if (p)
-            if (access (p, R_OK) != 0)
-              p = net_http_get_to_temp (p, rsstool.user_agent, rsstool.get_flags);
-
-          if (p)
-            {
-              rsstool.output = RSSTOOL_OUTPUT_TEMPLATE2;
-              strncpy (rsstool.template_file, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
-            }
-          else
-            fputs ("ERROR: template not found\n", stderr);
-          break;
-
-        case RSSTOOL_SQL:
-          rsstool.output = RSSTOOL_OUTPUT_SQL;
-          break;
-
-//        case RSSTOOL_SQL_UPDATE:
-//          rsstool.sql_update = 1;
-//          break;
-
-        case RSSTOOL_SQLOLD:
-          rsstool.output = RSSTOOL_OUTPUT_SQLOLD;
-          break;
-
-        case RSSTOOL_JOOMLA:
-          rsstool.output = RSSTOOL_OUTPUT_JOOMLA;
-          break;
-
-        case RSSTOOL_DRAGONFLY:
-          rsstool.output = RSSTOOL_OUTPUT_DRAGONFLY;
+        case RSSTOOL_XML:
+          rsstool.output = RSSTOOL_OUTPUT_RSS;
           break;
 
         default:

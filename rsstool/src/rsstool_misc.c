@@ -191,14 +191,14 @@ rsstool_add_item_s (st_rsstool_t *rt,
                     const char *url,
                     const char *title,
                     const char *desc,
-                    const char *keywords,
+                    const char *media_keywords,
                     int media_duration)
 {
   int i = 0;
   char buf[MAXBUFSIZE];
   char site_s[RSSTOOL_MAXBUFSIZE],
        title_s[RSSTOOL_MAXBUFSIZE],
-       keywords_s[RSSTOOL_MAXBUFSIZE],
+       media_keywords_s[RSSTOOL_MAXBUFSIZE],
        desc_s[RSSTOOL_MAXBUFSIZE];
 
   if (rt->item_count == RSSTOOL_MAXITEM)
@@ -217,15 +217,15 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (site_s, site, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (title_s, title, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (desc_s, desc, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-  if (keywords)
+  if (media_keywords)
     {
-      strncpy (keywords_s, keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+      strncpy (media_keywords_s, media_keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
     }
   else
     {
-#warning TODO: keywords from title AND desc
+#warning TODO: media_keywords from title AND desc
       strncpy (buf, desc_s, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-//      misc_get_keywords_html (keywords_s, buf, 0); // isalnum
+//      misc_get_media_keywords_html (media_keywords_s, buf, 0); // isalnum
       *buf = 0;
     }
 
@@ -298,7 +298,7 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (rt->item[i]->url, url, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->title, title_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->desc, desc_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-  strncpy (rt->item[i]->keywords, keywords_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  strncpy (rt->item[i]->media_keywords, media_keywords_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   rt->item[i]->media_duration = media_duration;
 
   rt->item_count++;
