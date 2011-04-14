@@ -75,13 +75,13 @@ sql_open ($host /* = 'localhost' */ , $user, $password, $database, $memcache_exp
   if ($this->conn == FALSE)
     {
       echo mysql_error ();
-      return;
+      exit;
     }
 
   if (mysql_select_db ($database, $this->conn) == FALSE)
     {
       echo mysql_error ();
-      return;
+      exit;
     }
 
   // open memcache too
@@ -211,6 +211,11 @@ sql_write ($sql_query_s, $unbuffered = 0, $debug = 0)
 //      $this->res = NULL;
     }
 
+  if (!is_resource ($this->conn))
+    { 
+      exit;
+    }
+
   if ($this->memcache_expire > 0)
     {
       // data from the cache
@@ -227,8 +232,7 @@ sql_write ($sql_query_s, $unbuffered = 0, $debug = 0)
     }
   else
     {
-      $this->res = mysql_query ($sql_query_s,
-        $this->conn);
+      $this->res = mysql_query ($sql_query_s, $this->conn);
       $this->unbuffered = 0;
     }
 

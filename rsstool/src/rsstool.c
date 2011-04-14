@@ -190,7 +190,7 @@ main (int argc, char **argv)
 #endif
     {
       NULL, 0, 0, 0,
-      NULL,   "\nStrip & Sort"
+      NULL,   "\nStrip, Sort & Repair"
     },
     {
       "filter", 1, 0, RSSTOOL_FILTER,
@@ -200,7 +200,7 @@ main (int argc, char **argv)
                "no operator implies OR\n"
                "use this to remove items from the RSS feed before output\n"
                "(nested) parentheses are not supported\n"
-               "Example: --filter=\"+important -unimportant\""
+               "Example: --filter=\"+INCLUDE -EXCLUDE\""
     },
     {
       "shtml",        0, 0, RSSTOOL_SHTML,
