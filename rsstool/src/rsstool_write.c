@@ -418,7 +418,7 @@ rsstool_write_xml (st_rsstool_t *rt)
                "    <desc>%s</desc>\n"
                "    <media_keywords>%s</media_keywords>\n"
                "    <media_duration>%d</media_duration>\n"
-               "    <media_thumbnails>%s</media_thumbnail>\n"
+               "    <media_thumbnail>%s</media_thumbnail>\n"
                "    <media_image>%s</media_image>\n"
                "    <event_start>%u</event_start>\n"
                "    <event_len>%u</event_len>\n"
