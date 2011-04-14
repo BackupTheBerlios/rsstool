@@ -64,15 +64,12 @@ typedef struct
 
   int output;       // what kind of output
   FILE *output_file; // output pointer (default: stdout)
-//  char pipe_command[MAXBUFSIZE]; // name of command to pipe the output to,
                                  // empty string if --pipe not used
-//  int sql_update;   // update existing rows
   int nosort;         // sort?
   int reverse;      // sort reverse before output
   int rss_version;  // version of RSS
   time_t since;     // no feed items older than since
   int fixdate;
-//  int csv_separator;
 
   int strip_html;
   int strip_desc;
@@ -80,8 +77,6 @@ typedef struct
   int strip_whitespace;
   const char *strip_filter;
 
-//  char property[FILENAME_MAX];
-//  char template_file[FILENAME_MAX];
   char temp_file[FILENAME_MAX];
   FILE *input_file;
   FILE *log;

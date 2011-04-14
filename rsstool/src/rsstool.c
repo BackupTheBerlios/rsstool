@@ -98,7 +98,7 @@ main (int argc, char **argv)
   const st_getopt2_t options[] = {
     {
       NULL,      0, 0, 0, NULL,
-      "rsstool " RSSTOOL_VERSION_S " " CURRENT_OS_S " 2006-2010 by NoisyB\n"
+      "rsstool " RSSTOOL_VERSION_S " " CURRENT_OS_S " 2006-2011 by NoisyB\n"
       "This may be freely redistributed under the terms of the GNU Public License\n\n"
       "Usage: rsstool [OPTION] FILE(S)|URL(S)...\n"
     },
@@ -139,7 +139,7 @@ main (int argc, char **argv)
     },
     {
       "parse",   1, 0, RSSTOOL_PARSE,
-      "FILE|URL", "generate RSS feed from random HTML document"
+      "FILE|URL", "parse and structure non-RSS content (e.g. HTML document)"
     },
     {
       "log", 1, 0, RSSTOOL_LOG,
