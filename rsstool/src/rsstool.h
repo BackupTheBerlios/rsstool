@@ -40,14 +40,14 @@ typedef struct
 #warning fix media_duration
   int media_duration; //  default: 0
 #warning media_thumbnail
-  int media_thumbnail;
+  char media_thumbnail[FILENAME_MAX];
 #warning media_image
-  int media_image;
+  char media_image[FILENAME_MAX];
 
 #warning event_start
   int event_start;    // default: date
-#warning event_end
-  int event_end;  // default: event_start + media_duration
+#warning event_len
+  int event_len;  // default: event_start + media_duration
 
 //  int private;   // used by sort
 } st_rsstool_item_t;

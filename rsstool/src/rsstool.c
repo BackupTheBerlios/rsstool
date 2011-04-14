@@ -451,7 +451,7 @@ main (int argc, char **argv)
           break;
 
         case RSSTOOL_XML:
-          rsstool.output = RSSTOOL_OUTPUT_RSS;
+          rsstool.output = RSSTOOL_OUTPUT_XML;
           break;
 
         default:

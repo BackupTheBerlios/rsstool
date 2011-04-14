@@ -68,6 +68,68 @@ rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rt)
 #endif
 
 
+static unsigned long int
+rsstool_get_event_start (const char *s)
+{
+  const char *p = NULL;
+
+  // HACK: gamescast
+// make sure that &tz=0
+// http://www.gamescast.tv/rss/rss-events.php?game=ql&tz=0
+//Begins: 12/05 7:00pm,
+//Ends: 12/05 9:00pm,
+//Show Type: Podcast,
+//Game Featured: StarCraft 2
+
+  p = strstr (s, "Begins: ");
+  if (!p)
+    return 0;
+  p += 8;
+#if 0
+  $p = substr ($p, 0, strpos ($p, ','));
+  $start = $p.' -0000';
+  $p = substr ($s, strpos ($s, 'Ends: ') + 6);
+  $p = substr ($p, 0, strpos ($p, ','));
+  $end = $p.' -0000';
+//echo $start;
+//echo $end;
+  $p = "%m/%d %l:%M%p %z";
+//echo $p;
+  $t = array ();
+//  if (function_exists ('date_parse_from_format'))
+//    $func = 'date_parse_from_format';
+//  else
+    $func = 'strptime';
+
+  $tz = date_default_timezone_get ();
+  date_default_timezone_set ('UTC');
+  $t[0] = $func (trim ($start), $p);
+  $start = mktime ($t[0]['tm_hour'],
+                   $t[0]['tm_min'],
+                   $t[0]['tm_sec'],
+                   $t[0]['tm_mon'] + 1,
+                   $t[0]['tm_mday']);
+  $t[1] = $func (trim ($end), $p);
+  $end = mktime ($t[1]['tm_hour'],
+                 $t[1]['tm_min'],
+                 $t[1]['tm_sec'],
+                 $t[1]['tm_mon'] + 1,
+                 $t[1]['tm_mday']);
+  date_default_timezone_set ($tz);
+
+  return array ($start, $end);
+#endif
+  return 0;
+}
+
+
+static unsigned long int
+rsstool_get_event_len (const char  *s)
+{
+  return 0;
+}
+
+
 static const char *
 strip_html_pass (const char * s)
 {
@@ -200,6 +262,8 @@ rsstool_add_item_s (st_rsstool_t *rt,
        title_s[RSSTOOL_MAXBUFSIZE],
        media_keywords_s[RSSTOOL_MAXBUFSIZE],
        desc_s[RSSTOOL_MAXBUFSIZE];
+  unsigned long int event_start = date,
+                    event_len = 0;
 
   if (rt->item_count == RSSTOOL_MAXITEM)
     {
@@ -228,6 +292,8 @@ rsstool_add_item_s (st_rsstool_t *rt,
 //      misc_get_media_keywords_html (media_keywords_s, buf, 0); // isalnum
       *buf = 0;
     }
+  event_start = rsstool_get_event_start (desc_s);
+  event_len = rsstool_get_event_len (desc_s);
 
   if (rsstool.strip_filter)
     {
@@ -300,6 +366,8 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (rt->item[i]->desc, desc_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->media_keywords, media_keywords_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   rt->item[i]->media_duration = media_duration;
+  rt->item[i]->event_start = event_start;
+  rt->item[i]->event_len = event_len;
 
   rt->item_count++;
 

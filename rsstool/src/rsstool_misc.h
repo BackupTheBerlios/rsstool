@@ -27,6 +27,11 @@ extern void rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rsstool);
 #endif
 
 
+// parse start and length of an event from string
+//extern unsigned long int rsstool_get_event_start (const char *s);
+//extern unsigned long int rsstool_get_event_len (const char *s);
+
+
 /*
   Miscellaneous functions
 
