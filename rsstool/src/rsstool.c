@@ -256,6 +256,8 @@ main (int argc, char **argv)
       "VERSION",   "output as RSS feed\n"
                    "VERSION=1 will write RSS v1.0\n"
                    "VERSION=2 will write RSS v2.0 (default)"
+//                   "\n"
+//                   "VERSION=3 will write MRSS\n"
     },
     {
       "xml",       0, 0, RSSTOOL_XML,

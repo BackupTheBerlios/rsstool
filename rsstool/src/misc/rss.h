@@ -23,7 +23,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 #define RSSMAXITEM 512
-#define RSSMAXBUFSIZE 4096
+#define RSSMAXBUFSIZE 1024
 
 
 // version id's
@@ -165,7 +165,9 @@ typedef struct
   int filesize;
   int width;
   int height;
-  const char *keywords;
+  char keywords[RSSMAXBUFSIZE];
+//  char image[RSSMAXBUFSIZE];
+  char thumbnail[RSSMAXBUFSIZE];
 } st_mrss_item_t;
 
 
@@ -174,6 +176,7 @@ typedef struct
   char title[RSSMAXBUFSIZE];
   char url[RSSMAXBUFSIZE];
   char desc[RSSMAXBUFSIZE];
+  char user[RSSMAXBUFSIZE];
   time_t date;
   st_mrss_item_t media;
 } st_rss_item_t;

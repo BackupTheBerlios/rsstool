@@ -30,24 +30,17 @@ typedef struct
   char url[RSSTOOL_MAXBUFSIZE];
   char title[RSSTOOL_MAXBUFSIZE]; // used by searches for related items
   char desc[RSSTOOL_MAXBUFSIZE];
-#warning user/author
   char user[RSSTOOL_MAXBUFSIZE];
   char site[RSSTOOL_MAXBUFSIZE];
   char feed_url[RSSTOOL_MAXBUFSIZE];
 
-#warning media_keywords
   char media_keywords[RSSTOOL_MAXBUFSIZE]; // default: keywords from title and description
-#warning fix media_duration
   int media_duration; //  default: 0
-#warning media_thumbnail
   char media_thumbnail[FILENAME_MAX];
-#warning media_image
-  char media_image[FILENAME_MAX];
+//  char media_image[FILENAME_MAX];
 
-#warning event_start
-  int event_start;    // default: date
-#warning event_len
-  int event_len;  // default: event_start + media_duration
+//  int event_start;    // default: date
+//  int event_len;  // default: event_start + media_duration
 
 //  int private;   // used by sort
 } st_rsstool_item_t;

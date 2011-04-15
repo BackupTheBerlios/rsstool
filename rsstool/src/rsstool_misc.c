@@ -71,54 +71,6 @@ rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rt)
 static unsigned long int
 rsstool_get_event_start (const char *s)
 {
-  const char *p = NULL;
-
-  // HACK: gamescast
-// make sure that &tz=0
-// http://www.gamescast.tv/rss/rss-events.php?game=ql&tz=0
-//Begins: 12/05 7:00pm,
-//Ends: 12/05 9:00pm,
-//Show Type: Podcast,
-//Game Featured: StarCraft 2
-
-  p = strstr (s, "Begins: ");
-  if (!p)
-    return 0;
-  p += 8;
-#if 0
-  $p = substr ($p, 0, strpos ($p, ','));
-  $start = $p.' -0000';
-  $p = substr ($s, strpos ($s, 'Ends: ') + 6);
-  $p = substr ($p, 0, strpos ($p, ','));
-  $end = $p.' -0000';
-//echo $start;
-//echo $end;
-  $p = "%m/%d %l:%M%p %z";
-//echo $p;
-  $t = array ();
-//  if (function_exists ('date_parse_from_format'))
-//    $func = 'date_parse_from_format';
-//  else
-    $func = 'strptime';
-
-  $tz = date_default_timezone_get ();
-  date_default_timezone_set ('UTC');
-  $t[0] = $func (trim ($start), $p);
-  $start = mktime ($t[0]['tm_hour'],
-                   $t[0]['tm_min'],
-                   $t[0]['tm_sec'],
-                   $t[0]['tm_mon'] + 1,
-                   $t[0]['tm_mday']);
-  $t[1] = $func (trim ($end), $p);
-  $end = mktime ($t[1]['tm_hour'],
-                 $t[1]['tm_min'],
-                 $t[1]['tm_sec'],
-                 $t[1]['tm_mon'] + 1,
-                 $t[1]['tm_mday']);
-  date_default_timezone_set ($tz);
-
-  return array ($start, $end);
-#endif
   return 0;
 }
 
@@ -253,14 +205,18 @@ rsstool_add_item_s (st_rsstool_t *rt,
                     const char *url,
                     const char *title,
                     const char *desc,
+                    const char *user,
                     const char *media_keywords,
+                    const char *media_thumbnail,
                     int media_duration)
 {
   int i = 0;
   char buf[MAXBUFSIZE];
   char site_s[RSSTOOL_MAXBUFSIZE],
        title_s[RSSTOOL_MAXBUFSIZE],
+       user_s[RSSTOOL_MAXBUFSIZE],
        media_keywords_s[RSSTOOL_MAXBUFSIZE],
+       media_thumbnail_s[RSSTOOL_MAXBUFSIZE],
        desc_s[RSSTOOL_MAXBUFSIZE];
   unsigned long int event_start = date,
                     event_len = 0;
@@ -281,10 +237,12 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (site_s, site, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (title_s, title, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (desc_s, desc, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  if (user)
+    strncpy (user_s, user, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  if (media_thumbnail)
+    strncpy (media_thumbnail_s, media_thumbnail, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   if (media_keywords)
-    {
-      strncpy (media_keywords_s, media_keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-    }
+    strncpy (media_keywords_s, media_keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   else
     {
 #warning TODO: media_keywords from title AND desc
@@ -364,10 +322,12 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (rt->item[i]->url, url, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->title, title_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->desc, desc_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  strncpy (rt->item[i]->user, user_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->media_keywords, media_keywords_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  strncpy (rt->item[i]->media_thumbnail, media_thumbnail_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   rt->item[i]->media_duration = media_duration;
-  rt->item[i]->event_start = event_start;
-  rt->item[i]->event_len = event_len;
+//  rt->item[i]->event_start = event_start;
+//  rt->item[i]->event_len = event_len;
 
   rt->item_count++;
 
@@ -387,7 +347,9 @@ rsstool_add_item (st_rsstool_t *rt, st_rss_t *rss, const char *feed_url)
                             rss->item[i].url,
                             rss->item[i].title,
                             rss->item[i].desc,
+                            rss->item[i].user,
                             rss->item[i].media.keywords,
+                            rss->item[i].media.thumbnail,
                             rss->item[i].media.duration);
 
   for (i = 0; i < rt->item_count; i++)
@@ -469,6 +431,8 @@ a_pass (const char *s)
                       time (0),
                       p ? p : "",
                       p ? p : "",
+                      "",
+                      "",
                       "",
                       "",
                       0

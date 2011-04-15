@@ -309,7 +309,6 @@ rss_read_copy (char *d, xml_doc_t* doc, xml_node_t* n)
 }
 
 
-
 static st_rss_t *
 rss_open_rss (st_rss_t *rss, const char *encoding)
 {
@@ -464,7 +463,7 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                     {
                       item->media.duration = strtol (p, NULL, 10);
                       found = 1;
-                      break;
+//                      break;
                     }
                 }
 //              else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
@@ -484,34 +483,35 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                             {
                               item->media.duration = strtol (p, NULL, 10);
                               found = 1;
-                              break;
+//                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "filesize");
                           if (p)
                             {
                               item->media.filesize = strtol (p, NULL, 10);
                               found = 1;
-                              break;
+//                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "width");
                           if (p)
                             {
                               item->media.width = strtol (p, NULL, 10);
                               found = 1;
-                              break;
+//                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "height");
                           if (p)
                             {
                               item->media.height = strtol (p, NULL, 10);
                               found = 1;
-                              break;
+//                              break;
                             }
                         }
 //                      else if (!strcasecmp (xml_get_name (tnode), "keywords")) // media:keywords
-//                        {
-//                          rss_read_copy (item->media.keywords, doc, xml_get_childnode (tnode));
-//                        }
+                      else if (stristr (xml_get_name (tnode), "keywords")) // media:keywords
+                        {
+                          rss_read_copy (item->media.keywords, doc, xml_get_childnode (tnode));
+                        }
                       tnode = xml_get_nextnode (tnode);
                     }
                 }
@@ -658,6 +658,13 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                   rss_read_copy (item->desc, doc, xml_get_childnode (pnode));
                   found = 1;
                 }
+              else if (!strcasecmp (xml_get_name (pnode), "author"))
+                {
+                  xml_node_t *tnode = xml_get_childnode (pnode); 
+                  if (!strcasecmp (xml_get_name (tnode), "name"))
+                    rss_read_copy (item->user, doc, xml_get_childnode (tnode));
+                  found = 1;
+                }
               else if (!strcasecmp (xml_get_name (pnode), "modified") ||
                        !strcasecmp (xml_get_name (pnode), "updated"))
                 { 
@@ -672,7 +679,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                     {
                       item->media.duration = strtol (p, NULL, 10);
                       found = 1;
-                      break;
+//                      break;
                     }
                 }
 //              else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
@@ -692,34 +699,47 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                             {
                               item->media.duration = strtol (p, NULL, 10);
                               found = 1;
-                              break;
+//                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "filesize");
                           if (p)
                             {
                               item->media.filesize = strtol (p, NULL, 10);
                               found = 1;
-                              break;
+//                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "width");
                           if (p)
                             {
                               item->media.width = strtol (p, NULL, 10);
                               found = 1;
-                              break;
+//                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "height");
                           if (p)
                             {
                               item->media.height = strtol (p, NULL, 10);
                               found = 1;
-                              break;
+//                              break;
                             }
                         }
 //                      else if (!strcasecmp (xml_get_name (tnode), "keywords")) // media:keywords
-//                        {
-//                          rss_read_copy (item->media.keywords, doc, xml_get_childnode (tnode));
-//                        }
+                      else if (stristr (xml_get_name (tnode), "keywords")) // media:keywords
+                        {
+                          rss_read_copy (item->media.keywords, doc, xml_get_childnode (tnode));
+                        }
+//                      else if (!strcasecmp (xml_get_name (tnode), "thumbnail")) // media:thumbnail
+                      else if (stristr (xml_get_name (tnode), "thumbnail")) // media:thumbnail
+                        {
+                          p = (const char *) xml_get_value (tnode, "url");
+                          if (p)
+                            if (!(item->media.thumbnail[0]))
+                            {
+                              strncpy (item->media.thumbnail, p, RSSMAXBUFSIZE)[RSSMAXBUFSIZE-1] = 0;
+                              found = 1;
+//                              break;  
+                            }
+                        }
                       tnode = xml_get_nextnode (tnode);
                     }
                 }
