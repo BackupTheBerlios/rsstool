@@ -71,6 +71,7 @@ rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rt)
 static unsigned long int
 rsstool_get_event_start (const char *s)
 {
+  (void) s;
   return 0;
 }
 
@@ -78,6 +79,7 @@ rsstool_get_event_start (const char *s)
 static unsigned long int
 rsstool_get_event_len (const char  *s)
 {
+  (void) s;
   return 0;
 }
 

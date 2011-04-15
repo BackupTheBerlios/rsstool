@@ -104,8 +104,11 @@ main (int argc, char **argv)
     },
     {
       NULL,      0, 0, 0,
-      NULL,   "Read, parse, merge and write RSS and Atom feeds\n"
-              "\nSupports: RSS 0.9x, 1.0, 2.0 and Atom 0.1, 0.2, 0.3, 1.0\n"
+      NULL,   "Read, parse, merge and write (M)RSS and Atom feeds\n"
+              "\n"
+              "Supports: RSS 0.9x, 1.0, 2.0\n"
+              "          Atom 0.1, 0.2, 0.3, 1.0\n"
+              "          MRSS 1.0, 1.1.x, 1.5.0\n"
               "\nThe RSS or Atom feeds will be merged and re-sorted if you enter more than\n"
               "one URL or FILEname\n"
     },
