@@ -23,6 +23,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <time.h>
 #include <stdlib.h>
 #include "misc.h"
+#include "string.h"
 #include "xml.h"
 #include "rss.h"
 
@@ -455,7 +456,8 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
                   found = 1;
                 }
-              else if (!strcasecmp (xml_get_name (pnode), "duration")) // HACK yt:duration
+//              else if (!strcasecmp (xml_get_name (pnode), "duration")) // HACK yt:duration
+              else if (stristr (xml_get_name (pnode), "duration")) // HACK yt:duration
                 {
                   p = (const char *) xml_get_value (pnode, "seconds");
                   if (p)
@@ -465,7 +467,8 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                       break;
                     }
                 }
-              else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
+//              else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
+              else if (stristr (xml_get_name (pnode), "group")) // media:group
                 {
                   xml_node_t *tnode = xml_get_childnode (pnode); 
                   while (tnode)
@@ -473,7 +476,8 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                       if (!tnode)
                         break;
 
-                      if (!strcasecmp (xml_get_name (tnode), "content")) // media:content
+//                      if (!strcasecmp (xml_get_name (tnode), "content")) // media:content
+                      if (stristr (xml_get_name (tnode), "content")) // media:content
                         {
                           p = (const char *) xml_get_value (tnode, "duration");
                           if (p)
@@ -660,7 +664,8 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
                   found = 1;
                 }
-              else if (!strcasecmp (xml_get_name (pnode), "duration")) // HACK yt:duration
+//              else if (!strcasecmp (xml_get_name (pnode), "duration")) // HACK yt:duration
+              else if (stristr (xml_get_name (pnode), "duration")) // HACK yt:duration
                 {
                   p = (const char *) xml_get_value (pnode, "seconds");
                   if (p)
@@ -670,7 +675,8 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                       break;
                     }
                 }
-              else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
+//              else if (!strcasecmp (xml_get_name (pnode), "group")) // media:group
+              else if (stristr (xml_get_name (pnode), "group")) // media:group
                 {
                   xml_node_t *tnode = xml_get_childnode (pnode); 
                   while (tnode)
@@ -678,7 +684,8 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                       if (!tnode)
                         break;
 
-                      if (!strcasecmp (xml_get_name (tnode), "content")) // media:content
+//                      if (!strcasecmp (xml_get_name (tnode), "content")) // media:content
+                      if (stristr (xml_get_name (tnode), "content")) // media:content
                         {
                           p = (const char *) xml_get_value (tnode, "duration");
                           if (p)
