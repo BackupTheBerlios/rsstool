@@ -1,10 +1,10 @@
 <html><head>
 <link rel="icon" href="images/icon.png" type="image/png">
 <title>RSStool - README</title></head><body bgcolor="#ffffff"><pre><tt>
-rsstool 1.0.1rc1 Unix (Linux) 2006-2010 by NoisyB
+rsstool 1.0.2 Unix (Linux) 2006-2011 by NoisyB
 This may be freely redistributed under the terms of the GNU Public License
 
-Usage: rsstool [OPTION] FILE(S)... URL(S)...
+Usage: rsstool [OPTION] FILE(S)|URL(S)...
 
 Read, parse, merge and write RSS and Atom feeds
 
@@ -17,7 +17,7 @@ Options
    -u=AGENT     use user-AGENT for connecting
   --input-file=FILE download feeds found in FILE
    -i=FILE      same as --input-file
-  --parse=FILE|URL generate RSS feed from random HTML document
+  --parse=FILE|URL parse and structure non-RSS content (e.g. HTML document)
   --log=FILE    write a log to FILE (including HTTP headers)
   --since=DATE  pass only items (of feeds) newer than DATE
                   DATE can have the following formats
@@ -29,14 +29,14 @@ Options
   --version     output version information and exit
   --help        display this help and exit
 
-Strip & Sort
+Strip, Sort & Repair
   --filter=LOGIC sometimes referred to as implied Boolean LOGIC, in which
                   + stands for AND
                   - stands for NOT
                   no operator implies OR
                   use this to remove items from the RSS feed before output
                   (nested) parentheses are not supported
-                  Example: --filter="+important -unimportant"
+                  Example: --filter="+INCLUDE -EXCLUDE"
   --shtml       strip HTML code from descriptions
   --shtml2      like --shtml but keeps links intact
   --swhite      strip whitespace from descriptions
@@ -47,49 +47,12 @@ Strip & Sort
 
 Output
    -o=FILE      output into FILE (default: stdout)
-  --pipe=CMD    pipe the output for a _single_ item to CMD
-                  for used with --html, --txt, --href or --template2, only
   --rss[=VERSION] output as RSS feed
                   VERSION=1 will write RSS v1.0
                   VERSION=2 will write RSS v2.0 (default)
-  --php         output as PHP code (array ())
-  --html        output as html
-  --bookmarks   output as bookmarks.html for use with Mozilla or Firefox
-  --href        output only the links as plain text
-  --txt         output as plain text
-  --csv[=SEPARATOR] output as comma-separated values CSV
-  --prop        output as properties
-                  Layout: NAME_NUM=VALUE
-                          NAME  will be "title", "url", etc..
-                          NUM   will be an integer counting the items
-                          VALUE will be the content
-  --template=FILE parse template file and replace tags with content
-                  Tags: "<rsstool:url item=NUM>"   url/link of item NUM
-                        "<rsstool:title item=NUM>" title of item NUM
-                        "<rsstool:desc item=NUM>"  description of item
-                                                     NUM
-                        "<rsstool:date item=NUM>"  date of item NUM
-                        "<rsstool:site item=NUM>"  site where item NUM
-                                                     came from
-                        "<rsstool:start item=NUM>" start of item NUM
-                                                     will be replaced with
-                                                     "<!--" if item NUM is
-                                                     empty
-                        "<rsstool:end item=NUM>"   end of item NUM
-                                                     will be replaced with
-                                                     "-->" if item NUM is
-                                                     empty
-                        "<rsstool:rsstool>"        rsstool notice with
-                                                     version
-                        "<rsstool:updated>"        rsstool notice with
-                                                     version and date
-  --template2=FILE same as --template but repeats the whole
-                  template for every single item
-  --sql         output as ANSI SQL script
-
-Deprecated
-  --joomla      output as ANSI SQL script for import into Joomla! CMS
-  --dragonfly   output as ANSI SQL script for import into Dragonfly CMS
+  --xml         output as normalized (proprietary) XML (default)
+                  use the PHP and shell scripts that come with the rsstool
+                  release for further processing
 
 Report problems/comments/ideas/whinge to noisyb@gmx.net
 

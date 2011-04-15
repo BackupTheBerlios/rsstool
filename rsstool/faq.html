@@ -28,7 +28,8 @@ First you need to create a database (with phpMyAdmin for example)
 
 Entering (in the cmdline):
 
-rsstool -sql rss.slashdot.org/slashdot/slashdot
+rsstool -xml rss.slashdot.org/slashdot/slashdot -o ./temp.xml
+xml2file/xml2sql.php ./temp.xml
 
 ...will create a ANSI SQL script that starts like this:
 
@@ -67,7 +68,8 @@ on duplicate RSS feeds.
 
 When that worked for you (if not send me a mail), you can enter
 
-rsstool -sql rss.slashdot.org/slashdot/slashdot | mysql -f -u root -p rssdb
+rsstool -xml rss.slashdot.org/slashdot/slashdot -o ./temp.xml
+xml2file/xml2sql.php ./temp.xml | mysql -f -u root -p rssdb
 
 and the feeds will be in your database afterwards.
 
@@ -80,13 +82,13 @@ have these packages).
 
 Then start rsstool with:
 
-proxychains rsstool -sql rss.slashdot.org/slashdot/slashdot
+proxychains rsstool -xml rss.slashdot.org/slashdot/slashdot
 
 and you can download the RSS feed a gazillion times (if you're an ass) from sites
 with controlfreaks as admins. Please keep in mind that tor "leaks" when it does
 DNS requests. So entering:
 
-proxychains rsstool -sql 66.150.96.111/slashdot/slashdot
+proxychains rsstool -xml 66.150.96.111/slashdot/slashdot
 
 ...could fix that leakage problem.
 
