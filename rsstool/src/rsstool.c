@@ -261,9 +261,7 @@ main (int argc, char **argv)
     },
     {
       "xml",       0, 0, RSSTOOL_XML,
-      NULL,   "output as normalized (proprietary) XML (default)\n"
-              "use the PHP and shell scripts that come with the rsstool\n"
-              "release for further processing"
+      NULL,   "output as normalized (proprietary) XML"
     },
     {
       NULL,       0, 0, 0,
