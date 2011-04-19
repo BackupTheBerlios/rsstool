@@ -29,7 +29,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   rsstool_write_rss()       as RSS feed
 */
 extern int rsstool_write_xml (st_rsstool_t *rt);
-extern int rsstool_write_rss (st_rsstool_t *rt, int version);
+extern int rsstool_write_rss (st_rsstool_t *rt, int type);
 
 
 #endif  // RSSTOOL_WRITE_H

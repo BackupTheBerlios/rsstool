@@ -25,6 +25,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef  USE_XML2
+//#include <libxml/parser.h>
+//#include <libxml/tree.h>
+#include <libxml/xmlwriter.h>
+#endif
 #include "misc/net.h"
 #include "misc/xml.h"
 #include "misc/string.h"
@@ -38,7 +43,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 int
-rsstool_write_rss (st_rsstool_t *rt, int version)
+rsstool_write_rss (st_rsstool_t *rt, int type)
 {
   st_rss_t rss;
   int i = 0;
@@ -46,7 +51,7 @@ rsstool_write_rss (st_rsstool_t *rt, int version)
 
   memset (&rss, 0, sizeof (st_rss_t));
 
-  rss.version = version;
+  rss.version = type;
   strcpy (rss.title, "RSStool");
   strcpy (rss.url, "http://rsstool.berlios.de");
   strcpy (rss.desc, "read, parse, merge and write RSS and Atom feeds");
@@ -70,12 +75,135 @@ rsstool_write_rss (st_rsstool_t *rt, int version)
       rsstool_log (rt, buf);
     }
 
-  return rss_write (rsstool.output_file, &rss, version);
+  return rss_write (rsstool.output_file, &rss, type);
+}
+
+
+int
+rsstool_write_xml (st_rsstool_t *rt)
+{
+  st_rss_t rss;
+  int i = 0;
+  st_hash_t *dl_url_h = NULL;
+  st_hash_t *url_h = NULL;
+  st_hash_t *title_h = NULL;
+  int items = rsstool_get_item_count (rt);
+#define ENCODE(s) base64_enc(s,0)
+//#define ENCODE(s) str_escape_xml(s)
+
+  memset (&rss, 0, sizeof (st_rss_t));
+
+  fputs ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n", rsstool.output_file);
+
+  fputs ("<!--\n"
+         "RSStool - read, parse, merge and write RSS and Atom feeds\n"
+         "http://rsstool.berlios.de\n"
+         "-->\n", rsstool.output_file);
+
+  fputs ("<!--\n"
+         "format:\n"
+         "item[]\n"
+         "  dl_url           \n"
+         "  dl_url_md5\n"
+         "  dl_url_crc32\n"
+         "  dl_date\n"
+         "  user             (base64 encoded)\n"
+         "  site             (base64 encoded)\n"
+         "  url              \n"
+         "  url_md5\n"
+         "  url_crc32\n"
+         "  date\n"
+         "  title            used by searches for related items (base64 encoded)\n"
+         "  title_md5\n"
+         "  title_crc32\n"
+         "  desc             description (base64 encoded)\n"
+         "  media_keywords   default: keywords from title and description\n"
+         "  media_duration\n"
+         "  media_thumbnail  path (base64 encoded)\n"
+//         "  media_image      path (base64 encoded)\n"
+//         "  event_start      default: date\n"
+//         "  event_len        default: media_duration\n"
+         "-->\n", rsstool.output_file);
+
+  fputs ("<rsstool version=\"" RSSTOOL_VERSION_S "\">\n", rsstool.output_file);
+
+  for (i = 0; i < items && i < RSSMAXITEM; i++)
+//  for (i = 0; i < items; i++)
+    {
+      dl_url_h = hash_open (HASH_MD5|HASH_CRC32);
+      url_h = hash_open (HASH_MD5|HASH_CRC32);
+      title_h = hash_open (HASH_MD5|HASH_CRC32);
+
+      dl_url_h = hash_update (dl_url_h, (const unsigned char *) rt->item[i]->feed_url, strlen (rt->item[i]->feed_url));
+      url_h = hash_update (url_h, (const unsigned char *) rt->item[i]->url, strlen (rt->item[i]->url));
+      title_h = hash_update (title_h, (const unsigned char *) rt->item[i]->title, strlen (rt->item[i]->title));
+
+      fprintf (rsstool.output_file,
+               "  <item>\n"
+               "    <dl_url>%s</dl_url>\n"
+               "    <dl_url_md5>%s</dl_url_md5>\n"
+               "    <dl_url_crc32>%u</dl_url_crc32>\n"
+               "    <dl_date>%ld</dl_date>\n"
+               "    <user>%s</user>\n"
+               "    <site>%s</site>\n"
+               "    <url>%s</url>\n"
+               "    <url_md5>%s</url_md5>\n"
+               "    <url_crc32>%u</url_crc32>\n"
+               "    <date>%ld</date>\n"
+               "    <title>%s</title>\n"
+               "    <title_md5>%s</title_md5>\n"
+               "    <title_crc32>%u</title_crc32>\n"
+               "    <desc>%s</desc>\n"
+               "    <media_keywords>%s</media_keywords>\n"
+               "    <media_duration>%d</media_duration>\n"
+               "    <media_thumbnail>%s</media_thumbnail>\n"
+//               "    <media_image>%s</media_image>\n"
+//               "    <event_start>%u</event_start>\n"
+//               "    <event_len>%u</event_len>\n"
+               "  </item>\n",
+        str_escape_xml (rt->item[i]->feed_url),
+        hash_get_s (dl_url_h, HASH_MD5),
+        hash_get_crc32 (dl_url_h),
+        time (0),
+        ENCODE (rt->item[i]->user),
+        ENCODE (rt->item[i]->site),
+        str_escape_xml (rt->item[i]->url),
+        hash_get_s (url_h, HASH_MD5),
+        hash_get_crc32 (url_h),
+        rt->item[i]->date,
+        ENCODE (rt->item[i]->title),
+        hash_get_s (title_h, HASH_MD5),
+        hash_get_crc32 (title_h),
+        ENCODE (rt->item[i]->desc),
+        ENCODE (rt->item[i]->media_keywords),
+        rt->item[i]->media_duration,
+        str_escape_xml (rt->item[i]->media_thumbnail)
+//        str_escape_xml (rt->item[i]->media_image),
+//        rt->item[i]->event_start,
+//        rt->item[i]->event_len
+);
+
+      hash_close (dl_url_h);
+      hash_close (url_h);
+      hash_close (title_h);
+    }
+
+  fputs ("</rsstool>\n", rsstool.output_file);
+
+  if (items >= RSSMAXITEM)
+    {
+      char buf[MAXBUFSIZE];
+
+      sprintf (buf, "can write only RSS feeds with up to %d items (was %d items)\n",
+        RSSMAXITEM, items);
+      rsstool_log (rt, buf);
+    }
+
+  return 0;
 }
 
 
 #if 0
-//#ifdef  USE_XML2
 int
 rsstool_write_xml (st_rsstool_t *rt)
 {
@@ -223,129 +351,6 @@ rsstool_write_xml (st_rsstool_t *rt)
 
   return 0;
 }
-#else
-int
-rsstool_write_xml (st_rsstool_t *rt)
-{
-  st_rss_t rss;
-  int i = 0;
-  st_hash_t *dl_url_h = NULL;
-  st_hash_t *url_h = NULL;
-  st_hash_t *title_h = NULL;
-  int items = rsstool_get_item_count (rt);
-#define ENCODE(s) base64_enc(s,0)
-//#define ENCODE(s) str_escape_xml(s)
-
-  memset (&rss, 0, sizeof (st_rss_t));
-
-  fputs ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n", rsstool.output_file);
-
-  fputs ("<!--\n"
-         "RSStool - read, parse, merge and write RSS and Atom feeds\n"
-         "http://rsstool.berlios.de\n"
-         "-->\n", rsstool.output_file);
-
-  fputs ("<!--\n"
-         "format:\n"
-         "item[]\n"
-         "  dl_url           \n"
-         "  dl_url_md5\n"
-         "  dl_url_crc32\n"
-         "  dl_date\n"
-         "  user             (base64 encoded)\n"
-         "  site             (base64 encoded)\n"
-         "  url              \n"
-         "  url_md5\n"
-         "  url_crc32\n"
-         "  date\n"
-         "  title            used by searches for related items (base64 encoded)\n"
-         "  title_md5\n"
-         "  title_crc32\n"
-         "  desc             description (base64 encoded)\n"
-         "  media_keywords   default: keywords from title and description\n"
-         "  media_duration\n"
-         "  media_thumbnail  path (base64 encoded)\n"
-//         "  media_image      path (base64 encoded)\n"
-//         "  event_start      default: date\n"
-//         "  event_len        default: media_duration\n"
-         "-->\n", rsstool.output_file);
-
-  fputs ("<rsstool version=\"" RSSTOOL_VERSION_S "\">\n", rsstool.output_file);
-
-  for (i = 0; i < items && i < RSSMAXITEM; i++)
-//  for (i = 0; i < items; i++)
-    {
-      dl_url_h = hash_open (HASH_MD5|HASH_CRC32);
-      url_h = hash_open (HASH_MD5|HASH_CRC32);
-      title_h = hash_open (HASH_MD5|HASH_CRC32);
-
-      dl_url_h = hash_update (dl_url_h, (const unsigned char *) rt->item[i]->feed_url, strlen (rt->item[i]->feed_url));
-      url_h = hash_update (url_h, (const unsigned char *) rt->item[i]->url, strlen (rt->item[i]->url));
-      title_h = hash_update (title_h, (const unsigned char *) rt->item[i]->title, strlen (rt->item[i]->title));
-
-      fprintf (rsstool.output_file,
-               "  <item>\n"
-               "    <dl_url>%s</dl_url>\n"
-               "    <dl_url_md5>%s</dl_url_md5>\n"
-               "    <dl_url_crc32>%u</dl_url_crc32>\n"
-               "    <dl_date>%ld</dl_date>\n"
-               "    <user>%s</user>\n"
-               "    <site>%s</site>\n"
-               "    <url>%s</url>\n"
-               "    <url_md5>%s</url_md5>\n"
-               "    <url_crc32>%u</url_crc32>\n"
-               "    <date>%ld</date>\n"
-               "    <title>%s</title>\n"
-               "    <title_md5>%s</title_md5>\n"
-               "    <title_crc32>%u</title_crc32>\n"
-               "    <desc>%s</desc>\n"
-               "    <media_keywords>%s</media_keywords>\n"
-               "    <media_duration>%d</media_duration>\n"
-               "    <media_thumbnail>%s</media_thumbnail>\n"
-//               "    <media_image>%s</media_image>\n"
-//               "    <event_start>%u</event_start>\n"
-//               "    <event_len>%u</event_len>\n"
-               "  </item>\n",
-        str_escape_xml (rt->item[i]->feed_url),
-        hash_get_s (dl_url_h, HASH_MD5),
-        hash_get_crc32 (dl_url_h),
-        time (0),
-        ENCODE (rt->item[i]->user),
-        ENCODE (rt->item[i]->site),
-        str_escape_xml (rt->item[i]->url),
-        hash_get_s (url_h, HASH_MD5),
-        hash_get_crc32 (url_h),
-        rt->item[i]->date,
-        ENCODE (rt->item[i]->title),
-        hash_get_s (title_h, HASH_MD5),
-        hash_get_crc32 (title_h),
-        ENCODE (rt->item[i]->desc),
-        ENCODE (rt->item[i]->media_keywords),
-        rt->item[i]->media_duration,
-        str_escape_xml (rt->item[i]->media_thumbnail)
-//        str_escape_xml (rt->item[i]->media_image),
-//        rt->item[i]->event_start,
-//        rt->item[i]->event_len
-);
-
-      hash_close (dl_url_h);
-      hash_close (url_h);
-      hash_close (title_h);
-    }
-
-  fputs ("</rsstool>\n", rsstool.output_file);
-
-  if (items >= RSSMAXITEM)
-    {
-      char buf[MAXBUFSIZE];
-
-      sprintf (buf, "can write only RSS feeds with up to %d items (was %d items)\n",
-        RSSMAXITEM, items);
-      rsstool_log (rt, buf);
-    }
-
-  return 0;
-}
-#endif  // USE_XML2
+#endif
 
 

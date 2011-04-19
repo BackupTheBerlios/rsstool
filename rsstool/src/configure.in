@@ -426,7 +426,8 @@ st_configure_in_t configure_in[] = {
     "#define USE_XML2\n"
     "#endif\n",
     "libxml2 support...................   yes",
-    "libxml2 support...................   no"
+    "libxml2 support...................   no\n"
+    "*** rsstool requires libxml2"
   },
 #if 0
   {
