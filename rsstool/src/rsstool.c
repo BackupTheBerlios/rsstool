@@ -256,15 +256,14 @@ main (int argc, char **argv)
     },
     {
       "rss",       2, 0, RSSTOOL_RSS,
-      "VERSION",   "output as RSS feed\n"
-                   "VERSION=1 will write RSS v1.0\n"
-                   "VERSION=2 will write RSS v2.0 (default)"
-//                   "\n"
-//                   "VERSION=3 will write MRSS\n"
+      "TYPE",   "output as new feed\n"
+                   "TYPE=1 will write RSS v1.0\n"
+                   "TYPE=2 will write RSS v2.0 (default)\n"
+                   "TYPE=3 will write (Media) MRSS v1.5.0"
     },
     {
       "xml",       0, 0, RSSTOOL_XML,
-      NULL,   "output as normalized (proprietary) XML"
+      NULL,   "output as normalized (proprietary) rsstool XML"
     },
     {
       NULL,       0, 0, 0,
@@ -342,7 +341,7 @@ main (int argc, char **argv)
               p = net_http_get_to_temp (p, rsstool.user_agent, rsstool.get_flags);
 
           if (p)
-            rsstool_get_links (p);
+            rsstool_parse (p);
           else
             fputs ("ERROR: HTML document not found\n", stderr);
           break;

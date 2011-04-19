@@ -1130,81 +1130,73 @@ strfilter (const char *s, const char *implied_boolean_logic)
 }
 
 
-#warning keywords
-int
-misc_get_keywords_alnum (char *s, int keyword_size)
+char *
+misc_get_keywords (char *s, int flag) // default: isalnum()
 {
   unsigned int i = 0;
+  unsigned int keyword_size = 3;
+  int (*func) (int) = isalnum;
+
+  // normalize
+#if 0
+  $s = str_replace (array ('. ', ',', ';', '!', '?', '"'), ' ', strtolower ($s));
+
+  // remove punctuation
+  for ($i = 0; $i < strlen ($s); $i++)
+    if (ispunct ($s[$i]) && $s[$i] != '_' && $s[$i] != '.')
+      $s[$i] = ' ';
+
+  // remove eventual html tags
+  $s = strip_tags2 ($s);
+
+  // explode and trim
+  $a = explode (' ', $s);
+  for ($i = 0; isset ($a[$i]); $i++)
+    $a[$i] = trim ($a[$i], ' .');
+
+  // stemmer.php (english only)
+//  if (class_exists (stemmer))
+//    {
+//      $s = new stemmer;
+//
+//      for ($i = 0; isset ($a[$i]); $i++)
+//        $a[$i] = $s->stem ($a[$i]);
+//    }
+
+  $p = '';
+  $func = $flag ? 'isalpha' : 'isalnum';
+  for ($i = 0; isset ($a[$i]); $i++)
+    {
+      $s = $a[$i];
+
+      if (strlen ($s) < $keyword_size)
+        continue;
+
+      for ($j = 0; $j < strlen ($s); $j++)
+        if (!$func ($s[$j]) && $s[$j] != '_' && $s[$j] != '.')
+          continue;
+
+      $p .= trim ($s).' ';
+    }
+
+  // DEBUG
+//  echo $p;
+
+  return trim ($p);
+#endif
+
+  if (flag == 1)
+    func = isalpha;
 
   if (strlen (strtriml (strtrimr (s))) < (unsigned) keyword_size)
     return 0;
 
   for (i = 0; i < strlen (s); i++)
-    if (!isalnum (s[i]) && s[i] != '_' && s[i] != '.')
+    if (!func (s[i]) && s[i] != '_' && s[i] != '.')
       return 0;
 
   return 1;
 }
-
-
-int
-misc_get_keywords_alpha (char *s, int keyword_size)    
-{
-  unsigned int i = 0;
-
-  if (strlen (strtriml (strtrimr (s))) < (unsigned) keyword_size)
-    return 0;
-
-  for (i = 0; i < strlen (s); i++)   
-    if (!isalpha (s[i]) && s[i] != '_' && s[i] != '.')      
-      return 0;
-
-  return 1;
-}
-
-
-#if 0
-char *
-misc_get_keywords (char *s, int flag) // default = isalnum
-{
-  $s = str_replace (array ('. ', ',', ';', '!', '?', '"'), ' ', $s);
-  $s = str_replace (array ('  ', '  ', '  ', '  ', '  '), ' ', $s);
-
-  for ($i = 0; $i < strlen ($s); $i++)
-    if (ispunct ($s[$i]) && $s[$i] != '_' && $s[$i] != '.')
-      $s[$i] = ' ';
-
-  $a = explode (' ', strtolower ($s));
-  for ($i = 0; isset ($a[$i]); $i++)
-    $a[$i] = trim ($a[$i], ' .');
-  // TODO: more sensitivity instead of array_filter()
-  $a = array_filter ($a, (!$flag ? 'misc_get_keywords_alnum' : 'misc_get_keywords_alpha'));
-  $a = array_merge (array_unique ($a));
-
-  // DEBUG
-//  echo '<pre><tt>';
-//  print_r ($a);
-
-  $s = implode (' ', $a);
-  $s = trim ($s);
-
-  return $s;
-}
-
-
-function
-misc_get_keywords_html ($s, $flag = 0) // default = isalnum
-{
-  // so one keyword does not get glued to another because of strip_tags()
-  $s = str_replace ('<', '< ', $s);
-  $s = str_replace ('>', '> ', $s);
-  $s = str_replace (array ('  ', '  ', '  ', '  ', '  '), ' ', $s);
-  $s = strip_tags ($s);
-
-  return misc_get_keywords ($s, $flag);
-}
-#endif
-
 
 
 //#if 0

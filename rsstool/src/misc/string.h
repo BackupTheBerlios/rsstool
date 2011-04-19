@@ -241,6 +241,10 @@ TODO:  strfilter()  filter string with implied boolean logic
 extern int strfilter (const char *s, const char *implied_boolean_logic);
 
 
+//  misc_get_keywords()  extract keywords from a string
+extern char *misc_get_keywords (char *s, int flag);
+
+
 #ifdef  __cplusplus
 }
 #endif

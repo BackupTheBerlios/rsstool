@@ -45,7 +45,7 @@ extern void rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rsstool);
 
   rsstool_sort()            sort all items
 
-  rsstool_get_links()       get links from a HTML document
+  rsstool_parse()           parse and structure non-RSS content (e.g. HTML document)
 
   rsstool_log()             write string to logfile
 */
@@ -65,7 +65,7 @@ extern int rsstool_add_item_s (st_rsstool_t *rt,
                                int media_duration);
 extern int rsstool_get_item_count (st_rsstool_t *rt);
 extern int rsstool_sort (st_rsstool_t * rt);
-extern int rsstool_get_links (const char *file);
+extern int rsstool_parse (const char *file);
 extern int rsstool_log (st_rsstool_t * rt, const char *s);
 
 

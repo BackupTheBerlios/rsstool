@@ -69,7 +69,7 @@ rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rt)
 
 
 static unsigned long int
-rsstool_get_event_start (const char *s)
+rsstool_get_event_start (const char * s)
 {
   (void) s;
   return 0;
@@ -77,7 +77,7 @@ rsstool_get_event_start (const char *s)
 
 
 static unsigned long int
-rsstool_get_event_len (const char  *s)
+rsstool_get_event_len (const char * s)
 {
   (void) s;
   return 0;
@@ -245,12 +245,10 @@ rsstool_add_item_s (st_rsstool_t *rt,
     strncpy (media_thumbnail_s, media_thumbnail, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   if (media_keywords)
     strncpy (media_keywords_s, media_keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-  else
+  else if (desc) // get keywords from desc instead
     {
-#warning TODO: media_keywords from title AND desc
-      strncpy (buf, desc_s, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-//      misc_get_media_keywords_html (media_keywords_s, buf, 0); // isalnum
-      *buf = 0;
+      strncpy (buf, desc, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+      strncpy (media_keywords_s, misc_get_keywords (buf, 0), RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
     }
   event_start = rsstool_get_event_start (desc_s);
   event_len = rsstool_get_event_len (desc_s);
@@ -426,7 +424,6 @@ const char *
 a_pass (const char *s)
 {
   const char *p = xml_tag_get_value (s, "href");
-#warning TODO: get a feed description from html
   rsstool_add_item_s (&rsstool,
                       "rsstool",
                       "--parse",  
@@ -445,8 +442,10 @@ a_pass (const char *s)
 
 
 int
-rsstool_get_links (const char *file)
+rsstool_parse (const char *file)
 {
+  // parse and structure non-RSS content (e.g. HTML document)
+#warning TODO: html between links is the description
   FILE *fh = NULL;
   char buf[MAXBUFSIZE];
   int cf = 0;
