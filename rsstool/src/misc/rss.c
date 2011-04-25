@@ -1086,6 +1086,9 @@ rss_write (FILE *fp, st_rss_t *rss, int type)
 
   xmlBufferFree (buffer);
 
+  return 0;
+}
+
 
 #if 0
 // TODO: escape html code in desc
@@ -1148,7 +1151,3 @@ rss_write (FILE *fp, st_rss_t *rss, int type)
 
   fputs ("</rss>\n", fp);
 #endif
-
-  return 0;
-}
-
