@@ -35,6 +35,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #ifndef MIN
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
+#define MAXBUFSIZE 32768
 
 
 #if 0
@@ -778,6 +779,49 @@ str_getline (char *line, int line_num, const char *buffer, int buffer_len)
     strcpy (line, s);
 
   return strlen (line);
+}
+
+
+const char *
+strline (const char *s, int line)
+{
+#warning replace string.c/str_getline() with this and fix/check it everywhere
+#if 0
+  static char buf[MAXBUFSIZE];
+  str_getline (buf, line, s, strlen (s));
+  return buf;
+#else
+  int l = 0;
+  static char buf[MAXBUFSIZE];
+  char *p = NULL;
+
+  if (!s)
+    return NULL;
+
+  if (!(*s))
+    return NULL;
+
+  for (l = 0; l < line; l++)
+    {
+      if (!(s = strchr (s, '\n')))
+        return NULL;
+      s++;
+    }
+
+  if (l < line)   
+    return NULL;   
+
+  strncpy (buf, s, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+  if ((p = strchr (buf, '\n')))
+    *p = 0;
+
+#ifdef  DEBUG
+  printf ("[%s]\n", buf);
+  fflush (stdout);
+#endif
+
+  return buf;
+#endif 
 }
 
 

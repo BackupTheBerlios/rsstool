@@ -145,6 +145,7 @@ extern int explode (char **argv, char *str, const char *separator_s, int max_arg
 extern const char *implode (const char *separator_s, char **argv);
 
 extern int str_getline (char *line, int line_num, const char *buffer, int buffer_len);
+extern const char *strline (const char *s, int line);
 
 
 #define MEMCMP2_WCARD(WC)                 ((1 << 17) | ((WC) & 0xff))
