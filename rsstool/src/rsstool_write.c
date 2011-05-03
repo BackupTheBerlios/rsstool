@@ -140,7 +140,6 @@ rsstool_write_xml (st_rsstool_t *rt)
   xmlTextWriterStartElement (writer, BAD_CAST "rsstool");  // <rsstool>
   xmlTextWriterWriteAttribute (writer, BAD_CAST "version", BAD_CAST RSSTOOL_VERSION_S);
 
-
   for (i = 0; i < items && i < RSSMAXITEM; i++)
 //  for (i = 0; i < items; i++)
     {

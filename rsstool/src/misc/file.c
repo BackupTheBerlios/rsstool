@@ -754,7 +754,7 @@ file_get_contents (const char *filename, int *maxlength)
 int
 mkdir2_func (const char *path, int mode)
 {
-  int result = 0;
+//  int result = 0;
   char dir[FILENAME_MAX], *p = NULL;
 
   while (*path == '/')
@@ -765,7 +765,7 @@ mkdir2_func (const char *path, int mode)
   if ((p = strchr (dir, '/')))
     *p = 0;
 
-  result = mkdir (dir, mode);
+//  result = mkdir (dir, mode);
 // returns also an error if dir exists already
 //  if (result == -1)
 //    return -1;
