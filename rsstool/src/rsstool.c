@@ -242,6 +242,11 @@ main (int argc, char **argv)
       "1",       0, 0, RSSTOOL_SDESC,
       NULL, NULL
     },
+#warning --hack-google
+    {
+      "hack-google",        0, 0, RSSTOOL_HACK_GOOGLE,
+      NULL,   NULL // remove un-escaped html
+    },
     {
       "nosort",        0, 0, RSSTOOL_NOSORT,
       NULL,   "do not sort items by date (default: on)"
@@ -429,6 +434,10 @@ main (int argc, char **argv)
           rsstool.strip_bin = 1;
           break;
 
+        case RSSTOOL_HACK_GOOGLE:
+          rsstool.hack_google = 1;
+          break;
+
         case RSSTOOL_U:
           p = optarg;
           if (p)
@@ -479,6 +488,7 @@ main (int argc, char **argv)
         {
           if (fgets (buf2, MAXBUFSIZE, rsstool.input_file))
             {
+#warning shouldnt this be strrchr()?
               s = strchr (buf2, '\n');
               if (s)
                 *s = 0;
@@ -503,38 +513,50 @@ main (int argc, char **argv)
             strncpy (rsstool.temp_file, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
         }
 
-      if (p)
+      if (!p)
         {
-          if (!rsstool.output) // just print
+          sprintf (buf, "could not open/download %s", s);
+          rsstool_log (&rsstool, buf);
+          continue;
+        }
+
+      // normalize feed as string
+#warning rsstool_normalize_feed()
+      p = rsstool_normalize_feed (&rsstool, p);
+      if (p)
+        strncpy (rsstool.temp_file, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
+
+      if (!p)
+        {
+          sprintf (buf, "could not normalize feed %s", s);
+          rsstool_log (&rsstool, buf);
+          continue;
+        }
+
+      if (!rsstool.output) // just print
+        {
+          if ((fh = fopen (p, "r")))
             {
-              if ((fh = fopen (p, "r")))
-                {
-                  while (fgets (buf, MAXBUFSIZE, fh))
-                    fputs (buf, rsstool.output_file);
+              while (fgets (buf, MAXBUFSIZE, fh))
+                fputs (buf, rsstool.output_file);
 
-                  fclose (fh);
-                }
-            }
-          else
-            {
-              rsstool_parse_rss (&rsstool, feed_url, p);
-
-              sprintf (buf, "%d feeds: ", rsstool_get_item_count (&rsstool) - feeds);
-              strcat (buf, s);
-
-              rsstool_log (&rsstool, buf);
-             }
-
-          if (*(rsstool.temp_file))
-            {
-              remove (rsstool.temp_file);
-              *(rsstool.temp_file) = 0;
+              fclose (fh);
             }
         }
       else
         {
-          sprintf (buf, "could not open/download %s", s);
+          rsstool_parse_rss (&rsstool, feed_url, p);
+
+          sprintf (buf, "%d feeds: ", rsstool_get_item_count (&rsstool) - feeds);
+          strcat (buf, s);
+
           rsstool_log (&rsstool, buf);
+        }
+
+      if (*(rsstool.temp_file))
+        {
+          remove (rsstool.temp_file);
+          *(rsstool.temp_file) = 0;
         }
     }
 
