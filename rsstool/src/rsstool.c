@@ -220,6 +220,10 @@ main (int argc, char **argv)
       "slf",        0, 0, RSSTOOL_SLF,
       NULL,   "strip line feeds/carriage returns from descriptions"
     },
+    {
+      "sbin",        0, 0, RSSTOOL_SBIN,
+      NULL,   "strip unprintable characters from descriptions"
+    },
 #if 0
     {
       "stitle",        0, 0, RSSTOOL_STITLE,
@@ -419,6 +423,10 @@ main (int argc, char **argv)
 
         case RSSTOOL_SLF:
           rsstool.strip_lf = 1;
+          break;
+
+        case RSSTOOL_SBIN:
+          rsstool.strip_bin = 1;
           break;
 
         case RSSTOOL_U:

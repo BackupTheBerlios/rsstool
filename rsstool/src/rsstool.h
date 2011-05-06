@@ -68,6 +68,7 @@ typedef struct
   int strip_desc;
   int strip_lf;
   int strip_whitespace;
+  int strip_bin;
   const char *strip_filter;
 
   char temp_file[FILENAME_MAX];

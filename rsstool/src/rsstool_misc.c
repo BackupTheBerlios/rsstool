@@ -159,6 +159,21 @@ rsstool_strip_lf (char *html)
 
 
 static char *
+rsstool_strip_bin (char *html)
+{
+  char *p = html;
+
+  while (*p)
+    if (*p < 128)
+      strmove (p, p + 1);
+    else
+      p++;
+
+  return html;
+}
+
+
+static char *
 rsstool_strip_whitespace (char *html)
 {
   strrep (html, "\t", " ");
@@ -276,6 +291,13 @@ rsstool_add_item_s (st_rsstool_t *rt,
       rsstool_strip_lf (site_s);
       rsstool_strip_lf (title_s);
       rsstool_strip_lf (desc_s);
+    }
+
+  if (rsstool.strip_bin)
+    {
+      rsstool_strip_bin (site_s);
+      rsstool_strip_bin (title_s);
+      rsstool_strip_bin (desc_s);
     }
 
   if (rsstool.strip_whitespace)
