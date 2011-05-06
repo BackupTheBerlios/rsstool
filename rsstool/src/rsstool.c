@@ -201,8 +201,12 @@ main (int argc, char **argv)
                "Example: --filter=\"+INCLUDE -EXCLUDE\""
     },
     {
+      "sbin",        0, 0, RSSTOOL_SBIN,
+      NULL,   "strip unprintable characters from entire feed (before parsing)"
+    },
+    {
       "shtml",        0, 0, RSSTOOL_SHTML,
-      NULL,   "strip HTML code from descriptions"
+      NULL,   "strip HTML tags from descriptions"
     },
     {
       "shtml2",       0, 0, RSSTOOL_SHTML2,
@@ -219,10 +223,6 @@ main (int argc, char **argv)
     {
       "slf",        0, 0, RSSTOOL_SLF,
       NULL,   "strip line feeds/carriage returns from descriptions"
-    },
-    {
-      "sbin",        0, 0, RSSTOOL_SBIN,
-      NULL,   "strip unprintable characters from descriptions"
     },
 #if 0
     {

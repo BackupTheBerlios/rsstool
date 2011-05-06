@@ -35,7 +35,9 @@ extern void rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rsstool);
 /*
   Miscellaneous functions
 
-  rsstool_strip_html()      strip html tags from a string
+  rsstool_normalize_feed()  normalize feed as a string before parse
+
+  rsstool_strip_html()      strip html tags from string
 
   rsstool_parse_rss()       (down)load an RSS feed and parse it into st_rsstool_t
 
@@ -49,7 +51,10 @@ extern void rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rsstool);
 
   rsstool_log()             write string to logfile
 */
+extern const char *rsstool_normalize_feed (st_rsstool_t *rt, const char *file);
+
 extern char *rsstool_strip_html (char *html);
+
 extern int rsstool_parse_rss (st_rsstool_t *rt, const char *feed_url, const char *file);
 extern int rsstool_add_item (st_rsstool_t *rt, st_rss_t *rss, const char *feed_url);
 extern int rsstool_add_item_s (st_rsstool_t *rt,

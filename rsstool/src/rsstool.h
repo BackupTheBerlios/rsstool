@@ -71,6 +71,8 @@ typedef struct
   int strip_bin;
   const char *strip_filter;
 
+  int hack_google; // remove un-escaped <em> tags
+
   char temp_file[FILENAME_MAX];
   FILE *input_file;
   FILE *log;

@@ -36,10 +36,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <dirent.h>
 #endif
 #include <time.h>
+#include "misc/getopt2.h"
 #include "misc/xml.h"
 #include "misc/string.h"
 #include "misc/rss.h"
 #include "misc/hash.h"
+#include "misc/misc.h"
 #include "rsstool_defines.h"
 #include "rsstool.h"
 #include "rsstool_misc.h"
@@ -66,6 +68,91 @@ rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rt)
   printf ("rsstool_get_item_count(): %d\n\n", rsstool_get_item_count (rt));
 }
 #endif
+
+
+static char *
+rsstool_strip_bin (char *html)
+{
+  unsigned char *p = (unsigned char *) html;
+
+  while (*p)
+    if (!isprint (*p))
+      strmove ((char *) p, (char *) (p + 1));
+    else
+      p++;
+
+  return html;
+}
+
+
+static char *
+rsstool_hack_google (char *html)
+{
+  strrep (html, "<em>", "");
+  return strrep (html, "</em>", "");
+}
+
+
+const char *
+rsstool_normalize_feed (st_rsstool_t *rt, const char *file)
+{
+  char buf[MAXBUFSIZE];
+  char tname[FILENAME_MAX];
+  FILE *fh = NULL, *tmp = NULL;
+
+  if (!file)
+    return NULL;
+
+  if (!(*file))
+    return NULL;
+
+  if (!(fh = fopen (file, "r")))
+    {
+      sprintf (buf, "rsstool_normalize_feed(): could not read %s\n", file);
+      rsstool_log (rt, buf);
+
+      return NULL;   
+    }
+
+  *tname = 0;
+  tmpnam3 (tname, 0);
+ 
+  if (!(tmp = fopen (tname, "wb")))
+    {
+      sprintf (buf, "rsstool_normalize_feed(): could not write %s\n", tname);
+      rsstool_log (rt, buf);
+
+      fclose (fh);
+
+      return NULL;   
+    } 
+
+  while (fgets (buf, MAXBUFSIZE, fh))
+    {
+      // strip unprintable character
+      if (rt->strip_bin)
+        rsstool_strip_bin (buf);
+
+      // HACK: fix for google video feeds that have un-escaped <em> tags
+      if (rt->hack_google)
+        {
+//          if (strstr (feed_url, "video.google.com"))
+//            rsstool_log (rt, "rsstool_normalize_feed(): not google/video " OPTION_LONG_S "hack-google ignored");
+//          else
+            rsstool_hack_google (buf);
+        }
+
+      fputs (buf, tmp);
+   }
+
+  fclose (fh);
+  fclose (tmp);
+
+  remove (file);
+  rename (tname, file);
+
+  return file;
+}
 
 
 static unsigned long int
@@ -155,21 +242,6 @@ static char *
 rsstool_strip_lf (char *html)
 {
   return strrep (html, "\n", " ");
-}
-
-
-static char *
-rsstool_strip_bin (char *html)
-{
-  char *p = html;
-
-  while (*p)
-    if (*p < 128)
-      strmove (p, p + 1);
-    else
-      p++;
-
-  return html;
 }
 
 
@@ -291,13 +363,6 @@ rsstool_add_item_s (st_rsstool_t *rt,
       rsstool_strip_lf (site_s);
       rsstool_strip_lf (title_s);
       rsstool_strip_lf (desc_s);
-    }
-
-  if (rsstool.strip_bin)
-    {
-      rsstool_strip_bin (site_s);
-      rsstool_strip_bin (title_s);
-      rsstool_strip_bin (desc_s);
     }
 
   if (rsstool.strip_whitespace)
