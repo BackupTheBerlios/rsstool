@@ -92,7 +92,8 @@ rsstool_write_xml (st_rsstool_t *rt)
   st_hash_t *url_h = NULL;
   st_hash_t *title_h = NULL;
   int items = rsstool_get_item_count (rt);
-#define ENCODE(s) base64_enc(s,0)
+#define ENCODE(s) s
+//#define ENCODE(s) base64_enc(s,0)
 //#define ENCODE(s) str_escape_xml(s)
 
   memset (&rss, 0, sizeof (st_rss_t));
@@ -283,7 +284,8 @@ rsstool_write_xml (st_rsstool_t *rt)
   st_hash_t *url_h = NULL;
   st_hash_t *title_h = NULL;
   int items = rsstool_get_item_count (rt);
-#define ENCODE(s) base64_enc(s,0)
+#define ENCODE(s) s
+//#define ENCODE(s) base64_enc(s,0)
 //#define ENCODE(s) str_escape_xml(s)
 
   memset (&rss, 0, sizeof (st_rss_t));
