@@ -164,17 +164,21 @@ strptime2 (const char *s)
           s += 6;
         }
 
-      if (s[1] == ':')
-        sscanf (s, "%1s:%2s%2s", h, min, daytime);
-      else
-        sscanf (s, "%2s:%2s%2s", h, min, daytime);
+      if (*s)
+        {
+          if (s[1] == ':')
+            sscanf (s, "%1s:%2s%2s", h, min, daytime);
+          else
+            sscanf (s, "%2s:%2s%2s", h, min, daytime);
+        }
 
+      // current year
       time_tag_p = gmtime (&t);
       sprintf (y, "%d", time_tag_p->tm_year + 1900);
 
       // DEBUG
-//      printf ("%s, %s, %s, %s, %s, %s\n", y, m, d, h, min, daytime);
-//      fflush (stdout);
+      printf ("%s, %s, %s, %s, %s, %s\n", y, m, d, h, min, daytime);
+      fflush (stdout);
     }
   else if (s[10] == 'T')                     // YYYY-MM-DDT00:00+00:00
     {
@@ -213,7 +217,16 @@ strptime2 (const char *s)
   if (*min)
     time_tag.tm_min = strtol (min, NULL, 10);
   if (*daytime)
-    if (strchr ("pP", *daytime)) time_tag.tm_hour += 12;
+    {
+      if (strchr ("pP", *daytime))
+        {
+          if (time_tag.tm_hour != 12) time_tag.tm_hour += 12;
+        }
+      else if (strchr ("aA", *daytime))
+        {
+          if (time_tag.tm_hour == 12) time_tag.tm_hour -= 12;
+        }
+    }
 
   t = mktime (&time_tag);
 
