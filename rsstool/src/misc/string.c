@@ -1177,12 +1177,13 @@ strfilter (const char *s, const char *implied_boolean_logic)
 char *
 misc_get_keywords (char *s, int flag) // default: isalnum()
 {
+#warning misc_get_keywords()
+#if 0
   unsigned int i = 0;
   unsigned int keyword_size = 3;
   int (*func) (int) = isalnum;
 
   // normalize
-#if 0
   $s = str_replace (array ('. ', ',', ';', '!', '?', '"'), ' ', strtolower ($s));
 
   // remove punctuation
@@ -1227,7 +1228,6 @@ misc_get_keywords (char *s, int flag) // default: isalnum()
 //  echo $p;
 
   return trim ($p);
-#endif
 
   if (flag == 1)
     func = isalpha;
@@ -1240,6 +1240,8 @@ misc_get_keywords (char *s, int flag) // default: isalnum()
       return 0;
 
   return 1;
+#endif
+  return "";
 }
 
 
