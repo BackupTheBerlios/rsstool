@@ -533,8 +533,6 @@ main (int argc, char **argv)
       // normalize feed as string
 #warning rsstool_normalize_feed()
       p = rsstool_normalize_feed (&rsstool, p);
-      if (p)
-        strncpy (rsstool.temp_file, p, FILENAME_MAX)[FILENAME_MAX - 1] = 0;
 
       if (!p)
         {

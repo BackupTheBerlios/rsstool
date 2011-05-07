@@ -136,7 +136,7 @@ rsstool_normalize_feed (st_rsstool_t *rt, const char *file)
       // HACK: fix for google video feeds that have un-escaped <em> tags
       if (rt->hack_google)
         {
-//          if (strstr (feed_url, "video.google.com"))
+//          if (!strstr (rt->item[0]->feed_url, "video.google.com"))
 //            rsstool_log (rt, "rsstool_normalize_feed(): not google/video " OPTION_LONG_S "hack-google ignored");
 //          else
             rsstool_hack_google (buf);
