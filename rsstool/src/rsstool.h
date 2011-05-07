@@ -35,12 +35,11 @@ typedef struct
   char feed_url[RSSTOOL_MAXBUFSIZE];
 
   char media_keywords[RSSTOOL_MAXBUFSIZE]; // default: keywords from title and description
-  int media_duration; //  default: 0
-  char media_thumbnail[FILENAME_MAX];
-//  char media_image[FILENAME_MAX];
+  unsigned long int media_duration; //  default: 0 seconds
+  char media_image[FILENAME_MAX];   //  e.g. thumbnail
 
-//  int event_start;    // default: date
-//  int event_len;  // default: event_start + media_duration
+  time_t event_start;    // default: date
+  time_t event_end;  // default: event_start + media_duration
 
 //  int private;   // used by sort
 } st_rsstool_item_t;
@@ -71,7 +70,9 @@ typedef struct
   int strip_bin;
   const char *strip_filter;
 
+  // HACK: temporary and not shown in usage
   int hack_google; // remove un-escaped <em> tags
+  int hack_event;
 
   char temp_file[FILENAME_MAX];
   FILE *input_file;

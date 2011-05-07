@@ -141,15 +141,40 @@ strptime2 (const char *s)
   int i = 0;
   char y[100], m[100], d[100];
   char h[100], min[100];
+  char daytime[100];
 //  char sec[100];
   struct tm time_tag;
   time_t t = time (0);
   const char *month_s[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", NULL};
 
-  *y = *m = *d = *h = *min = 0;
+  *y = *m = *d = *h = *min = *daytime = 0;
 
-  if (s[10] == 'T')                     // YYYY-MM-DDT00:00+00:00
+  if ((s[1] == '/' || s[2] == '/') && s[strlen (s) - 1] == 'm' && s[strlen (s) - 5] == ':')  // 12/05 7:00pm
+    {
+      const char *p = s;
+      if (p[1] == '/')
+        {
+          sscanf (p, "%1s/%2s ", m, d);
+          p += 5;
+        }
+      else
+        {
+          sscanf (p, "%2s/%2s ", m, d);
+          p += 6;
+        }
+
+      if (p[1] == ':')
+        sscanf (p, "%1s:%2s%2s", h, min, daytime);
+      else
+        sscanf (p, "%2s:%2s%2s", h, min, daytime);
+
+#warning HACK
+      sprintf (y, "%d", 2011);
+printf ("SHIT, %s, %s, %s, %s, %s, %s\n", s, m, d, h, min, daytime);
+fflush (stdout);
+    }
+  else if (s[10] == 'T')                     // YYYY-MM-DDT00:00+00:00
     {
       sscanf (s, " %4s-%2s-%2sT%2s:%2s", y, m, d, h, min);
     }
@@ -185,6 +210,8 @@ strptime2 (const char *s)
     time_tag.tm_hour = strtol (h, NULL, 10);
   if (*min)
     time_tag.tm_min = strtol (min, NULL, 10);
+  if (*daytime == 'p' || *daytime == 'P')
+    time_tag.tm_hour += 12;
 
   t = mktime (&time_tag);
 

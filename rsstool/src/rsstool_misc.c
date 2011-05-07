@@ -71,9 +71,9 @@ rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rt)
 
 
 static char *
-rsstool_strip_bin (char *html)
+rsstool_strip_bin (char *s)
 {
-  unsigned char *p = (unsigned char *) html;
+  unsigned char *p = (unsigned char *) s;
 
   while (*p)
     if (!isprint (*p))
@@ -81,15 +81,15 @@ rsstool_strip_bin (char *html)
     else
       p++;
 
-  return html;
+  return s;
 }
 
 
 static char *
-rsstool_hack_google (char *html)
+rsstool_hack_google (char *s)
 {
-  strrep (html, "<em>", "");
-  return strrep (html, "</em>", "");
+  strrep (s, "<em>", "");
+  return strrep (s, "</em>", "");
 }
 
 
@@ -155,19 +155,47 @@ rsstool_normalize_feed (st_rsstool_t *rt, const char *file)
 }
 
 
-static unsigned long int
-rsstool_get_event_start (const char * s)
+static time_t
+rsstool_get_event_start (const char * desc)
 {
-  (void) s;
-  return 0;
+// make sure that &tz=0
+//  http://www.gamescast.tv/rss/rss-events.php?game=sc2&tz=0
+//Begins: 12/05 7:00pm,
+//Ends: 12/05 9:00pm,
+//Show Type: Podcast,
+//Game Featured: StarCraft 2
+  char buf[32];
+  char *s = (char *) desc;
+
+  s = strstr (s, "Begins: ");
+  if (!s)
+    return 0;
+
+  strncpy (buf, s + 7, 32)[31] = 0;
+  s = strchr (buf, ',');
+  if (s)
+    *s = 0;
+
+  return strptime2 (strtriml (strtrimr (buf)));
 }
 
 
-static unsigned long int
-rsstool_get_event_len (const char * s)
+static time_t
+rsstool_get_event_end (const char * desc)
 {
-  (void) s;
-  return 0;
+  char buf[32];
+  char *s = (char *) desc;
+
+  s = strstr (s, "Ends: ");
+  if (!s)
+    return 0;
+
+  strncpy (buf, s + 5, 32)[31] = 0;
+  s = strchr (buf, ',');
+  if (s)
+    *s = 0;
+
+  return strptime2 (strtriml (strtrimr (buf)));
 }
 
 
@@ -296,7 +324,7 @@ rsstool_add_item_s (st_rsstool_t *rt,
                     const char *desc,
                     const char *user,
                     const char *media_keywords,
-                    const char *media_thumbnail,
+                    const char *media_image,
                     int media_duration)
 {
   int i = 0;
@@ -305,10 +333,10 @@ rsstool_add_item_s (st_rsstool_t *rt,
        title_s[RSSTOOL_MAXBUFSIZE],
        user_s[RSSTOOL_MAXBUFSIZE],
        media_keywords_s[RSSTOOL_MAXBUFSIZE],
-       media_thumbnail_s[RSSTOOL_MAXBUFSIZE],
+       media_image_s[RSSTOOL_MAXBUFSIZE],
        desc_s[RSSTOOL_MAXBUFSIZE];
-  unsigned long int event_start = date,
-                    event_len = 0;
+  time_t event_start = date,
+         event_end = 0;
 
   if (rt->item_count == RSSTOOL_MAXITEM)
     {
@@ -328,8 +356,8 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (desc_s, desc, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   if (user)
     strncpy (user_s, user, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-  if (media_thumbnail)
-    strncpy (media_thumbnail_s, media_thumbnail, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  if (media_image)
+    strncpy (media_image_s, media_image, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   if (media_keywords)
     strncpy (media_keywords_s, media_keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   else if (desc) // get keywords from desc instead
@@ -337,8 +365,17 @@ rsstool_add_item_s (st_rsstool_t *rt,
       strncpy (buf, desc, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
       strncpy (media_keywords_s, misc_get_keywords (buf, 0), RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
     }
-  event_start = rsstool_get_event_start (desc_s);
-  event_len = rsstool_get_event_len (desc_s);
+
+  if (rt->hack_event)
+    {
+      if (!strstr (feed_url, "www.gamescast.tv"))
+        rsstool_log (rt, "rsstool_add_item_s(): not gamescast " OPTION_LONG_S "hack-event ignored");
+      else
+        {
+          event_start = rsstool_get_event_start (desc_s);
+          event_end = rsstool_get_event_end (desc_s);
+        }
+    }
 
   if (rsstool.strip_filter)
     {
@@ -411,10 +448,10 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (rt->item[i]->desc, desc_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->user, user_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->media_keywords, media_keywords_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-  strncpy (rt->item[i]->media_thumbnail, media_thumbnail_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  strncpy (rt->item[i]->media_image, media_image_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   rt->item[i]->media_duration = media_duration;
-//  rt->item[i]->event_start = event_start;
-//  rt->item[i]->event_len = event_len;
+  rt->item[i]->event_start = event_start;
+  rt->item[i]->event_end = event_end;
 
   rt->item_count++;
 

@@ -247,6 +247,12 @@ main (int argc, char **argv)
       "hack-google",        0, 0, RSSTOOL_HACK_GOOGLE,
       NULL,   NULL // remove un-escaped html
     },
+#warning --hack-event
+    {
+      "hack-event",        0, 0, RSSTOOL_HACK_EVENT,
+      NULL,   NULL // gather a start time and length from description
+                     // for temporary events like broadcast shedules
+    },
     {
       "nosort",        0, 0, RSSTOOL_NOSORT,
       NULL,   "do not sort items by date (default: on)"
@@ -436,6 +442,10 @@ main (int argc, char **argv)
 
         case RSSTOOL_HACK_GOOGLE:
           rsstool.hack_google = 1;
+          break;
+
+        case RSSTOOL_HACK_EVENT:
+          rsstool.hack_event = 1;
           break;
 
         case RSSTOOL_U:

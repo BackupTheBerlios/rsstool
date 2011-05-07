@@ -27,9 +27,6 @@ extern void rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rsstool);
 #endif
 
 
-// parse start and length of an event from string
-//extern unsigned long int rsstool_get_event_start (const char *s);
-//extern unsigned long int rsstool_get_event_len (const char *s);
 
 
 /*
@@ -52,9 +49,7 @@ extern void rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rsstool);
   rsstool_log()             write string to logfile
 */
 extern const char *rsstool_normalize_feed (st_rsstool_t *rt, const char *file);
-
 extern char *rsstool_strip_html (char *html);
-
 extern int rsstool_parse_rss (st_rsstool_t *rt, const char *feed_url, const char *file);
 extern int rsstool_add_item (st_rsstool_t *rt, st_rss_t *rss, const char *feed_url);
 extern int rsstool_add_item_s (st_rsstool_t *rt,
@@ -66,7 +61,7 @@ extern int rsstool_add_item_s (st_rsstool_t *rt,
                                const char *desc,
                                const char *user,
                                const char *media_keywords,
-                               const char *media_thumbnail,
+                               const char *media_image,
                                int media_duration);
 extern int rsstool_get_item_count (st_rsstool_t *rt);
 extern int rsstool_sort (st_rsstool_t * rt);

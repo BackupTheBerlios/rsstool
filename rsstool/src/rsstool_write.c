@@ -118,22 +118,21 @@ rsstool_write_xml (st_rsstool_t *rt)
          "  dl_url_md5\n"
          "  dl_url_crc32\n"
          "  dl_date\n"
-         "  user             (base64 encoded)\n"
-         "  site             (base64 encoded)\n"
+         "  user             author\n"
+         "  site\n"
          "  url              \n"
          "  url_md5\n"
          "  url_crc32\n"
-         "  date\n"
-         "  title            used by searches for related items (base64 encoded)\n"
+         "  date             default: current time\n"
+         "  title            used by searches for related items\n"
          "  title_md5\n"
          "  title_crc32\n"
-         "  desc             description (base64 encoded)\n"
+         "  desc             description\n"
          "  media_keywords   default: keywords from title and description\n"
-         "  media_duration\n"
-         "  media_thumbnail  path (base64 encoded)\n"
-//         "  media_image      path (base64 encoded)\n"
-//         "  event_start      default: date\n"
-//         "  event_len        default: media_duration\n"
+         "  media_duration   event length\n"
+         "  media_image      thumbnail\n"
+         "  event_start      default: date\n"
+         "  event_end        default: event_start + media_duration\n"
 );
 
   XMLPRINTF("\n");
@@ -220,25 +219,19 @@ rsstool_write_xml (st_rsstool_t *rt)
 
       XMLPRINTF("\n    ");
 
-      xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_duration", "%d", rt->item[i]->media_duration);
+      xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_duration", "%ld", rt->item[i]->media_duration);
 
-      XMLPRINTF("\n    ");
-
-      xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_thumbnail", "%s", rt->item[i]->media_thumbnail);
-
-#if 0
       XMLPRINTF("\n    ");
 
       xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_image", "%s", rt->item[i]->media_image);
 
       XMLPRINTF("\n    ");
 
-      xmlTextWriterWriteFormatElement (writer, BAD_CAST "event_start", "%u", rt->item[i]->event_start);
+      xmlTextWriterWriteFormatElement (writer, BAD_CAST "event_start", "%ld", rt->item[i]->event_start);
 
       XMLPRINTF("\n    ");
 
-      xmlTextWriterWriteFormatElement (writer, BAD_CAST "event_len", "%u", rt->item[i]->event_len);
-#endif
+      xmlTextWriterWriteFormatElement (writer, BAD_CAST "event_end", "%ld", rt->item[i]->event_end);
 
       XMLPRINTF("\n  ");
 
@@ -284,8 +277,8 @@ rsstool_write_xml (st_rsstool_t *rt)
   st_hash_t *url_h = NULL;
   st_hash_t *title_h = NULL;
   int items = rsstool_get_item_count (rt);
-#define ENCODE(s) s
-//#define ENCODE(s) base64_enc(s,0)
+//#define ENCODE(s) s
+#define ENCODE(s) base64_enc(s,0)
 //#define ENCODE(s) str_escape_xml(s)
 
   memset (&rss, 0, sizeof (st_rss_t));
@@ -319,7 +312,7 @@ rsstool_write_xml (st_rsstool_t *rt)
          "  media_thumbnail  path (base64 encoded)\n"
 //         "  media_image      path (base64 encoded)\n"
 //         "  event_start      default: date\n"
-//         "  event_len        default: media_duration\n"
+//         "  event_end        default: event_start + media_duration\n"
          "-->\n", rsstool.output_file);
 
   fputs ("<rsstool version=\"" RSSTOOL_VERSION_S "\">\n", rsstool.output_file);
@@ -356,7 +349,7 @@ rsstool_write_xml (st_rsstool_t *rt)
                "    <media_thumbnail>%s</media_thumbnail>\n"
 //               "    <media_image>%s</media_image>\n"
 //               "    <event_start>%u</event_start>\n"
-//               "    <event_len>%u</event_len>\n"
+//               "    <event_end>%u</event_end>\n"
                "  </item>\n",
         str_escape_xml (rt->item[i]->feed_url),
         hash_get_s (dl_url_h, HASH_MD5),
@@ -377,7 +370,7 @@ rsstool_write_xml (st_rsstool_t *rt)
         str_escape_xml (rt->item[i]->media_thumbnail)
 //        str_escape_xml (rt->item[i]->media_image),
 //        rt->item[i]->event_start,
-//        rt->item[i]->event_len
+//        rt->item[i]->event_end
 );
 
       hash_close (dl_url_h);
