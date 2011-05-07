@@ -202,7 +202,25 @@ main (int argc, char **argv)
     },
     {
       "sbin",        0, 0, RSSTOOL_SBIN,
-      NULL,   "strip unprintable characters from entire feed (before parsing)"
+      NULL,   "strip all unprintable characters from feed (before parsing)"
+    },
+#if 0
+    {
+      "stitle",        0, 0, RSSTOOL_STITLE,
+      NULL,   "strip all titles from feed"
+    },
+#endif
+    {
+      "sdesc",        0, 0, RSSTOOL_SDESC,
+      NULL,   "strip all descriptions from feed"
+    },
+    {
+      "sd",        0, 0, RSSTOOL_SDESC,
+      NULL, NULL
+    },
+    {
+      "1",       0, 0, RSSTOOL_SDESC,
+      NULL, NULL
     },
     {
       "shtml",        0, 0, RSSTOOL_SHTML,
@@ -223,24 +241,6 @@ main (int argc, char **argv)
     {
       "slf",        0, 0, RSSTOOL_SLF,
       NULL,   "strip line feeds/carriage returns from descriptions"
-    },
-#if 0
-    {
-      "stitle",        0, 0, RSSTOOL_STITLE,
-      NULL,   "strip the title from feeds"
-    },
-#endif
-    {
-      "sdesc",        0, 0, RSSTOOL_SDESC,
-      NULL,   "strip the whole descriptions from feeds"
-    },
-    {
-      "sd",        0, 0, RSSTOOL_SDESC,
-      NULL, NULL
-    },
-    {
-      "1",       0, 0, RSSTOOL_SDESC,
-      NULL, NULL
     },
 #warning --hack-google
     {
@@ -273,12 +273,13 @@ main (int argc, char **argv)
       "rss",       2, 0, RSSTOOL_RSS,
       "TYPE",   "output as new feed\n"
                    "TYPE=1 will write RSS v1.0\n"
-                   "TYPE=2 will write RSS v2.0 (default)\n"
-                   "TYPE=3 will write (Media) MRSS v1.5.0"
+                   "TYPE=2 will write RSS v2.0 (default)" // "\n"
+#warning writing MRSS support
+//                   "TYPE=3 will write (Media) MRSS v1.5.0"
     },
     {
       "xml",       0, 0, RSSTOOL_XML,
-      NULL,   "output as normalized (proprietary) rsstool XML"
+      NULL,   "output as normalized (proprietary) XML"
     },
     {
       NULL,       0, 0, 0,
@@ -468,7 +469,8 @@ main (int argc, char **argv)
 
         default:
           fputs ("NOTE: some options have been deprecated\n\n"
-                 "rsstool writes XML which can be used with xml2file and other scripts\n\n"
+                 "rsstool writes proprietary XML which can converted into SQL, CSV, etc.\n"
+                 "using rsstool2sql and other scripts\n\n"
                  "Try 'rsstool " OPTION_LONG_S "help' for more information\n\n", stderr);
           exit (-1);
       }

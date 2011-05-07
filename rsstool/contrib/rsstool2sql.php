@@ -201,7 +201,7 @@ unlink ($tmp);
 // output
 $p = rsstool_write_ansisql ($xml, NULL);
 $f = 'rsstool2sql.sql';
-//$p = rsstool_write_csv ($xml, NULL);
+//$p = rsstool_write_csv ($xml);
 //$f = 'rsstool2csv.txt';
 $fh = fopen ($f, 'w');
 if ($fh)
@@ -211,7 +211,7 @@ if ($fh)
     echo $f.' written'."\n";
   }
 else
-  echo 'ERROR: could not rewrite feed '.$f."\n";
+  echo 'ERROR: could not write '.$f."\n";
 
 
 exit;
