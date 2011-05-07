@@ -22,7 +22,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 //phpinfo ();
 //error_reporting(E_ALL | E_STRICT);
-//require_once ('misc/misc.php');
 // rsstool path and options
 //$rsstool_path = '/usr/local/bin/rsstool';
 $rsstool_path = '../../src/rsstool';
@@ -149,7 +148,7 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
 
 
 function
-rsstool_write_txt ($xml)
+rsstool_write_csv ($xml)
 {
   $p = '';
 
@@ -173,6 +172,11 @@ rsstool_write_txt ($xml)
 
 
 // main ()
+if ($argc < 2)
+  {
+    echo 'USAGE: rsstool2sql.php URL|FILE'."\n\n";            
+    exit;
+  }
 
 $debug = 0;
 
@@ -197,8 +201,8 @@ unlink ($tmp);
 // output
 $p = rsstool_write_ansisql ($xml, NULL);
 $f = 'rsstool2sql.sql';
-//$p = rsstool_write_txt ($xml, NULL);
-//$f = 'rsstool2txt.txt';
+//$p = rsstool_write_csv ($xml, NULL);
+//$f = 'rsstool2csv.txt';
 $fh = fopen ($f, 'w');
 if ($fh)
   {
