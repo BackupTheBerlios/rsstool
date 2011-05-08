@@ -59,7 +59,11 @@ misc_sql_stresc ($s, $db_conn = NULL)
 {
   if ($db_conn)
     return mysql_real_escape_string ($s, $db_conn);
-  return mysql_escape_string ($s); // deprecated
+  if (function_exists ('mysql_escape_string'))
+    return mysql_escape_string ($s); // deprecated
+  echo 'WARNING: neither mysql_real_escape_string() or mysql_escape_string() could be found/used'."\n"
+      .'         making this script vulnerable to SQL injection attacks'."\n";
+  return $s;
 }
 
 
@@ -86,12 +90,14 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
        .'--   `rsstool_title` text NOT NULL,'."\n"
        .'--   `rsstool_title_md5` varchar(32) NOT NULL default \'\','."\n"
        .'--   `rsstool_title_crc32` int(10) unsigned NOT NULL default \'0\','."\n"
-       .'--   `rsstool_url` text NOT NULL,'."\n"
        .'--   `rsstool_desc` text NOT NULL,'."\n"
        .'--   `rsstool_date` bigint(20) unsigned NOT NULL default \'0\','."\n"
        .'--   `rsstool_dl_date` bigint(20) unsigned NOT NULL default \'0\','."\n"
        .'--   `rsstool_keywords` text NOT NULL,'."\n"
        .'--   `rsstool_media_duration` bigint(20) unsigned NOT NULL default \'0\','."\n"
+//       .'--   `rsstool_image` text NOT NULL,'."\n"
+       .'--   `rsstool_event_start` bigint(20) unsigned NOT NULL default \'0\','."\n"
+       .'--   `rsstool_event_end` bigint(20) unsigned NOT NULL default \'0\','."\n"
        .'--   UNIQUE KEY `rsstool_url_crc32` (`rsstool_url_crc32`),'."\n"
        .'--   UNIQUE KEY `rsstool_url_md5` (`rsstool_url_md5`),'."\n"
        .'--   UNIQUE KEY `rsstool_title_crc32` (`rsstool_title_crc32`),'."\n"
@@ -112,6 +118,9 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
            .' `rsstool_desc`,'
            .' `rsstool_keywords`,'
            .' `rsstool_media_duration`'
+//           .' `rsstool_image`'
+           .' `rsstool_event_start`'
+           .' `rsstool_event_end`'
            .' ) VALUES ('
            .' \''.misc_sql_stresc ($xml->item[$i]->dl_url, $db_conn).'\','
            .' \''.$xml->item[$i]->dl_url_md5.'\','
@@ -127,7 +136,10 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
            .' \''.$xml->item[$i]->title_crc32.'\','
            .' \''.misc_sql_stresc ($xml->item[$i]->desc, $db_conn).'\','
            .' \''.misc_sql_stresc ($xml->item[$i]->keywords, $db_conn).'\','
-           .' \''.($xml->item[$i]->media_duration * 1).'\');'
+           .' \''.($xml->item[$i]->media_duration * 1).'\','
+//           .' \''.$xml->item[$i]->image.'\','  
+           .' \''.($xml->item[$i]->event_start * 1).'\','
+           .' \''.($xml->item[$i]->event_end * 1).'\');'
            ."\n";
 
       $p .= '-- just update if row exists'."\n";
@@ -164,7 +176,7 @@ rsstool_write_csv ($xml)
 //         .$xml->item[$i]->media_duration
          ."\n";
 
-//  $p = str_replace ("\n", '', $p);
+  $p = str_replace ("\n", '', $p);
 
   return $p;
 }
