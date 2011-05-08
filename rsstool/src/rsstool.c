@@ -274,7 +274,7 @@ main (int argc, char **argv)
       "TYPE",   "output as new feed\n"
                    "TYPE=1 will write RSS v1.0\n"
                    "TYPE=2 will write RSS v2.0 (default)" // "\n"
-#warning writing MRSS support
+#warning finish support for writing proper MRSS
 //                   "TYPE=3 will write (Media) MRSS v1.5.0"
     },
     {
@@ -500,9 +500,7 @@ main (int argc, char **argv)
         {
           if (fgets (buf2, MAXBUFSIZE, rsstool.input_file))
             {
-#warning shouldnt this be strrchr()?
-              s = strchr (buf2, '\n');
-              if (s)
+              if ((s = strpbrk (buf2, "\r\n")))
                 *s = 0;
               p = s = buf2;
             }
@@ -533,7 +531,6 @@ main (int argc, char **argv)
         }
 
       // normalize feed as string
-#warning rsstool_normalize_feed()
       p = rsstool_normalize_feed (&rsstool, p);
 
       if (!p)
