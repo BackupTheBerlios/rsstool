@@ -23,15 +23,6 @@ OBJECTS=$(TARGET).o rsstool_misc.o rsstool_write.o \
 	misc/base64.o misc/getopt.o misc/getopt2.o \
 	misc/net.o misc/string.o misc/file.o misc/hash.o misc/crc32.o misc/md5.o \
 	misc/misc.o misc/rss.o misc/xml.o
-ifdef USE_ZLIB
-OBJECTS+=misc/unzip.o #misc/zip.o
-endif
-ifdef USE_ODBC
-OBJECTS+=misc/sql_odbc.o
-endif
-ifdef USE_MYSQL
-OBJECTS+=misc/sql_mysql.o
-endif
 
 
 all: $(TARGET)
