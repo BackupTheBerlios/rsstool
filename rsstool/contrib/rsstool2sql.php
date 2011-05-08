@@ -175,7 +175,6 @@ rsstool_write_csv ($xml)
 if ($argc < 2)
   {
     echo 'USAGE: rsstool2sql.php URL|FILE'."\n\n";            
-    echo 'EXAMPLE: rsstool2sql.php rss.slashdot.org/slashdot/slashdot'."\n\n";
     exit;
   }
 
