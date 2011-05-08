@@ -177,8 +177,8 @@ strptime2 (const char *s)
       sprintf (y, "%d", time_tag_p->tm_year + 1900);
 
       // DEBUG
-      printf ("%s, %s, %s, %s, %s, %s\n", y, m, d, h, min, daytime);
-      fflush (stdout);
+//      printf ("%s, %s, %s, %s, %s, %s\n", y, m, d, h, min, daytime);
+//      fflush (stdout);
     }
   else if (s[10] == 'T')                     // YYYY-MM-DDT00:00+00:00
     {
@@ -231,6 +231,62 @@ strptime2 (const char *s)
   t = mktime (&time_tag);
 
   return t;
+}
+
+
+unsigned long int
+strptime3 (const char *s)
+{
+  char buf[MAXBUFSIZE];
+  char *p = NULL;
+  int colon = 0, dot = 0;
+  unsigned long min = 0, sec = 0, ms = 0;
+
+  strncpy (buf, s, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+
+  if ((p = strchr (buf, ' ')))
+    *p = 0;
+
+  p = buf;
+  for (; (p = strchr (p, ':')); colon++)
+    p++;
+
+  p = buf;
+  for (; (p = strchr (p, '.')); dot++)
+    p++;
+
+#warning remove HACK
+  // defrag
+  colon = 1; // WARNING: this does not parse the top times
+  dot = 0;
+//  colon = 0; dot = 1; // CPMA
+
+  switch (colon)
+    {
+      case 2: // MM:SS:MSEC
+        sscanf (s, "%ld:%ld:%ld", &min, &sec, &ms);
+        break;
+
+//      case 1: // SS:MSEC
+//        sscanf (s, "%ld:%ld", &sec, &ms);
+//        break;
+
+      case 1: // MM:SS (baseq3)
+        sscanf (s, "%ld:%ld", &min, &sec);
+        break;
+
+      case 0:
+        if (dot == 1)
+          sscanf (s, "%ld.%ld", &sec, &ms); // SS:MSEC (cpma)
+        else if (dot == 0)
+          sscanf (s, "%ld", &ms); // MSEC
+        break;
+
+      default:
+        break;
+    }
+
+  return min * 60000 + sec * 1000 + ms;
 }
 
 

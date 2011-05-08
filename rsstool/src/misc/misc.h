@@ -51,6 +51,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   wait2()         wait (sleep) a specified number of milliseconds
   getenv2()       getenv() clone for enviroments w/o HOME, TMP or TEMP variables
   strptime2()     parse dates with different formats to time_t
+  strptime3()     parse time (MM:SS:MSEC) into integer with milliseconds
 */
 extern char *tmpnam3 (char *temp, int dir);
 extern int bytes_per_second (time_t start_time, int nbytes);
@@ -59,6 +60,7 @@ extern void wait2 (int nmillis);
 extern char *getenv2 (const char *variable);
 extern int misc_digits (unsigned long value);
 extern time_t strptime2 (const char *s);
+extern unsigned long int strptime3 (const char *s);
 
 
 /*
