@@ -1177,69 +1177,61 @@ strfilter (const char *s, const char *implied_boolean_logic)
 char *
 misc_get_keywords (char *s, int flag) // default: isalnum()
 {
-#warning misc_get_keywords()
+#warning misc_get_keywords ()
 #if 0
-  unsigned int i = 0;
-  unsigned int keyword_size = 3;
-  int (*func) (int) = isalnum;
+  int i = 0;
+  int keyword_size = 3;
+  int (*func) (int) = (flag == 1) ? isalpha : isalnum;
+  char *p = s;
+  int argc;
+  char *arg[MAXBUFSIZE];
+  char buf[MAXBUFSIZE], buf2[MAXBUFSIZE];
 
   // normalize
-  $s = str_replace (array ('. ', ',', ';', '!', '?', '"'), ' ', strtolower ($s));
+  strlwr (s);
+  strrep (s, ". ", " ");
+  strrep (s, ",", " ");
+  strrep (s, ";", " ");
+  strrep (s, "!", " ");
+  strrep (s, "?", " ");
+  strrep (s, "\"", " ");
 
   // remove punctuation
-  for ($i = 0; $i < strlen ($s); $i++)
-    if (ispunct ($s[$i]) && $s[$i] != '_' && $s[$i] != '.')
-      $s[$i] = ' ';
+  for (; *p; p++)
+    if (ispunct (*p) && !strchr ("_.", *p))
+      *p = ' ';
 
-  // remove eventual html tags
-  $s = strip_tags2 ($s);
+  // PHP only: remove eventual html tags
 
-  // explode and trim
-  $a = explode (' ', $s);
-  for ($i = 0; isset ($a[$i]); $i++)
-    $a[$i] = trim ($a[$i], ' .');
+  // explode
+  argc = explode (arg, s, " ", MAXBUFSIZE);
+  // DEBUG
+//  explode_debug (argc, arg);
 
-  // stemmer.php (english only)
-//  if (class_exists (stemmer))
-//    {
-//      $s = new stemmer;
-//
-//      for ($i = 0; isset ($a[$i]); $i++)
-//        $a[$i] = $s->stem ($a[$i]);
-//    }
+  // PHP only: stemmer.php (english only)
 
-  $p = '';
-  $func = $flag ? 'isalpha' : 'isalnum';
-  for ($i = 0; isset ($a[$i]); $i++)
+  for (i = 0; i < argc; i++)
     {
-      $s = $a[$i];
+      strncpy (buf, arg[i], MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
 
-      if (strlen ($s) < $keyword_size)
+      strtriml (strtrimr (buf));
+      if ((int) strlen (buf) < keyword_size)
         continue;
 
-      for ($j = 0; $j < strlen ($s); $j++)
-        if (!$func ($s[$j]) && $s[$j] != '_' && $s[$j] != '.')
+      p = buf;
+      for (; *p; p++)
+        if (!func (*p) && !strchr ("_.", *p))
           continue;
 
-      $p .= trim ($s).' ';
+      if (strlen (buf) + strlen (buf2) > MAXBUFSIZE - 1)
+        continue;
+
+      strcat (buf2, strtriml (strtrimr (buf)));
+      strcat (buf2, " ");
     }
 
-  // DEBUG
-//  echo $p;
-
-  return trim ($p);
-
-  if (flag == 1)
-    func = isalpha;
-
-  if (strlen (strtriml (strtrimr (s))) < (unsigned) keyword_size)
-    return 0;
-
-  for (i = 0; i < strlen (s); i++)
-    if (!func (s[i]) && s[i] != '_' && s[i] != '.')
-      return 0;
-
-  return 1;
+  strncpy (s, buf2, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+  return s;
 #endif
   return "";
 }

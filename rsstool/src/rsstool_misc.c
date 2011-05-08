@@ -255,9 +255,9 @@ static st_tag_filter_t strip_html_filter2[] = {
 
 
 char *
-rsstool_strip_html (char *html)
+rsstool_strip_html (char *html, int keep_links)
 {
-  if (rsstool.strip_html == 2) // strip all except links
+  if (keep_links == 1)
     xml_tag_filter (html, strip_html_filter2, 0);
   else
     xml_tag_filter (html, strip_html_filter, 0); // strip all
@@ -358,13 +358,17 @@ rsstool_add_item_s (st_rsstool_t *rt,
     strncpy (user_s, user, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   if (media_image)
     strncpy (media_image_s, media_image, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-  if (media_keywords)
-    strncpy (media_keywords_s, media_keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-  else if (desc) // get keywords from desc instead
+  // keywords
+  if (desc) // get keywords from desc instead
+    if (*desc)
     {
       strncpy (buf, desc, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+      rsstool_strip_html (buf, 0); // remove links too
       strncpy (media_keywords_s, misc_get_keywords (buf, 0), RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
     }
+  if (media_keywords)
+    if (*media_keywords)
+      strncpy (media_keywords_s, media_keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
 
   if (rt->hack_event)
     {
@@ -390,9 +394,12 @@ rsstool_add_item_s (st_rsstool_t *rt,
 
   if (rsstool.strip_html)
     {
-      rsstool_strip_html (site_s);
-      rsstool_strip_html (title_s);
-      rsstool_strip_html (desc_s);
+      rsstool_strip_html (site_s, 0);
+      rsstool_strip_html (title_s, 0);
+      if (rsstool.strip_html == 2) // strip all except links
+        rsstool_strip_html (desc_s, 1);
+      else
+        rsstool_strip_html (desc_s, 0);
     }
 
   if (rsstool.strip_lf)

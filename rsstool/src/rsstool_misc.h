@@ -49,7 +49,7 @@ extern void rsstool_st_rsstool_t_sanity_check (st_rsstool_t *rsstool);
   rsstool_log()             write string to logfile
 */
 extern const char *rsstool_normalize_feed (st_rsstool_t *rt, const char *file);
-extern char *rsstool_strip_html (char *html);
+extern char *rsstool_strip_html (char *html, int keep_links);
 extern int rsstool_parse_rss (st_rsstool_t *rt, const char *feed_url, const char *file);
 extern int rsstool_add_item (st_rsstool_t *rt, st_rss_t *rss, const char *feed_url);
 extern int rsstool_add_item_s (st_rsstool_t *rt,
