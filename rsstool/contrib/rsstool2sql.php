@@ -23,8 +23,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //phpinfo ();
 //error_reporting(E_ALL | E_STRICT);
 // rsstool path and options
-//$rsstool_path = '/usr/local/bin/rsstool';
-$rsstool_path = '../../src/rsstool';
+$rsstool_path = '/usr/local/bin/rsstool';
+//$rsstool_path = '../../src/rsstool';
 $rsstool_opts = '--shtml --sbin --hack-google';
 
 
