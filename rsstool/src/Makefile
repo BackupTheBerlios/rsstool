@@ -20,7 +20,7 @@ include config.mak
 
 
 OBJECTS=$(TARGET).o rsstool_misc.o rsstool_write.o \
-	misc/base64.o misc/getopt.o misc/getopt2.o \
+	misc/base64.o misc/getopt.o misc/getopt2.o misc/snprintf.o \
 	misc/net.o misc/string.o misc/file.o misc/hash.o misc/crc32.o misc/md5.o \
 	misc/misc.o misc/rss.o misc/xml.o
 

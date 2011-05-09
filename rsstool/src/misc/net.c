@@ -908,7 +908,7 @@ net_get_http_header (st_http_header_t *h, st_net_t *n)
 
 
 int
-net_http_get_header_s (st_http_header_t *h, const char *buffer, int buffer_len)
+net_http_get_header_s (st_http_header_t *h, const char *buffer)
 {
   int len = 0;
   int line = 0;
@@ -916,7 +916,8 @@ net_http_get_header_s (st_http_header_t *h, const char *buffer, int buffer_len)
 
   memset (h, 0, sizeof (st_http_header_t));
 
-  while (str_getline (buf, line++, buffer, buffer_len) > 0)
+//  while (str_getline (buf, line++, buffer, buffer_len))
+  while (str_getline (buffer, line++, buf, MAXBUFSIZE))
     {
       // DEBUG  
 //      printf (buf);
@@ -939,7 +940,7 @@ net_http_get_header_s (st_http_header_t *h, const char *buffer, int buffer_len)
 
 
 const char *
-net_http_get_value (st_http_header_t *h, const char *name, char *value)
+net_http_get_value (st_http_header_t *h, const char *name, char *value, int value_len)
 {
   int i = 0;
   char buf[MAXBUFSIZE];
@@ -948,13 +949,13 @@ net_http_get_value (st_http_header_t *h, const char *name, char *value)
 
   if (!strcmp (name, NAME_FIRSTLINE))
     {
-      if (str_getline (value, 0, h->priv, strlen (h->priv)) > 0)
+      if (str_getline (h->priv, 0, value, value_len))
         return value;
       return NULL;
     }
   if (!strcmp (name, NAME_METHOD))
     {
-      if (str_getline (value, 0, h->priv, strlen (h->priv)) > 0)
+      if (str_getline (h->priv, 0, value, value_len))
         {
           if (strcasestr2 (value, "GET"))
             return "GET";
@@ -965,7 +966,7 @@ net_http_get_value (st_http_header_t *h, const char *name, char *value)
     }
   if (!strcmp (name, NAME_REQUEST))
     {
-      if (str_getline (buf, 0, h->priv, strlen (h->priv)) > 0)
+      if (str_getline (h->priv, 0, value, value_len))
         {
           p = strchr (buf, ' ');
 #if 1

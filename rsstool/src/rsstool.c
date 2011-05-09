@@ -204,12 +204,10 @@ main (int argc, char **argv)
       "sbin",        0, 0, RSSTOOL_SBIN,
       NULL,   "strip all unprintable characters from feed (before parsing)"
     },
-#if 0
     {
       "stitle",        0, 0, RSSTOOL_STITLE,
-      NULL,   "strip all titles from feed"
+      NULL,   "strip title from generated keywords"
     },
-#endif
     {
       "sdesc",        0, 0, RSSTOOL_SDESC,
       NULL,   "strip all descriptions from feed"
@@ -224,7 +222,7 @@ main (int argc, char **argv)
     },
     {
       "shtml",        0, 0, RSSTOOL_SHTML,
-      NULL,   "strip HTML tags from descriptions"
+      NULL,   "strip HTML tags from description"
     },
     {
       "shtml2",       0, 0, RSSTOOL_SHTML2,
@@ -236,7 +234,7 @@ main (int argc, char **argv)
     },
     {
       "swhite",        0, 0, RSSTOOL_SWHITE,
-      NULL,   "strip whitespace from descriptions"
+      NULL,   "strip whitespaces from description"
     },
     {
       "slf",        0, 0, RSSTOOL_SLF,
@@ -427,6 +425,10 @@ main (int argc, char **argv)
 
         case RSSTOOL_SDESC:
           rsstool.strip_desc = 1;
+          break;
+
+        case RSSTOOL_STITLE:
+          rsstool.strip_title_from_keywords = 1;
           break;
 
         case RSSTOOL_SWHITE:

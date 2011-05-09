@@ -77,6 +77,7 @@ TODO:  utf8str()     decode utf-8 to string
   implode()     turn array into string
 
   str_getline() like fgets but works with strings instead with FILE
+                  returns destination string
 
   memcmp2()     memcmp() replacement with flags for wildcard and
                   relative/shifted similarities support
@@ -143,9 +144,7 @@ extern int explode (char **argv, char *str, const char *separator_s, int max_arg
 //                                                const char *enclosure, // '"'
 //                                                const char *escape);   // '\\'
 extern const char *implode (const char *separator_s, char **argv);
-
-extern int str_getline (char *line, int line_num, const char *buffer, int buffer_len);
-extern const char *strline (const char *s, int line);
+extern const char *str_getline (const char *s, int line, char *d, int d_len);
 
 
 #define MEMCMP2_WCARD(WC)                 ((1 << 17) | ((WC) & 0xff))

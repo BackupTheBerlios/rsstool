@@ -153,8 +153,8 @@ enum {
 #define NAME_METHOD "1"    // name for the method
 #define NAME_REQUEST "2"   // name for the request
 extern int net_get_http_header (st_http_header_t *h, st_net_t *n); 
-extern int net_http_get_header_s (st_http_header_t *h, const char *buffer, int buffer_len);
-extern const char *net_http_get_value (st_http_header_t *h, const char *name, char *value);
+extern int net_http_get_header_s (st_http_header_t *h, const char *buffer);
+extern const char *net_http_get_value (st_http_header_t *h, const char *name, char *value, int value_len);
 
 extern int net_build_http_request (char *http_header, const char *url_s, const char *user_agent, int keep_alive, int method, int gzip);
 extern int net_build_http_response (char *http_header, const char *user_agent, int keep_alive, unsigned int content_len, int gzip);

@@ -512,7 +512,7 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
         {
           xml_node_t *pnode = xml_get_childnode (node);
           st_rss_item_t *item = &rss->item[rss->item_count];
-          int found = 0;
+//          int found = 0;
           const char *p = NULL;
           char link[RSSMAXBUFSIZE], guid[RSSMAXBUFSIZE];
 
@@ -534,12 +534,12 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
               if (!strcasecmp (xml_get_name (pnode), "title"))
                 {
                   rss_read_copy (item->title, doc, xml_get_childnode (pnode));
-                  found = 1;
+//                  found = 1;
                 }
               else if (!strcasecmp (xml_get_name (pnode), "link"))
                 {
                   rss_read_copy (link, doc, xml_get_childnode (pnode));
-                  found = 1;
+//                  found = 1;
                 }
 #if 0
               else if (!strcasecmp (xml_get_name (pnode), "enclosure"))
@@ -548,19 +548,19 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                   if (p)
                     {
                       strncpy (link, p, RSSMAXBUFSIZE)[RSSMAXBUFSIZE-1] = 0;
-                      found = 1;
+//                      found = 1;
                     }
                 }
 #endif
               else if (!strcasecmp (xml_get_name (pnode), "guid") && (!(*link)))
                 {
                   rss_read_copy (guid, doc, xml_get_childnode (pnode));
-                  found = 1;
+//                  found = 1;
                 }
               else if (!strcasecmp (xml_get_name (pnode), "description"))
                 {
                   rss_read_copy (item->desc, doc, xml_get_childnode (pnode));
-                  found = 1;
+//                  found = 1;
                 }
               else if (!strcasecmp (xml_get_name (pnode), "date") ||
                        !strcasecmp (xml_get_name (pnode), "pubDate") ||
@@ -568,7 +568,7 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                        !strcasecmp (xml_get_name (pnode), "cropDate"))
                 { 
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
-                  found = 1;
+//                  found = 1;
                 }
 //              else if (!strcasecmp (xml_get_name (pnode), "duration")) // HACK yt:duration
               else if (stristr (xml_get_name (pnode), "duration")) // HACK yt:duration
@@ -577,7 +577,7 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                   if (p)
                     {
                       item->media.duration = strtol (p, NULL, 10);
-                      found = 1;
+//                      found = 1;
 //                      break;
                     }
                 }
@@ -597,28 +597,28 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
                           if (p)
                             {
                               item->media.duration = strtol (p, NULL, 10);
-                              found = 1;
+//                              found = 1;
 //                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "filesize");
                           if (p)
                             {
                               item->media.filesize = strtol (p, NULL, 10);
-                              found = 1;
+//                              found = 1;
 //                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "width");
                           if (p)
                             {
                               item->media.width = strtol (p, NULL, 10);
-                              found = 1;
+//                              found = 1;
 //                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "height");
                           if (p)
                             {
                               item->media.height = strtol (p, NULL, 10);
-                              found = 1;
+//                              found = 1;
 //                              break;
                             }
                         }
@@ -726,7 +726,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
         {
           xml_node_t *pnode = xml_get_childnode (node);
           st_rss_item_t *item = &rss->item[rss->item_count];
-          int found = 0;
+//          int found = 0;
           char link[RSSMAXBUFSIZE];
 
           *link = 0;
@@ -747,13 +747,13 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
               if (!strcasecmp (xml_get_name (pnode), "title"))
                 {
                   rss_read_copy (item->title, doc, xml_get_childnode (pnode));
-                  found = 1;
+//                  found = 1;
                 }
 #if 0
               else if (!strcasecmp (xml_get_name (pnode), "id"))
                 {
                   rss_read_copy (link, doc, xml_get_childnode (pnode));
-                  found = 1;
+//                  found = 1;
                 }
 #endif
               else if (!strcasecmp (xml_get_name (pnode), "link") && (!(*link)))
@@ -765,26 +765,26 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                   if (p)
                     {
                       strncpy (link, p, RSSMAXBUFSIZE)[RSSMAXBUFSIZE-1] = 0;
-                      found = 1;
+//                      found = 1;
                     }
                 }
               else if (!strcasecmp (xml_get_name (pnode), "content"))
                 {
                   rss_read_copy (item->desc, doc, xml_get_childnode (pnode));
-                  found = 1;
+//                  found = 1;
                 }
               else if (!strcasecmp (xml_get_name (pnode), "author"))
                 {
                   xml_node_t *tnode = xml_get_childnode (pnode); 
                   if (!strcasecmp (xml_get_name (tnode), "name"))
                     rss_read_copy (item->user, doc, xml_get_childnode (tnode));
-                  found = 1;
+//                  found = 1;
                 }
               else if (!strcasecmp (xml_get_name (pnode), "modified") ||
                        !strcasecmp (xml_get_name (pnode), "updated"))
                 { 
                   item->date = strptime2 ((const char *) xml_get_string (xml_get_childnode (pnode)));
-                  found = 1;
+//                  found = 1;
                 }
 //              else if (!strcasecmp (xml_get_name (pnode), "duration")) // HACK yt:duration
               else if (stristr (xml_get_name (pnode), "duration")) // HACK yt:duration
@@ -793,7 +793,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                   if (p)
                     {
                       item->media.duration = strtol (p, NULL, 10);
-                      found = 1;
+//                      found = 1;
 //                      break;
                     }
                 }
@@ -813,28 +813,28 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                           if (p)
                             {
                               item->media.duration = strtol (p, NULL, 10);
-                              found = 1;
+//                              found = 1;
 //                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "filesize");
                           if (p)
                             {
                               item->media.filesize = strtol (p, NULL, 10);
-                              found = 1;
+//                              found = 1;
 //                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "width");
                           if (p)
                             {
                               item->media.width = strtol (p, NULL, 10);
-                              found = 1;
+//                              found = 1;
 //                              break;
                             }
                           p = (const char *) xml_get_value (tnode, "height");
                           if (p)
                             {
                               item->media.height = strtol (p, NULL, 10);
-                              found = 1;
+//                              found = 1;
 //                              break;
                             }
                         }
@@ -851,7 +851,7 @@ rss_open_atom (st_rss_t *rss, const char *encoding)
                             if (!(item->media.thumbnail[0]))
                             {
                               strncpy (item->media.thumbnail, p, RSSMAXBUFSIZE)[RSSMAXBUFSIZE-1] = 0;
-                              found = 1;
+//                              found = 1;
 //                              break;  
                             }
                         }

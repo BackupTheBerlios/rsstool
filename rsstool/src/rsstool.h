@@ -68,6 +68,7 @@ typedef struct
   int strip_lf;
   int strip_whitespace;
   int strip_bin;
+  int strip_title_from_keywords;
   const char *strip_filter;
 
   // HACK: temporary and not shown in usage

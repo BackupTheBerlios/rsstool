@@ -674,125 +674,10 @@ implode (const char *separator_s, char **argv)
 }
 
 
-#if 0
 const char *
-get_property_from_string (char *str, const char *propname, const char prop_sep, const char comment_sep)
+str_getline (const char *s, int line, char *d, int d_len)
 {
-  static char value_s[MAXBUFSIZE];
-  char str_end[8], *p = NULL, buf[MAXBUFSIZE];
-  int len = strlen (str);
-
-  if (len >= MAXBUFSIZE)
-    len = MAXBUFSIZE - 1;
-  memcpy (buf, str, len);
-  buf[len] = 0;
-
-  p = strtriml (buf);
-  if (*p == comment_sep || *p == '\n' || *p == '\r')
-    return NULL;                                // text after comment_sep is comment
-
-  strcpy (str_end, "\r\n");
-  if ((p = strpbrk (buf, str_end)))             // strip *any* returns and comments
-    *p = 0;
-
-  // terminate at unescaped '#'
-  for (p = buf + 1; *p; p++)
-    if (*p == '#')
-      {
-        if (*(p - 1) == '\\')
-          p = strmove (p - 1, p);
-        else
-          {
-            *p = 0;
-            break;
-          }
-      }
-
-  p = strchr (buf, prop_sep);
-  if (p)
-    {
-      *p = 0;                                   // note that this "cuts" _buf_ ...
-      p++;
-    }
-  strtriml (strtrimr (buf));
-
-  if (!strcasecmp (buf, propname))                 // ...because we do _not_ use strncasecmp()
-    {
-      // if no divider was found the propname must be a bool config entry
-      //  (present or not present)
-      if (p)
-        {
-          strncpy (value_s, p, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-
-          // terminate at unescaped '#'
-          for (p = value_s + 1; *p; p++)
-          if (*p == '#')
-            {
-              if (*(p - 1) == '\\')
-                p = strmove (p - 1, p);
-              else
-                {
-                  *p = 0;
-                  break;
-                }
-            }
-
-//          strtriml (strtrimr (value_s));
-        }
-      else
-        strcpy (value_s, "1");
-    }
-  else
-    return NULL;
-
-  return value_s;
-}
-#endif
-
-
-int
-str_getline (char *line, int line_num, const char *buffer, int buffer_len)
-{
-  (void) buffer_len;
-  int i = 0;
-  const char *s = NULL, *e = NULL;
-
-  s = buffer;
-  for (; i < line_num; i++)
-    {
-      s = strchr (s, '\n');
-      if (s)
-        s++;
-      else
-        break;
-    }
-
-  if (i < line_num)
-    return -1;
-
-  if ((e = strchr (s, '\n')))
-    {
-      e++;
-      strncpy (line, s, e - s)[e - (s + 1)] = 0;
-    }
-  else
-    strcpy (line, s);
-
-  return strlen (line);
-}
-
-
-const char *
-strline (const char *s, int line)
-{
-#warning replace string.c/str_getline() with this and fix/check it everywhere
-#if 0
-  static char buf[MAXBUFSIZE];
-  str_getline (buf, line, s, strlen (s));
-  return buf;
-#else
   int l = 0;
-  static char buf[MAXBUFSIZE];
   char *p = NULL;
 
   if (!s)
@@ -811,17 +696,15 @@ strline (const char *s, int line)
   if (l < line)   
     return NULL;   
 
-  strncpy (buf, s, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-  if ((p = strchr (buf, '\n')))
+  strncpy (d, s, MIN (MAXBUFSIZE, d_len))[MIN (MAXBUFSIZE, d_len) - 1] = 0;
+  if ((p = strchr (d, '\n')))
     *p = 0;
 
-#ifdef  DEBUG
-  printf ("[%s]\n", buf);
-  fflush (stdout);
-#endif
+  // DEBUG
+//  printf (d);
+//  fflush (stdout);
 
-  return buf;
-#endif 
+  return d;
 }
 
 
@@ -1174,11 +1057,24 @@ strfilter (const char *s, const char *implied_boolean_logic)
 }
 
 
+static int
+array_strcmp (int argc, const char **arg, const char *needle)
+{
+  int i = 0;
+  int result = -1;
+  for (; i < argc; i++)
+    {
+      result = strcmp (arg[i], needle);
+      if (!result)
+        return result;
+    }
+  return result;
+}
+
+
 char *
 misc_get_keywords (char *s, int flag) // default: isalnum()
 {
-#warning misc_get_keywords ()
-#if 0
   int i = 0;
   int keyword_size = 3;
   int (*func) (int) = (flag == 1) ? isalpha : isalnum;
@@ -1187,30 +1083,37 @@ misc_get_keywords (char *s, int flag) // default: isalnum()
   char *arg[MAXBUFSIZE];
   char buf[MAXBUFSIZE], buf2[MAXBUFSIZE];
 
+  if (!p)
+    return NULL;
+
+  if (!(*p))
+    return NULL;
+
   // normalize
-  strlwr (s);
-  strrep (s, ". ", " ");
-  strrep (s, ",", " ");
-  strrep (s, ";", " ");
-  strrep (s, "!", " ");
-  strrep (s, "?", " ");
-  strrep (s, "\"", " ");
+  strlwr (p);
+  strrep (p, "\n", " ");
+  strrep (p, ". ", " ");
+  strrep (p, ",", " ");
+  strrep (p, ";", " ");
+  strrep (p, "!", " ");
+  strrep (p, "?", " ");
+  strrep (p, "\"", " ");
 
   // remove punctuation
   for (; *p; p++)
     if (ispunct (*p) && !strchr ("_.", *p))
       *p = ' ';
-
-  // PHP only: remove eventual html tags
-
+  p = s;
+ 
   // explode
-  argc = explode (arg, s, " ", MAXBUFSIZE);
+  argc = explode (arg, p, " ", MAXBUFSIZE);
   // DEBUG
 //  explode_debug (argc, arg);
 
-  // PHP only: stemmer.php (english only)
-
+  *buf2 = 0;
   for (i = 0; i < argc; i++)
+    if (*arg[i])
+      if (array_strcmp (i, (const char **) &arg, arg[i]) != 0) // unify
     {
       strncpy (buf, arg[i], MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
 
@@ -1226,14 +1129,11 @@ misc_get_keywords (char *s, int flag) // default: isalnum()
       if (strlen (buf) + strlen (buf2) > MAXBUFSIZE - 1)
         continue;
 
-      strcat (buf2, strtriml (strtrimr (buf)));
-      strcat (buf2, " ");
+      sprintf (strchr (buf2, 0), "%s ", buf);
     }
 
-  strncpy (s, buf2, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+  strncpy (s, strtrimr (buf2), MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
   return s;
-#endif
-  return "";
 }
 
 

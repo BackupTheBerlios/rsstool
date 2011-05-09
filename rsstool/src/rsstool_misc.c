@@ -362,7 +362,10 @@ rsstool_add_item_s (st_rsstool_t *rt,
   if (desc) // get keywords from desc instead
     if (*desc)
     {
-      strncpy (buf, desc, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+      if (rt->strip_title_from_keywords)
+        strncpy (buf, desc, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+      else
+        snprintf (buf, MAXBUFSIZE, "%s %s", title, desc);
       rsstool_strip_html (buf, 0); // remove links too
       strncpy (media_keywords_s, misc_get_keywords (buf, 0), RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
     }
