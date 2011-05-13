@@ -104,11 +104,12 @@ main (int argc, char **argv)
     },
     {
       NULL,      0, 0, 0,
-      NULL,   "Read, parse, merge and write (M)RSS and Atom feeds\n"
+      NULL,   "Read, parse, merge and write RSS and Atom feeds\n"
               "\n"
-              "Supports: RSS 0.9x, 1.0, 2.0\n"
-//              "          MRSS 1.0, 1.1.x, 1.5.0\n"
-              "          Atom 0.1, 0.2, 0.3, 1.0\n"
+              "Supported feeds:\n"
+              " RW xml             RSS 0.9x, 1.0, 2.0\n"
+//              " RW                 Media RSS 1.0, 1.1.x, 1.5.0\n"
+              " R  xml             Atom 0.1, 0.2, 0.3, 1.0\n"
               "\nThe RSS or Atom feeds will be merged and re-sorted if you enter more than\n"
               "one URL or FILEname\n"
     },
@@ -272,8 +273,8 @@ main (int argc, char **argv)
       "TYPE",   "output as new feed\n"
                    "TYPE=1 will write RSS v1.0\n"
                    "TYPE=2 will write RSS v2.0 (default)" // "\n"
-#warning finish support for writing proper MRSS
-//                   "TYPE=3 will write (Media) MRSS v1.5.0"
+#warning finish support for writing proper Media RSS
+//                   "TYPE=3 will write Media RSS v1.5.0"
     },
     {
       "xml",       0, 0, RSSTOOL_XML,

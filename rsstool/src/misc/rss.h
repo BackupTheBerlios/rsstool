@@ -96,7 +96,7 @@ typedef struct
   rss_write()         create XML and write to file
                         TYPE=1 will write RSS v1.0
                         TYPE=2 will write RSS v2.0 (default)
-                        TYPE=3 will write (Media) MRSS v1.5.0
+                        TYPE=3 will write Media RSS v1.5.0
 
   rss_get_item()      get item n
   rss_item_count()    count items in st_rss_t
