@@ -34,6 +34,7 @@ typedef struct
   char site[RSSTOOL_MAXBUFSIZE];
   char feed_url[RSSTOOL_MAXBUFSIZE];
 
+  char title_keywords[RSSTOOL_MAXBUFSIZE]; // for related searches (min. word length: 2)
   char media_keywords[RSSTOOL_MAXBUFSIZE]; // default: keywords from title and description
   unsigned long int media_duration; //  default: 0 seconds
   char media_image[FILENAME_MAX];   //  e.g. thumbnail

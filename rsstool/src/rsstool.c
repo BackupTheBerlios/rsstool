@@ -150,18 +150,6 @@ main (int argc, char **argv)
       "FILE", "write a log to FILE (including HTTP headers)"
     },
     {
-      "since", 1, 0, RSSTOOL_SINCE,
-      "DATE",  "pass only items (of feeds) newer than DATE\n"
-               "DATE can have the following formats\n"
-               "\"Thu, 01 Jan 1970 01:00:00 +0100\" (RFC 822),\n"
-               "\"YYYY-MM-DDTHH:MM\", \"DD MMM YYYY HH:MM\",\n"
-               "or \"YYYY-MM-DD\""
-    },
-    {
-      "fixdate", 0, 0, RSSTOOL_FIXDATE,
-      NULL,  "missing dates will be replaced with the current date"
-    },
-    {
       "enc", 1, 0, RSSTOOL_ENC,
       "ENCODING", "overrides the encoding specified in RSS header"
     },
@@ -192,6 +180,11 @@ main (int argc, char **argv)
       NULL,   "\nStrip, Sort & Repair"
     },
     {
+      "sbin",        0, 0, RSSTOOL_SBIN,
+      NULL,   "strip all unprintable characters from feed (before parsing)"
+    },
+#warning test --filter
+    {
       "filter", 1, 0, RSSTOOL_FILTER,
       "LOGIC", "sometimes referred to as implied Boolean LOGIC, in which\n"
                "+ stands for AND\n"
@@ -201,38 +194,36 @@ main (int argc, char **argv)
                "(nested) parentheses are not supported\n"
                "Example: --filter=\"+INCLUDE -EXCLUDE\""
     },
+#warning --keywords also replaces stitle
     {
-      "sbin",        0, 0, RSSTOOL_SBIN,
-      NULL,   "strip all unprintable characters from feed (before parsing)"
+      "keywords", 1, 0, RSSTOOL_KEYWORDS,
+      "OPTION", "generate KEYWORDS from title and/or description\n"
+             "OPTION=0 from both title and description (default)\n"
+             "OPTION=1 from title only\n"
+             "OPTION=2 from description only"
     },
+#if 0
     {
       "stitle",        0, 0, RSSTOOL_STITLE,
-      NULL,   "strip title from generated keywords"
+      NULL,   NULL // "do not include title in generated keywords"
     },
+#endif
+#warning --shtml=ALLOW
     {
-      "sdesc",        0, 0, RSSTOOL_SDESC,
-      NULL,   "strip all descriptions from feed"
+      "shtml",        2, 0, RSSTOOL_SHTML,
+      "ALLOW",   "strip HTML tags from description\n"
+                   OPTION_LONG_S "shtml=\"a,hr\" will strip all tags except A and HR"
     },
-    {
-      "sd",        0, 0, RSSTOOL_SDESC,
-      NULL, NULL
-    },
-    {
-      "1",       0, 0, RSSTOOL_SDESC,
-      NULL, NULL
-    },
-    {
-      "shtml",        0, 0, RSSTOOL_SHTML,
-      NULL,   "strip HTML tags from description"
-    },
+#if 0
     {
       "shtml2",       0, 0, RSSTOOL_SHTML2,
-      NULL,   "like " OPTION_LONG_S "shtml but keeps links intact"
+      NULL,   NULL // "like " OPTION_LONG_S "shtml but keeps links intact"
     },
     {
       "s",        0, 0, RSSTOOL_SHTML,
       NULL, NULL
     },
+#endif
     {
       "swhite",        0, 0, RSSTOOL_SWHITE,
       NULL,   "strip whitespaces from description"
@@ -241,6 +232,20 @@ main (int argc, char **argv)
       "slf",        0, 0, RSSTOOL_SLF,
       NULL,   "strip line feeds/carriage returns from descriptions"
     },
+    {
+      "sdesc",        0, 0, RSSTOOL_SDESC,
+      NULL,   "strip the whole description"
+    },
+#if 0
+    {
+      "sd",        0, 0, RSSTOOL_SDESC,
+      NULL, NULL
+    },
+    {
+      "1",       0, 0, RSSTOOL_SDESC,
+      NULL, NULL
+    },
+#endif
 #warning --hack-google
     {
       "hack-google",        0, 0, RSSTOOL_HACK_GOOGLE,
@@ -251,6 +256,18 @@ main (int argc, char **argv)
       "hack-event",        0, 0, RSSTOOL_HACK_EVENT,
       NULL,   NULL // gather a start time and length from description
                      // for temporary events like broadcast shedules
+    },
+    {
+      "fixdate", 0, 0, RSSTOOL_FIXDATE,
+      NULL,  "missing dates will be replaced with the current date"
+    },
+    {
+      "since", 1, 0, RSSTOOL_SINCE,
+      "DATE",  "pass only items (of feeds) newer than DATE\n"
+               "DATE can have the following formats\n"
+               "\"Thu, 01 Jan 1970 01:00:00 +0100\" (RFC 822),\n"
+               "\"YYYY-MM-DDTHH:MM\", \"DD MMM YYYY HH:MM\",\n"
+               "or \"YYYY-MM-DD\""
     },
     {
       "nosort",        0, 0, RSSTOOL_NOSORT,
@@ -418,6 +435,10 @@ main (int argc, char **argv)
 
         case RSSTOOL_SHTML:
           rsstool.strip_html = 1;
+          p = optarg;
+          if (p)
+            rsstool.strip_filter = p;
+          break;
           break;
 
         case RSSTOOL_SHTML2:
