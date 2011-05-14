@@ -71,6 +71,8 @@ typedef struct
   int strip_bin;
   int strip_title_from_keywords;
   const char *strip_filter;
+  const char *keywords_option;
+  const char *strip_html_allow;
 
   // HACK: temporary and not shown in usage
   int hack_google; // remove un-escaped <em> tags

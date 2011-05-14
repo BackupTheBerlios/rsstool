@@ -212,7 +212,7 @@ main (int argc, char **argv)
     {
       "shtml",        2, 0, RSSTOOL_SHTML,
       "ALLOW",   "strip HTML tags from description\n"
-                   OPTION_LONG_S "shtml=\"a,hr\" will strip all tags except A and HR"
+                 "(default: " OPTION_LONG_S "shtml=\"a,br\" will strip all tags except A and BR)"
     },
 #if 0
     {
@@ -356,6 +356,13 @@ main (int argc, char **argv)
             rsstool.strip_filter = p;
           break;
 
+        case RSSTOOL_KEYWORDS:
+//          rsstool.keywords = 1;
+          p = optarg;
+          if (p)
+            rsstool.keywords_option = p;
+          break;
+
         case RSSTOOL_NOSORT:
           rsstool.nosort = 1;
           break;
@@ -437,21 +444,26 @@ main (int argc, char **argv)
           rsstool.strip_html = 1;
           p = optarg;
           if (p)
-            rsstool.strip_filter = p;
+            rsstool.strip_html_allow = p;
           break;
           break;
 
+#if 0
         case RSSTOOL_SHTML2:
           rsstool.strip_html = 2;
           break;
+#endif
 
         case RSSTOOL_SDESC:
           rsstool.strip_desc = 1;
           break;
 
+#warning rsstool.strip_title_from_keywords
+#if 0
         case RSSTOOL_STITLE:
           rsstool.strip_title_from_keywords = 1;
           break;
+#endif
 
         case RSSTOOL_SWHITE:
           rsstool.strip_whitespace = 1;

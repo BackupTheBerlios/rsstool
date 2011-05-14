@@ -255,8 +255,9 @@ static st_tag_filter_t strip_html_filter2[] = {
 
 
 char *
-rsstool_strip_html (char *html, int keep_links)
+rsstool_strip_html (char *html, const char **strip_html_allow)
 {
+printf ("%s\n", rsstool.strip_html_allow);
   if (keep_links == 1)
     xml_tag_filter (html, strip_html_filter2, 0);
   else
@@ -276,9 +277,13 @@ rsstool_strip_lf (char *html)
 static char *
 rsstool_strip_whitespace (char *html)
 {
+  int i = 0;
+
   strrep (html, "\t", " ");
-  strrep (html, "  ", " ");
-  return strrep (html, "  ", " ");
+  for (; i < 2; i++)
+    strrep (html, "  ", " ");
+
+  return html;
 }
 
 
@@ -358,7 +363,7 @@ rsstool_add_item_s (st_rsstool_t *rt,
     strncpy (user_s, user, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   if (media_image)
     strncpy (media_image_s, media_image, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-  // keywords
+#warning rsstool.keywords_option
   if (desc) // get keywords from desc instead
     if (*desc)
     {
@@ -397,8 +402,8 @@ rsstool_add_item_s (st_rsstool_t *rt,
 
   if (rsstool.strip_html)
     {
-      rsstool_strip_html (site_s, 0);
-      rsstool_strip_html (title_s, 0);
+//      rsstool_strip_html (site_s, 0);
+//      rsstool_strip_html (title_s, 0);
       if (rsstool.strip_html == 2) // strip all except links
         rsstool_strip_html (desc_s, 1);
       else
@@ -407,17 +412,21 @@ rsstool_add_item_s (st_rsstool_t *rt,
 
   if (rsstool.strip_lf)
     {
-      rsstool_strip_lf (site_s);
-      rsstool_strip_lf (title_s);
+//      rsstool_strip_lf (site_s);
+//      rsstool_strip_lf (title_s);
       rsstool_strip_lf (desc_s);
     }
 
   if (rsstool.strip_whitespace)
     {
-      rsstool_strip_whitespace (site_s);
-      rsstool_strip_whitespace (title_s);
+//      rsstool_strip_whitespace (site_s);
+//      rsstool_strip_whitespace (title_s);
+      strtriml (strtrimr (title_s));
       rsstool_strip_whitespace (desc_s);
     }
+
+  if (date > 0 && date < rt->since)
+    return -1;
 
   for (i = 0; i < rt->item_count && rt->item[i]; i++)
     {
@@ -436,9 +445,6 @@ rsstool_add_item_s (st_rsstool_t *rt,
           return 0; // dupe
 #endif
     }
-
-  if (date > 0 && date < rt->since)
-    return -1;
 
   i = rt->item_count;
 
@@ -561,6 +567,7 @@ a_pass (const char *s)
   rsstool_add_item_s (&rsstool,
                       "rsstool",
                       "--parse",  
+#warning wasnt this fixed with start_time already?
                       time (0),
                       p ? p : "",
                       p ? p : "",
