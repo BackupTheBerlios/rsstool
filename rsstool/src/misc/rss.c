@@ -1086,7 +1086,7 @@ rss_write (FILE *fp, st_rss_t *rss, int type)
       xmlTextWriterWriteElement (writer, BAD_CAST "pubDate", BAD_CAST buf);
 
       XMLPRINTF("\n      ");
-#warning proper MRSS output
+#warning proper Media RSS output
       xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_duration", "%d", rss->item[i].media.duration);
 
       XMLPRINTF("\n    ");
