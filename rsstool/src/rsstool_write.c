@@ -170,8 +170,7 @@ rsstool_write_xml (st_rsstool_t *rt)
 
       XMLPRINTF("\n    ");
 
-#warning wasnt this fixed with start_time before? :O
-      xmlTextWriterWriteFormatElement (writer, BAD_CAST "dl_date", "%ld", time (0));
+      xmlTextWriterWriteFormatElement (writer, BAD_CAST "dl_date", "%ld", rsstool.start_time);
 
       XMLPRINTF("\n    ");
 

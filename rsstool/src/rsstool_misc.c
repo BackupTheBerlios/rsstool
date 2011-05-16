@@ -234,6 +234,12 @@ static st_tag_filter_t strip_html_filter[] = {
 };
 
 
+char *
+rsstool_strip_html (char *html, const char *strip_html_allow)
+{
+#warning rsstool.strip_html_allow
+//  if (strip_html_allow)
+    {
 static st_tag_filter_t strip_html_filter2[] = {
   {
     "a",
@@ -254,13 +260,9 @@ static st_tag_filter_t strip_html_filter2[] = {
 };
 
 
-char *
-rsstool_strip_html (char *html, const char **strip_html_allow)
-{
-printf ("%s\n", rsstool.strip_html_allow);
-  if (keep_links == 1)
-    xml_tag_filter (html, strip_html_filter2, 0);
-  else
+//    xml_tag_filter (html, strip_html_filter2, 0);
+    }
+//  else
     xml_tag_filter (html, strip_html_filter, 0); // strip all
 
   return html;
@@ -363,17 +365,17 @@ rsstool_add_item_s (st_rsstool_t *rt,
     strncpy (user_s, user, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   if (media_image)
     strncpy (media_image_s, media_image, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-#warning rsstool.keywords_option
-  if (desc) // get keywords from desc instead
-    if (*desc)
-    {
-      if (rt->strip_title_from_keywords)
-        strncpy (buf, desc, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-      else
-        snprintf (buf, MAXBUFSIZE, "%s %s", title, desc);
-      rsstool_strip_html (buf, 0); // remove links too
-      strncpy (media_keywords_s, misc_get_keywords (buf, 0), RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-    }
+
+  *buf = 0;
+  if (rt->strip_keywords == 2)
+    strncpy (buf, desc ? desc : "", MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+  else if (rt->strip_keywords == 1)
+    strncpy (buf, title ? title : "", MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+  else
+    snprintf (buf, MAXBUFSIZE, "%s %s", title ? title : "", desc ? desc : "");
+  rsstool_strip_html (buf, NULL); // remove links too
+  strncpy (media_keywords_s, misc_get_keywords (buf, 0), RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  // IF media:keywords are present use them instead
   if (media_keywords)
     if (*media_keywords)
       strncpy (media_keywords_s, media_keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
@@ -402,25 +404,16 @@ rsstool_add_item_s (st_rsstool_t *rt,
 
   if (rsstool.strip_html)
     {
-//      rsstool_strip_html (site_s, 0);
-//      rsstool_strip_html (title_s, 0);
-      if (rsstool.strip_html == 2) // strip all except links
-        rsstool_strip_html (desc_s, 1);
-      else
-        rsstool_strip_html (desc_s, 0);
+      rsstool_strip_html (desc_s, rsstool.strip_html_allow);
     }
 
   if (rsstool.strip_lf)
     {
-//      rsstool_strip_lf (site_s);
-//      rsstool_strip_lf (title_s);
       rsstool_strip_lf (desc_s);
     }
 
   if (rsstool.strip_whitespace)
     {
-//      rsstool_strip_whitespace (site_s);
-//      rsstool_strip_whitespace (title_s);
       strtriml (strtrimr (title_s));
       rsstool_strip_whitespace (desc_s);
     }
@@ -567,8 +560,7 @@ a_pass (const char *s)
   rsstool_add_item_s (&rsstool,
                       "rsstool",
                       "--parse",  
-#warning wasnt this fixed with start_time already?
-                      time (0),
+                      rsstool.start_time,
                       p ? p : "",
                       p ? p : "",
                       "",

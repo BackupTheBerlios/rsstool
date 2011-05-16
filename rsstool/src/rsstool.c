@@ -194,7 +194,6 @@ main (int argc, char **argv)
                "(nested) parentheses are not supported\n"
                "Example: --filter=\"+INCLUDE -EXCLUDE\""
     },
-#warning --keywords also replaces stitle
     {
       "keywords", 1, 0, RSSTOOL_KEYWORDS,
       "OPTION", "generate KEYWORDS from title and/or description\n"
@@ -212,7 +211,7 @@ main (int argc, char **argv)
     {
       "shtml",        2, 0, RSSTOOL_SHTML,
       "ALLOW",   "strip HTML tags from description\n"
-                 "(default: " OPTION_LONG_S "shtml=\"a,br\" will strip all tags except A and BR)"
+                 "(default: " OPTION_LONG_S "shtml=\"a,br\" strip all tags except A and BR)"
     },
 #if 0
     {
@@ -357,10 +356,9 @@ main (int argc, char **argv)
           break;
 
         case RSSTOOL_KEYWORDS:
-//          rsstool.keywords = 1;
           p = optarg;
           if (p)
-            rsstool.keywords_option = p;
+            rsstool.strip_keywords = strtol (p, NULL, 10);
           break;
 
         case RSSTOOL_NOSORT:
@@ -448,22 +446,9 @@ main (int argc, char **argv)
           break;
           break;
 
-#if 0
-        case RSSTOOL_SHTML2:
-          rsstool.strip_html = 2;
-          break;
-#endif
-
         case RSSTOOL_SDESC:
           rsstool.strip_desc = 1;
           break;
-
-#warning rsstool.strip_title_from_keywords
-#if 0
-        case RSSTOOL_STITLE:
-          rsstool.strip_title_from_keywords = 1;
-          break;
-#endif
 
         case RSSTOOL_SWHITE:
           rsstool.strip_whitespace = 1;
@@ -495,7 +480,7 @@ main (int argc, char **argv)
           rsstool.rss_version = 2;
           p = optarg;
           if (p)
-            rsstool.rss_version = strtol (optarg, NULL, 10);
+            rsstool.rss_version = strtol (p, NULL, 10);
           rsstool.output = RSSTOOL_OUTPUT_RSS;
           break;
 
