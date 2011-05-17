@@ -201,28 +201,12 @@ main (int argc, char **argv)
              "OPTION=1 from title only\n"
              "OPTION=2 from description only"
     },
-#if 0
-    {
-      "stitle",        0, 0, RSSTOOL_STITLE,
-      NULL,   NULL // "do not include title in generated keywords"
-    },
-#endif
-#warning --shtml=ALLOW
+#warning test --shtml
     {
       "shtml",        2, 0, RSSTOOL_SHTML,
       "ALLOW",   "strip HTML tags from description\n"
                  "(default: " OPTION_LONG_S "shtml=\"a,br\" strip all tags except A and BR)"
     },
-#if 0
-    {
-      "shtml2",       0, 0, RSSTOOL_SHTML2,
-      NULL,   NULL // "like " OPTION_LONG_S "shtml but keeps links intact"
-    },
-    {
-      "s",        0, 0, RSSTOOL_SHTML,
-      NULL, NULL
-    },
-#endif
     {
       "swhite",        0, 0, RSSTOOL_SWHITE,
       NULL,   "strip whitespaces from description"
@@ -235,16 +219,6 @@ main (int argc, char **argv)
       "sdesc",        0, 0, RSSTOOL_SDESC,
       NULL,   "strip the whole description"
     },
-#if 0
-    {
-      "sd",        0, 0, RSSTOOL_SDESC,
-      NULL, NULL
-    },
-    {
-      "1",       0, 0, RSSTOOL_SDESC,
-      NULL, NULL
-    },
-#endif
 #warning --hack-google
     {
       "hack-google",        0, 0, RSSTOOL_HACK_GOOGLE,
@@ -443,7 +417,6 @@ main (int argc, char **argv)
           p = optarg;
           if (p)
             rsstool.strip_html_allow = p;
-          break;
           break;
 
         case RSSTOOL_SDESC:

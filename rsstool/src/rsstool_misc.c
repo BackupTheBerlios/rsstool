@@ -237,33 +237,34 @@ static st_tag_filter_t strip_html_filter[] = {
 char *
 rsstool_strip_html (char *html, const char *strip_html_allow)
 {
-#warning rsstool.strip_html_allow
-//  if (strip_html_allow)
+  int i = 0;
+  char buf[MAXBUFSIZE];
+  int argc = 0;
+#define MAX_TAGS 1024
+  char *arg[MAX_TAGS];
+  st_tag_filter_t filter[MAX_TAGS];
+
+  if (!strip_html_allow)
     {
-static st_tag_filter_t strip_html_filter2[] = {
-  {
-    "a",
-    strip_html_pass
-  },
-  {
-    "/a",
-    strip_html_pass
-  },
-  {
-    "br",
-    strip_html_br
-  },
-  {
-    "",
-    strip_html_nopass
-  }
-};
-
-
-//    xml_tag_filter (html, strip_html_filter2, 0);
+      xml_tag_filter (html, strip_html_filter, 0); // strip all
+      return html;
     }
-//  else
-    xml_tag_filter (html, strip_html_filter, 0); // strip all
+
+  strncpy (buf, strip_html_allow, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
+  argc = explode (arg, buf, ",", MAX_TAGS);
+  // DEBUG
+//  for (i = 0; i < argc && i < MAX_TAGS - 2; i++)
+//    printf ("arg[%d]==%s\n", i, arg[i]);
+
+  for (i = 0; i < argc && i < MAX_TAGS - 2; i++)
+    {
+      filter[i].start_tag = arg[i];
+      filter[i].filter = strip_html_pass;
+    }
+  filter[i].start_tag = "";
+  filter[i].filter = strip_html_nopass;
+
+  xml_tag_filter (html, filter, 0);
 
   return html;
 }
