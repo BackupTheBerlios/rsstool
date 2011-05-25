@@ -337,12 +337,14 @@ rsstool_add_item_s (st_rsstool_t *rt,
 {
   int i = 0;
   char buf[MAXBUFSIZE];
-  char site_s[RSSTOOL_MAXBUFSIZE],
+  char url_s[RSSTOOL_MAXBUFSIZE],
+       site_s[RSSTOOL_MAXBUFSIZE],
        title_s[RSSTOOL_MAXBUFSIZE],
        user_s[RSSTOOL_MAXBUFSIZE],
        media_keywords_s[RSSTOOL_MAXBUFSIZE],
        media_image_s[RSSTOOL_MAXBUFSIZE],
        desc_s[RSSTOOL_MAXBUFSIZE];
+  char *p = NULL;
   time_t event_start = date,
          event_end = 0;
 
@@ -362,6 +364,7 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (site_s, site, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (title_s, title, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (desc_s, desc, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  strncpy (url_s, url, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   if (user)
     strncpy (user_s, user, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   if (media_image)
@@ -381,6 +384,7 @@ rsstool_add_item_s (st_rsstool_t *rt,
     if (*media_keywords)
       strncpy (media_keywords_s, media_keywords, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
 
+  // HACK
   if (rt->hack_event)
     {
       if (!strstr (feed_url, "www.gamescast.tv"))
@@ -390,6 +394,40 @@ rsstool_add_item_s (st_rsstool_t *rt,
           event_start = rsstool_get_event_start (desc_s);
           event_end = rsstool_get_event_end (desc_s);
         }
+    }
+
+  // HACK: remove eventual google redirect
+  if (rt->hack_google)
+    {
+      if (strstr (url_s, "www.google.com"))
+        {
+          if ((p = strstr (url_s, "?q=")))
+            {
+              strmove (url_s, p + 3);
+              if ((p = strstr (url_s, "&source=")))
+                *p = 0;
+            }
+
+          // desc
+          if ((p = strstr (desc_s, "<div")))
+            *p = 0;
+        }
+      else if (strstr (url_s, "news.google.com"))
+        {
+          if ((p = strstr (url_s, "&url=")))
+            {
+              strmove (url_s, p + 5);
+              if ((p = strstr (url_s, "&usg=")))
+                *p = 0;
+            }
+        }
+    }
+
+  // HACK
+//  if (rt->hack_youtube)
+    {
+      if (strstr (url_s, "www.youtube.com"))
+        strrep (url_s, "&feature=youtube_gdata", "");
     }
 
   if (rsstool.strip_filter)
@@ -453,7 +491,7 @@ rsstool_add_item_s (st_rsstool_t *rt,
   strncpy (rt->item[i]->site, site_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->feed_url, feed_url, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   rt->item[i]->date = date;
-  strncpy (rt->item[i]->url, url, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+  strncpy (rt->item[i]->url, url_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->title, title_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->desc, desc_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   strncpy (rt->item[i]->user, user_s, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
