@@ -1,47 +1,46 @@
 // gcc soundex.c -o soundex
+#include <stdio.h>
+#include <string.h>
+
 
 const char *
 soundex2 (const char *s)
 {
-  const char *k = ' 123 12  22455 12623 1 2 2';
-  $u = strtoupper ($s);
-  $l = strlen ($s);
-  $d = $u[0];
+  int i;
+  const char *k = " 123 12  22455 12623 1 2 2";
+  char t = 0;
+  int l = strlen (s);
+  char d[1024];
+  int pos = 0;
 
-  $p = NULL;
-  for ($i = 0; $i < $l; $i++)
+  d[pos++] = toupper (s[0]);
+  d[pos] = 0;
+  for (i = 0; i < l && pos < 5; i++)
     {
-      $s = trim ($k[ord ($u[$i]) - 65]);
-      if ($s != $p)
+      char c = k[toupper (s[i]) - 'A'];
+      if (c == ' ')
+        continue;
+      if (c != t)
         {
-          if ($i > 0) $d .= $s;
-          $p = $s;
+          if (i > 0)
+            {
+              d[pos++] = c;
+              d[pos] = 0;
+            }
+          t = c;
         }
     }
 
-  return substr ($d.'000', 0, 4);
+  strcat (d, "000");
+  d[4] = 0;
+  return &d;
 }
 
 
-function
-strrand2 ($min = 3, $max = 10)
+int
+main (int argc, char *argv)
 {
-  $s = 'abcdefghijklmnopqrstuvwxyz';
-  $s_len = strlen ($s);
-  $l = mt_rand ($min, $max);
-
-  $p = '';
-  for ($i = 0; $i < $l; $i++)
-    $p .= $s[mt_rand (0, $s_len)];
-
-  return $p;
+  printf ("%s", soundex2 ("gwmcglmumh"));
+  return 0;
 }
 
-
-$p = strrand2 ();
-echo $p."\n";
-echo soundex ($p)."\n";
-echo soundex2 ($p)."\n";
-
-
-?>

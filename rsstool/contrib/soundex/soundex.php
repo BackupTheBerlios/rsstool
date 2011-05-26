@@ -13,11 +13,11 @@ soundex2 ($s)
   $p = NULL;
   for ($i = 0; $i < $l; $i++)
     {
-      $s = trim ($k[ord ($u[$i]) - 65]);
-      if ($s != $p)
+      $c = trim ($k[ord ($u[$i]) - 65]);
+      if ($c != $p)
         {
-          if ($i > 0) $d .= $s;
-          $p = $s;
+          if ($i > 0) $d .= $c;
+          $p = $c;
         }
     }
 
