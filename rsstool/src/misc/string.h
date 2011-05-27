@@ -241,8 +241,14 @@ TODO:  strfilter()  filter string with implied boolean logic
 extern int strfilter (const char *s, const char *implied_boolean_logic);
 
 
-//  misc_get_keywords()  extract keywords from a string
+/*
+  soundex2()           soundex implementation with output identical to the PHP soundex()
+  misc_get_keywords()  extract keywords from a string
+  misc_get_soundex_keywords()  extract soundex keywords from a string
+*/
+extern const char *soundex2 (const char *s);
 extern char *misc_get_keywords (char *s, int flag);
+extern char *misc_get_soundex_keywords (char *s, int flag);
 
 
 #ifdef  __cplusplus

@@ -36,6 +36,7 @@ typedef struct
 
   char title_keywords[RSSTOOL_MAXBUFSIZE]; // for related searches (min. word length: 2)
   char media_keywords[RSSTOOL_MAXBUFSIZE]; // default: keywords from title and description
+  char soundex_keywords[RSSTOOL_MAXBUFSIZE]; // default: soundex keywords from title and description
   unsigned long int media_duration; //  default: 0 seconds
   char media_image[FILENAME_MAX];   //  e.g. thumbnail
 
@@ -76,6 +77,7 @@ typedef struct
   // HACK: temporary and not shown in usage
   int hack_google; // remove un-escaped <em> tags
   int hack_event;
+  int hack_soundex;
 
   char temp_file[FILENAME_MAX];
   FILE *input_file;

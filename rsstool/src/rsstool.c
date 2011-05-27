@@ -230,6 +230,11 @@ main (int argc, char **argv)
       NULL,   NULL // gather a start time and length from description
                      // for temporary events like broadcast shedules
     },
+#warning --hack-soundex
+    {
+      "hack-soundex",        0, 0, RSSTOOL_HACK_SOUNDEX,
+      NULL,   NULL // also generate soundex style keywords
+    },
     {
       "fixdate", 0, 0, RSSTOOL_FIXDATE,
       NULL,  "missing dates will be replaced with the current date"
@@ -441,6 +446,10 @@ main (int argc, char **argv)
 
         case RSSTOOL_HACK_EVENT:
           rsstool.hack_event = 1;
+          break;
+
+        case RSSTOOL_HACK_SOUNDEX:
+          rsstool.hack_soundex = 1;
           break;
 
         case RSSTOOL_U:
