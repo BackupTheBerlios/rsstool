@@ -81,27 +81,27 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
        ."\n"
        .'-- DROP TABLE IF EXISTS rsstool_table;'."\n"
        .'-- CREATE TABLE rsstool_table ('."\n"
-       .'--   rsstool_url_md5 varchar(32) NOT NULL default \'\','."\n"
+//       .'--   rsstool_url_md5 varchar(32) NOT NULL default \'\','."\n"
        .'--   rsstool_url_crc32 int(10) unsigned NOT NULL default \'0\','."\n"
        .'--   rsstool_site text NOT NULL,'."\n"
        .'--   rsstool_dl_url text NOT NULL,'."\n"
-       .'--   rsstool_dl_url_md5 varchar(32) NOT NULL default \'\','."\n"
+//       .'--   rsstool_dl_url_md5 varchar(32) NOT NULL default \'\','."\n"
        .'--   rsstool_dl_url_crc32 int(10) unsigned NOT NULL default \'0\','."\n"
        .'--   rsstool_title text NOT NULL,'."\n"
-       .'--   rsstool_title_md5 varchar(32) NOT NULL default \'\','."\n"
+//       .'--   rsstool_title_md5 varchar(32) NOT NULL default \'\','."\n"
        .'--   rsstool_title_crc32 int(10) unsigned NOT NULL default \'0\','."\n"
        .'--   rsstool_desc text NOT NULL,'."\n"
        .'--   rsstool_date bigint(20) unsigned NOT NULL default \'0\','."\n"
        .'--   rsstool_dl_date bigint(20) unsigned NOT NULL default \'0\','."\n"
        .'--   rsstool_keywords text NOT NULL,'."\n"
        .'--   rsstool_media_duration bigint(20) unsigned NOT NULL default \'0\','."\n"
-//       .'--   rsstool_image text NOT NULL,'."\n"
+       .'--   rsstool_image text NOT NULL,'."\n"
        .'--   rsstool_event_start bigint(20) unsigned NOT NULL default \'0\','."\n"
        .'--   rsstool_event_end bigint(20) unsigned NOT NULL default \'0\','."\n"
        .'--   UNIQUE KEY rsstool_url_crc32 (rsstool_url_crc32),'."\n"
-       .'--   UNIQUE KEY rsstool_url_md5 (rsstool_url_md5),'."\n"
+//       .'--   UNIQUE KEY rsstool_url_md5 (rsstool_url_md5),'."\n"
        .'--   UNIQUE KEY rsstool_title_crc32 (rsstool_title_crc32),'."\n"
-       .'--   UNIQUE KEY rsstool_title_md5 (rsstool_title_md5),'."\n"
+//       .'--   UNIQUE KEY rsstool_title_md5 (rsstool_title_md5),'."\n"
        .'--   FULLTEXT KEY rsstool_title (rsstool_title),'."\n"
        .'--   FULLTEXT KEY rsstool_desc (rsstool_desc)'."\n"
        .'-- ) TYPE=MyISAM;'."\n"
@@ -110,34 +110,41 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
   for ($i = 0; $i < $items; $i++)
     {
       $p .= 'INSERT IGNORE INTO rsstool_table ('
-           .' rsstool_dl_url, rsstool_dl_url_md5, rsstool_dl_url_crc32,'
-           .' rsstool_dl_date, rsstool_site,'
-           .' rsstool_url, rsstool_url_md5, rsstool_url_crc32,'
+           .' rsstool_dl_url,'
+//           .' rsstool_dl_url_md5,'
+           .' rsstool_dl_url_crc32,'
+           .' rsstool_dl_date,'
+           .' rsstool_site,'
+           .' rsstool_url,'
+//           .' rsstool_url_md5,'
+           .' rsstool_url_crc32,'
            .' rsstool_date,'
-           .' rsstool_title, rsstool_title_md5, rsstool_title_crc32,'
+           .' rsstool_title,'
+//           .' rsstool_title_md5,'
+           .' rsstool_title_crc32,'
            .' rsstool_desc,'
            .' rsstool_media_keywords,'
            .' rsstool_media_duration,'
-//           .' rsstool_image,'
+           .' rsstool_image,'
            .' rsstool_event_start,'
            .' rsstool_event_end'
            .' ) VALUES ('
            .' \''.misc_sql_stresc ($xml->item[$i]->dl_url, $db_conn).'\','
-           .' \''.$xml->item[$i]->dl_url_md5.'\','
+//           .' \''.$xml->item[$i]->dl_url_md5.'\','
            .' \''.$xml->item[$i]->dl_url_crc32.'\','
            .' \''.$xml->item[$i]->dl_date.'\','
            .' \''.misc_sql_stresc ($xml->item[$i]->site, $db_conn).'\','
            .' \''.misc_sql_stresc ($xml->item[$i]->url, $db_conn).'\','
-           .' \''.$xml->item[$i]->url_md5.'\','
+//           .' \''.$xml->item[$i]->url_md5.'\','
            .' \''.$xml->item[$i]->url_crc32.'\','
            .' \''.$xml->item[$i]->date.'\','
            .' \''.misc_sql_stresc ($xml->item[$i]->title, $db_conn).'\','
-           .' \''.$xml->item[$i]->title_md5.'\','
+//           .' \''.$xml->item[$i]->title_md5.'\','
            .' \''.$xml->item[$i]->title_crc32.'\','
            .' \''.misc_sql_stresc ($xml->item[$i]->desc, $db_conn).'\','
            .' \''.misc_sql_stresc ($xml->item[$i]->media_keywords, $db_conn).'\','
            .' \''.($xml->item[$i]->media_duration * 1).'\','
-//           .' \''.$xml->item[$i]->image.'\','  
+           .' \''.$xml->item[$i]->image.'\','  
            .' \''.($xml->item[$i]->event_start * 1).'\','
            .' \''.($xml->item[$i]->event_end * 1).'\');'
            ."\n";
@@ -147,7 +154,7 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
         $p .= '-- ';
       $p .= 'UPDATE rsstool_table SET '
            .' rsstool_title = \''.misc_sql_stresc ($xml->item[$i]->title, $db_conn).'\','
-           .' rsstool_title_md5 = \''.$xml->item[$i]->title_md5.'\','
+//           .' rsstool_title_md5 = \''.$xml->item[$i]->title_md5.'\','
            .' rsstool_title_crc32 = \''.$xml->item[$i]->title_crc32.'\','
            .' rsstool_desc = \''.misc_sql_stresc ($xml->item[$i]->desc, $db_conn).'\''
            .' WHERE rsstool_url_crc32 = '.$xml->item[$i]->url_crc32

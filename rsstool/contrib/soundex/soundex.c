@@ -10,7 +10,7 @@ soundex2 (const char *s)
   const char *k = " 123 12  22455 12623 1 2 2";
   char t = 0;
   int l = strlen (s);
-  char d[1024];
+  static char d[32];
   int pos = 0;
 
   d[pos++] = toupper (s[0]);
@@ -26,14 +26,17 @@ soundex2 (const char *s)
             {
               d[pos++] = c;
               d[pos] = 0;
-            }
+            }   
           t = c;
         }
     }
+  strcpy (&d[pos], "000");
+  d[4] = 0; 
 
-  strcat (d, "000");
-  d[4] = 0;
-  return &d;
+  // DEBUG
+//  printf ("%d %s\n", pos, d);
+
+  return d;
 }
 
 
