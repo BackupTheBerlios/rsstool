@@ -370,20 +370,16 @@ rsstool_add_item_s (st_rsstool_t *rt,
     strncpy (user_s, user, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
   if (media_image)
     strncpy (media_image_s, media_image, RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
-
-  *buf = 0;
-  if (rt->strip_keywords == 2)
-    strncpy (buf, desc ? desc : "", MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-  else if (rt->strip_keywords == 1)
-    strncpy (buf, title ? title : "", MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
-  else
-    snprintf (buf, MAXBUFSIZE, "%s %s", title ? title : "", desc ? desc : "");
+//                  OPTION=0 from both title and description (default)
+//                  OPTION=1 from title only
+//                  OPTION=2 from description only
+  snprintf (buf, MAXBUFSIZE, "%s %s %s",
+            ((rt->strip_keywords != 2 && title) ? title : ""),
+            ((rt->strip_keywords != 1 && desc) ? desc : ""),
+            ((rt->strip_keywords == 0 && media_keywords) ? media_keywords : ""));  // IF media:keywords are present use them instead
   rsstool_strip_html (buf, NULL); // remove links too
-  // IF media:keywords are present use them instead
-  if (media_keywords)   
-    if (*media_keywords)
-      strncpy (buf, media_keywords, MAXBUFSIZE)[MAXBUFSIZE - 1] = 0;
   strncpy (media_keywords_s, misc_get_keywords (buf, 0), RSSTOOL_MAXBUFSIZE)[RSSTOOL_MAXBUFSIZE - 1] = 0;
+
   // HACK
   if (rt->hack_soundex)
     {
