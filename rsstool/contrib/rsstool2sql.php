@@ -55,6 +55,41 @@ misc_exec ($cmdline, $debug = 0)
 
 
 function
+misc_crc16 ($s, $crc = 0)
+{
+  $len = strlen ($s);
+  for ($i = 0; $i < $len; $i++)
+    {
+      $crc ^= ord ($s[$i]);
+      for ($j = 0; $j < 8; $j++)
+        if (($crc & 1) == 1)
+          $crc = ($crc >> 1) ^ 0xa001;
+        else
+          $crc >>= 1;
+    }
+
+  return $crc;
+}
+
+
+function
+misc_crc24 ($s, $crc = 0xb704ce)
+{
+  for ($n = 0; $n < strlen ($s); $n++)
+    {
+      $crc ^= (ord($s[$n]) & 0xff) << 0x10;
+      for ($i = 0; $i < 8; $i++)
+        {
+          $crc <<= 1;
+          if ($crc & 0x1000000) $crc ^= 0x1864cfb;
+        }
+    }
+ 
+  return ((($crc >> 0x10) & 0xff) << 16) | ((($crc >> 0x8) & 0xff) << 8) | ($crc & 0xff);
+}
+
+
+function
 misc_sql_stresc ($s, $db_conn = NULL)
 {
   if ($db_conn)
@@ -68,11 +103,10 @@ misc_sql_stresc ($s, $db_conn = NULL)
 
 
 function
-rsstool_write_ansisql ($xml, $db_conn = NULL)
+rsstool_write_ansisql ($xml, $tv2_category, $db_conn = NULL)
 {
   $sql_update = 0;
-  $items = count ($xml->item);
-
+  $tv2_engine = 0;
   $p = '';
 
   $p .= '-- -----------------------------------------------------------'."\n"
@@ -107,8 +141,23 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
        .'-- ) TYPE=MyISAM;'."\n"
        ."\n";
 
+  $p .= ''
+       .'-- DROP TABLE IF EXISTS rsstool_table;'."\n"
+       .'-- CREATE TABLE IF NOT EXISTS keyword_table ('."\n"
+//       .'--   rsstool_url_md5 varchar(32) NOT NULL,'."\n"
+       .'--   rsstool_url_crc32 int(10) unsigned NOT NULL,'."\n"
+       .'--   rsstool_keyword_crc32 int(10) unsigned NOT NULL,'."\n"
+       .'--   rsstool_keyword_crc24 int(10) unsigned NOT NULL,'."\n"
+       .'--   rsstool_keyword_crc16 smallint(5) unsigned NOT NULL,'."\n"
+       .'--   PRIMARY KEY (rsstool_url_crc32,rsstool_keyword_crc16),'."\n"
+       .'--   KEY rsstool_keyword_16bit (rsstool_keyword_crc16)'."\n"
+       .'-- ) ENGINE=MyISAM DEFAULT CHARSET=utf8;'."\n"
+       ."\n";
+
+  $items = count ($xml->item);
   for ($i = 0; $i < $items; $i++)
     {
+      // rsstool_table
       $p .= 'INSERT IGNORE INTO rsstool_table ('
            .' rsstool_dl_url,'
 //           .' rsstool_dl_url_md5,'
@@ -123,12 +172,18 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
 //           .' rsstool_title_md5,'
            .' rsstool_title_crc32,'
            .' rsstool_desc,'
-           .' rsstool_media_keywords,'
+//           .' rsstool_media_keywords,'
+           .' rsstool_keywords,'
            .' rsstool_media_duration,'
            .' rsstool_image,'
            .' rsstool_event_start,'
-           .' rsstool_event_end'
-           .' ) VALUES ('
+           .' rsstool_event_end';
+
+      // HACK: tv2 category
+      if ($tv2_engine == 1)
+        $p .= ', tv2_category, tv2_moved';
+
+      $p .= ' ) VALUES ('
            .' \''.misc_sql_stresc ($xml->item[$i]->dl_url, $db_conn).'\','
 //           .' \''.$xml->item[$i]->dl_url_md5.'\','
            .' \''.$xml->item[$i]->dl_url_crc32.'\','
@@ -146,9 +201,15 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
            .' \''.($xml->item[$i]->media_duration * 1).'\','
            .' \''.$xml->item[$i]->image.'\','  
            .' \''.($xml->item[$i]->event_start * 1).'\','
-           .' \''.($xml->item[$i]->event_end * 1).'\');'
-           ."\n";
+           .' \''.($xml->item[$i]->event_end * 1).'\'';
 
+      // HACK: tv2 category
+      if ($tv2_engine == 1)
+        $p .= ', \''.$tv2_category.'\', \''.$tv2_category.'\'';
+
+      $p .= ' );'."\n";
+
+      // UPDATE rsstool_table
       $p .= '-- just update if row exists'."\n";
       if ($sql_update == 0)
         $p .= '-- ';
@@ -160,6 +221,25 @@ rsstool_write_ansisql ($xml, $db_conn = NULL)
            .' WHERE rsstool_url_crc32 = '.$xml->item[$i]->url_crc32
            .';'
            ."\n";
+
+      // keyword_table
+      $a = explode (' ', $xml->item[$i]->media_keywords);
+      for ($j = 0; isset ($a[$j]); $j++)
+        if (trim ($a[$j]) != '')
+          $p .= 'INSERT IGNORE INTO keyword_table ('
+//               .' rsstool_url_md5,'
+               .' rsstool_url_crc32,'
+               .' rsstool_keyword_crc32,'
+               .' rsstool_keyword_crc24,'
+               .' rsstool_keyword_crc16'
+               .' ) VALUES ('
+//               .' \''.$xml->item[$i]->url_md5.'\','
+               .' '.$xml->item[$i]->url_crc32.','
+               .' '.sprintf ("%u", crc32 ($a[$j])).','
+               .' '.sprintf ("%u", misc_crc24 ($a[$j])).','
+               .' '.misc_crc16 ($a[$j])
+               .' );'
+               ."\n";
     }
 
   return $p;
