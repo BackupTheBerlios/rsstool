@@ -9,4 +9,10 @@ xmlget/        small tool for using XPath queries on XML documents
 rsstool2sql.php  script to convert rsstool proprietary XML into SQL
 
 soundex/       soundex() (re-)implementations in C and PHP with identical output
+                 NOTE: because soundex() is not a checksum but rather a very lossy
+                         speechcodec there are as many different implementations
+                         of soundex() as there are languages
+                       So do use these soundex() functions or your own implementation
+                        or just go with good old crc for creating a keyword index and
+                        avoid language hell
 </tt></body></html>
