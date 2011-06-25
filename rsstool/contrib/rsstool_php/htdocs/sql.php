@@ -130,15 +130,12 @@ sql_read ($assoc = 0, $debug = 0)
 
   if ($debug == 1)
     {
-      $p = '<tt>';
-      $i_max = sizeof ($a);
-      for ($i = 0; $i < $i_max; $i++)
-        {
-          $p .= implode (' ', $a[$i]);
-          $p .= '</tt><br>';
-        }
-
+      $p = '';
+//      echo '<pre><tt>';
+      for ($i = 0; isset ($a[$i]); $i++)
+        $p .= implode (' ', $a[$i]).'<br>';
       echo $p;
+//      echo '</tt></pre>';
     }
 
   return $a;
@@ -181,11 +178,12 @@ sql_getrow ($row, $assoc = 0, $debug = 0)
 
   if ($debug == 1)
     {
-      $p = '<tt>';
-      $p .= implode (' ', $a);
-      $p .= '</tt><br>';
-
+      $p = '';
+//      echo '<pre><tt>';
+      for ($i = 0; isset ($a[$i]); $i++)
+        $p .= implode (' ', $a[$i]).'<br>';
       echo $p;
+//      echo '</tt></pre>';
     }
 
   return $a;
@@ -307,7 +305,8 @@ sql_get_table_rows ($table)
   return $a[0][0];
 }
 
-}
+
+} // class misc_sql
 
 
 }
