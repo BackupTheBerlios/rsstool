@@ -215,13 +215,6 @@ rsstool_write_xml (st_rsstool_t *rt)
 
       XMLPRINTF("\n    ");
 
-      if (rt->hack_soundex)
-        {
-          xmlTextWriterWriteFormatElement (writer, BAD_CAST "soundex_keywords", "%s", ENCODE (rt->item[i]->soundex_keywords));
-
-          XMLPRINTF("\n    ");
-        }
-
       xmlTextWriterWriteFormatElement (writer, BAD_CAST "media_keywords", "%s", ENCODE (rt->item[i]->media_keywords));
 
       XMLPRINTF("\n    ");
@@ -352,7 +345,6 @@ rsstool_write_xml (st_rsstool_t *rt)
                "    <title_crc32>%u</title_crc32>\n"
                "    <desc>%s</desc>\n"
                "    <media_keywords>%s</media_keywords>\n"
-               "    <soundex_keywords>%s</soundex_keywords>\n"
                "    <media_duration>%d</media_duration>\n"
                "    <media_thumbnail>%s</media_thumbnail>\n"
 //               "    <media_image>%s</media_image>\n"
@@ -374,7 +366,6 @@ rsstool_write_xml (st_rsstool_t *rt)
         hash_get_crc32 (title_h),
         ENCODE (rt->item[i]->desc),
         ENCODE (rt->item[i]->media_keywords),
-        ENCODE (rt->item[i]->soundex_keywords),
         rt->item[i]->media_duration,
         str_escape_xml (rt->item[i]->media_thumbnail)
 //        str_escape_xml (rt->item[i]->media_image),

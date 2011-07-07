@@ -443,7 +443,7 @@ st_configure_in_t configure_in[] = {
 #endif
 #if 1
   { 
-    {"libcurl.so", NULL},
+    {NULL},
     {"curl/curl.h", NULL},
     {"curl-config", NULL},
     "USE_CURL=1\n"  
