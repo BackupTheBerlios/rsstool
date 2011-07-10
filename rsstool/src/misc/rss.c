@@ -579,6 +579,8 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
           const char *p = NULL;
           char link[RSSMAXBUFSIZE], guid[RSSMAXBUFSIZE];
 
+printf ("SHIT");
+fflush (stdout);
           *link = *guid = 0;
 
           while (pnode)
@@ -648,6 +650,13 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
               else if (stristr (xml_get_name (pnode), "group")) // media:group
                 {
                   rss_open_rss_mrss (pnode, item);
+                }
+              else if (!strcasecmp (xml_get_name (pnode), "author") ||
+                       !strcasecmp (xml_get_name (pnode), "dc:creator") ||
+                       !strcasecmp (xml_get_name (pnode), "creator"))
+                {
+                    rss_read_copy (item->user, xml_get_childnode (pnode));
+//                  found = 1;
                 }
 #if 0
               else
