@@ -579,8 +579,6 @@ rss_open_rss (st_rss_t *rss, const char *encoding)
           const char *p = NULL;
           char link[RSSMAXBUFSIZE], guid[RSSMAXBUFSIZE];
 
-printf ("SHIT");
-fflush (stdout);
           *link = *guid = 0;
 
           while (pnode)
