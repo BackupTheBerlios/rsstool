@@ -430,6 +430,7 @@ xml_tag_get_value (const char *tag, const char *value_name)
 unsigned long
 xml_tag_filter (char *str, st_tag_filter_t *f, unsigned long continuous_flag)
 {
+#warning TODO: use href as url when filter A tags
   int in_tag = continuous_flag;
   char *bak = strdup (str);
   char *s = bak;
