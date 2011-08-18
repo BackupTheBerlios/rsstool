@@ -24,6 +24,19 @@ if (!defined ('MISC_SQL_PHP'))
 define ('MISC_SQL_PHP', 1);
 
 
+function
+misc_sql_stresc ($s, $db_conn = NULL)
+{
+  if ($db_conn)
+    return mysql_real_escape_string ($s, $db_conn);
+  if (function_exists ('mysql_escape_string'))
+    return mysql_escape_string ($s); // deprecated
+  echo 'WARNING: neither mysql_real_escape_string() or mysql_escape_string() could be found/used'."\n"
+      .'         making this script vulnerable to SQL injection attacks'."\n";
+  return $s;
+}
+
+
 class misc_sql
 {
 protected $host = NULL;
@@ -42,7 +55,8 @@ function
 sql_stresc ($s)
 {
 //  return mysql_escape_string ($s); // deprecated
-  return mysql_real_escape_string ($s, $this->conn);
+//  return mysql_real_escape_string ($s, $this->conn);
+  return misc_sql_stresc ($s, $this->conn);                        
 }
 
 
