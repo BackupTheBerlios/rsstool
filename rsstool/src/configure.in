@@ -447,9 +447,13 @@ st_configure_in_t configure_in[] = {
     {"curl/curl.h", NULL},
     {"curl-config", NULL},
     "USE_CURL=1\n"  
+    "USE_TCP=1\n" 
+    "USE_HTTP=1\n"
     "CFLAGS+=`curl-config --cflags`\n"
     "LDFLAGS+=`curl-config --libs`\n",
-    "#define USE_CURL\n",
+    "#define USE_CURL\n"
+    "#define USE_TCP\n"
+    "#define USE_HTTP\n",
     "libcurl support...................   yes",
     "libcurl support...................   no\n"
     "*** instead a internal http client will be used :(\n"

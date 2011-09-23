@@ -108,8 +108,9 @@ main (int argc, char **argv)
               "\n"
               "Supported feeds:\n"
               " RW xml             RSS 0.9x, 1.0, 2.0\n"
-//              " RW                 Media RSS 1.0, 1.1.x, 1.5.0\n"
+              "  W xml             Media RSS " /* "1.0, 1.1.x, " */ "1.5.0\n"
               " R  xml             Atom 0.1, 0.2, 0.3, 1.0\n"
+              "  W xml             RSScache 0.9.6\n"
               "\nThe RSS or Atom feeds will be merged and re-sorted if you enter more than\n"
               "one URL or FILEname\n"
     },
@@ -262,9 +263,10 @@ main (int argc, char **argv)
       "rss",       2, 0, RSSTOOL_RSS,
       "TYPE",   "output as new feed\n"
                    "TYPE=1 will write RSS v1.0\n"
-                   "TYPE=2 will write RSS v2.0 (default)" // "\n"
+                   "TYPE=2 will write RSS v2.0 (default)\n"
 #warning finish support for writing proper Media RSS
-//                   "TYPE=3 will write Media RSS v1.5.0"
+                   "TYPE=3 will write Media RSS v1.5.0\n"
+                   "TYPE=4 will write RSScache 0.9.6"
     },
     {
       "xml",       0, 0, RSSTOOL_XML,
