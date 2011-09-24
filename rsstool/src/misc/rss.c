@@ -864,7 +864,7 @@ rss_close (st_rss_t *rss)
 
 
 int
-rss_write (FILE *fp, st_rss_t *rss, int type)
+generate_rss2 (FILE *fp, st_rss_t *rss, int type, int use_mrss, int use_rsscache, const char *xsl_stylesheet)
 {
 #define XMLPRINTF(s) xmlTextWriterWriteString(writer,BAD_CAST s)
   xmlTextWriterPtr writer;
@@ -1012,6 +1012,295 @@ rss_write (FILE *fp, st_rss_t *rss, int type)
 }
 
 
+int
+rss_write (FILE *fp, st_rss_t *rss, int type)
+{
+  return generate_rss2 (fp, rss, type, 1, 1, NULL);
+}
+
+
+function
+misc_xml_escape ($s)
+{
+  if ($s != htmlspecialchars ($s, ENT_QUOTES))
+    return '<![CDATA['.$s.']]>';
+  return $s;
+}
+
+
+function
+generate_rss2_func ($item, $a, $whitespace = '      ')
+{
+  $p = '';
+  for ($i = 0; isset ($a[$i]); $i++)
+    if (isset ($item[$a[$i]]))
+      {
+        $t = $a[$i];
+
+        // DEBUG
+//        echo '<pre><tt>';
+//        print_r ($item);
+//        echo $t;
+
+//        if (isset ($item[$t]))
+          $p .= $whitespace.'<'.$t.'>'
+               .(is_string ($item[$t]) ? misc_xml_escape ($item[$t]) : sprintf ("%u", $item[$t]))
+               .'</'.$t.'>'."\n";
+      }
+  return $p;
+}
+
+
+//int
+//rss_write (FILE *fp, st_rss_t *rss, int type)
+//function
+//generate_rss2 ($channel, $item, $use_mrss = 0, $use_rsscache = 0, $xsl_stylesheet = NULL)
+int
+generate_rss2 (FILE *fp, st_rss_t *rss, int type, int use_mrss, int use_rsscache, const char *xsl_stylesheet)
+{
+  // DEBUG
+//  echo '<pre><tt>';
+//  print_r ($channel);
+//  print_r ($item);
+
+  $use_cms = 0; 
+  if ($use_rsscache == 1)
+    $use_cms = 1;
+
+  $p = '';
+
+  $p .= '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+
+  if ($xsl_stylesheet)
+    $p .= '<?xml-stylesheet href="'.$xsl_stylesheet.'" type="text/xsl"?>'."\n";
+
+  $p .= '<rss version="2.0"';
+
+  // base
+//  $p .= ' xml:base="http://rsscache.a1.25u.com/"';
+
+  if ($use_mrss == 1)
+    $p .= ' xmlns:media="http://search.yahoo.com/mrss/"';
+
+  if ($use_rsscache == 1)
+    $p .= ' xmlns:rsscache="data:,rsscache"';
+
+  if ($use_cms == 1)
+    $p .= ' xmlns:cms="data:,cms"';
+
+  $p .= '>'."\n";
+
+  $p .= '  <channel>'."\n"
+;
+
+$a = array (
+           'title',
+           'link',
+           'description',
+           'docs',
+);
+
+   $p .= generate_rss2_func ($channel, $a, '    ');
+
+  if (isset ($channel['lastBuildDate']))
+    $p .= '    <lastBuildDate>'.strftime ("%a, %d %h %Y %H:%M:%S %z", $channel['lastBuildDate']).'</lastBuildDate>'."\n";
+
+  if (isset ($channel['image']))
+    $p .= ''
+//       .'    <language>en</language>'."\n"
+       .'    <image>'."\n"
+       .'      <title>'.misc_xml_escape ($channel['title']).'</title>'."\n"
+       .'      <url>'.$channel['image'].'</url>'."\n"
+       .'      <link>'.misc_xml_escape ($channel['link']).'</link>'."\n"
+//       .'      <width></width>'."\n"
+//       .'      <height></height>'."\n"
+       .'    </image>'."\n"
+;
+
+$a = array (
+//           'rsscache:stats_category',
+           'rsscache:stats_items',
+           'rsscache:stats_days',
+           'rsscache:stats_items_today',
+           'rsscache:stats_items_7_days',
+           'rsscache:stats_items_30_days',
+);
+
+   $p .= generate_rss2_func ($channel, $a, '    ');
+
+  // items
+//  for ($i = 0; isset ($item[$i]['link']); $i++)
+  for ($i = 0; isset ($item[$i]); $i++)
+    {
+      $p .= '    <item>'."\n";
+
+$a = array (
+           'title',
+           'link',
+           'description',
+           'category',
+           'author',
+           'comments',
+);
+   $p .= generate_rss2_func ($item[$i], $a);
+
+//                <pubDate>Fri, 05 Aug 2011 15:03:02 +0200</pubDate>
+      if (isset ($item[$i]['pubDate']))
+        $p .= ''
+             .'      <pubDate>'
+             .strftime (
+                "%a, %d %h %Y %H:%M:%S %z",
+//                "%a, %d %h %Y %H:%M:%S %Z",
+                $item[$i]['pubDate'])
+             .'</pubDate>'."\n"
+;
+        if (isset ($item[$i]['enclosure']))
+          {
+            $suffix = strtolower (get_suffix ($item[$i]['enclosure']));
+
+            // HACK
+            if ($suffix == '.jpg') $suffix = '.jpeg';
+
+            // TODO: get filesize from db
+            $p .= '      <enclosure url="'.$item[$i]['enclosure'].'"'
+//                 .' length=""'
+                 .' type="image/'.substr ($suffix, 1).'" />'."\n"
+;
+          }
+
+      // mrss
+      if ($use_mrss == 1)
+        {
+//      $p .= '    <media:group>'."\n";
+
+//      $p .= '      <media:category scheme="">'.'</media:category>';
+
+      if (isset ($item[$i]['media:thumbnail']))
+        $p .= '      <media:thumbnail url="'.$item[$i]['media:thumbnail'].'" media:url="'.$item[$i]['media:thumbnail'].'" />'."\n";
+
+$a = array (
+           'media:duration',
+           'media:keywords',
+           'media:embed',
+);
+  
+   $p .= generate_rss2_func ($item[$i], $a);
+
+
+/*
+        <media:content 
+               url="http://www.foo.com/movie.mov"
+               fileSize="12216320" 
+               type="video/quicktime"
+               medium="video"
+               isDefault="true"
+               expression="full"
+               bitrate="128"
+               framerate="25"
+               samplingrate="44.1"
+               channels="2"
+               duration="185"
+               height="200"
+               width="300"
+               lang="en" />
+*/ 
+
+for ($j = 0; isset ($item[$i]['media:content_'.$j.'_url']); $j++)
+  {
+    if (isset ($item[$i]['media:content_'.$j.'_url']))
+      $p .= '      <media:content url="'.$item[$i]['media:content_'.$j.'_url'].'"'
+//           .' media:url="'.$item[$i]['media:content_'.$j.'_url'].'"'
+           .' medium="'.$item[$i]['media:content_'.$j.'_medium'].'"'
+           .' />'."\n";
+  }
+
+//      $p .= '      </media:group>'."\n";
+        }
+
+      // rsscache
+      if ($use_rsscache == 1)
+        {
+//      $p .= '    <rsscache:group>'."\n";
+
+      if (isset ($item[$i]['pubDate']))
+        $p .= '      <rsscache:pubDate>'.sprintf ("%u", $item[$i]['pubDate']).'</rsscache:pubDate>'."\n";
+
+$a = array (
+           'rsscache:category_title',
+           'rsscache:dl_date',
+           'rsscache:related_id',
+           'rsscache:event_start',
+           'rsscache:event_end',
+           'rsscache:url_crc32',
+           'rsscache:movable',
+           'rsscache:reportable',
+           'rsscache:votable',
+           'rsscache:table_suffix',
+//           'rsscache:download',
+);
+
+   $p .= generate_rss2_func ($item[$i], $a);
+  // DEBUG
+//  echo '<pre><tt>';
+//  print_r ($channel);
+//  print_r ($item);
+
+for ($j = 0; isset ($item[$i]['rsscache:feed_'.$j.'_link']); $j++)
+  {
+    $p .= '      <rsscache:feed>'."\n";
+    if (isset ($item[$i]['rsscache:feed_'.$j.'_exec']))
+      $p .= '        <rsscache:exec>'.misc_xml_escape ($item[$i]['rsscache:feed_'.$j.'_exec']).'</rsscache:exec>'."\n";
+    if (isset ($item[$i]['rsscache:feed_'.$j.'_link']))
+      $p .= '        <rsscache:link>'.misc_xml_escape ($item[$i]['rsscache:feed_'.$j.'_link']).'</rsscache:link>'."\n";
+    $p .= '      </rsscache:feed>'."\n";
+  }
+
+//      $p .= '      </rsscache:group>'."\n";
+        }
+$a = array (
+           'rsscache:stats_category',
+           'rsscache:stats_items',
+           'rsscache:stats_days',
+           'rsscache:stats_items_today',
+           'rsscache:stats_items_7_days',
+           'rsscache:stats_items_30_days',
+);
+
+   $p .= generate_rss2_func ($item[$i], $a);
+
+      // CMS
+      if ($use_cms == 1)
+        {
+//          $p .= '    <cms:group>'."\n";
+
+            $a = array (
+            'cms:separate',
+            'cms:button_only',
+            'cms:status',
+            'cms:select',
+            'cms:local',
+            'cms:iframe',
+            'cms:proxy',
+//            'cms:query',
+            'cms:demux',
+);
+
+   $p .= generate_rss2_func ($item[$i], $a);
+
+//          $p .= '    </cms:group>'."\n";
+        }
+
+      $p .= '    </item>'."\n";
+    }
+
+  $p .= '  </channel>'."\n";
+
+  $p .= '</rss>'."\n";
+
+  return $p;
+}
+
+
 #if 0
 // TODO: escape html code in desc
   unsigned int i = 0;
@@ -1073,3 +1362,5 @@ rss_write (FILE *fp, st_rss_t *rss, int type)
 
   fputs ("</rss>\n", fp);
 #endif
+
+

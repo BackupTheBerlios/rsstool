@@ -373,8 +373,12 @@ st_configure_in_t configure_in[] = {
     {NULL},
     "USE_TCP=1\n"
     "USE_HTTP=1\n",
-    "#define USE_TCP 1\n"
-    "#define USE_HTTP 1\n",
+    "#ifndef USE_TCP\n"
+    "#define USE_TCP 1\n"  
+    "#endif\n"
+    "#ifndef USE_HTTP\n"
+    "#define USE_HTTP 1\n" 
+    "#endif\n",
     "network support...................   yes",
     "network support...................   no\n"
     "*** could not find sys/socket.h and probably other files required for\n"
@@ -452,8 +456,12 @@ st_configure_in_t configure_in[] = {
     "CFLAGS+=`curl-config --cflags`\n"
     "LDFLAGS+=`curl-config --libs`\n",
     "#define USE_CURL\n"
-    "#define USE_TCP\n"
-    "#define USE_HTTP\n",
+    "#ifndef USE_TCP\n"
+    "#define USE_TCP 1\n"
+    "#endif\n"
+    "#ifndef USE_HTTP\n"
+    "#define USE_HTTP 1\n"
+    "#endif\n",
     "libcurl support...................   yes",
     "libcurl support...................   no\n"
     "*** instead a internal http client will be used :(\n"
